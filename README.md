@@ -14,6 +14,8 @@ Log timestamp and three temperature values, taken five seconds apart, to a Googl
 
     python log_temp.py -n 3 -d 5 -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
 
+Set up a cron job, use it in a daemon, the world's your oyster...as long as the world is temperature values read from the MCP9808.
+
 ## Prerequisites
 
 Adafruit have a tutorial with information on wiring up the hardware: https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
@@ -23,7 +25,7 @@ Reading from the sensor requires your board's GPIO library plus the [Adafruit MC
     # Raspberry Pi
     pip install --upgrade RPi.GPIO
 
-    # Beaglebone Black
+    # BeagleBone Black
     pip install --upgrade Adafruit_BBIO
 
     git clone https://github.com/adafruit/Adafruit_Python_MCP9808.git

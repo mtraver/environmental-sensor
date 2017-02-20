@@ -2,9 +2,6 @@
 
 Log temperature from an MCP9808 sensor connected to a Raspberry Pi or BeagleBone Black.
 
-Adafruit have a great tutorial on wiring it up and using their Python library for reading temperature over I<sup>2</sup>C: https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
-
-
 Print timestamp and temperature to stdout:
 
     python log_temp.py
@@ -18,6 +15,8 @@ Log timestamp and three temperature values, taken five seconds apart, to a Googl
     python log_temp.py -n 3 -d 5 -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
 
 ## Prerequisites
+
+Adafruit have a tutorial with information on wiring up the hardware: https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
 
 Reading from the sensor requires your board's GPIO library plus the [Adafruit MCP9808 library](https://github.com/adafruit/Adafruit_MCP9808_Library):
 

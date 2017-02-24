@@ -1,4 +1,4 @@
-"""Utility functions releated to argument parsing."""
+"""Utility functions related to argument parsing."""
 import argparse
 
 

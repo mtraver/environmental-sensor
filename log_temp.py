@@ -12,6 +12,7 @@ import time
 import Adafruit_MCP9808.MCP9808 as MCP9808
 
 import google_sheets_logger
+import util
 
 DEFAULT_NUM_SAMPLES = 1
 DEFAULT_SAMPLE_DELAY_SECS = 2
@@ -38,14 +39,17 @@ if __name__ == '__main__':
 
   logging_group = parser.add_argument_group('Logging')
   logging_group.add_argument('-s', '--sheet_id',
+                             type=util.argparse_utils.non_empty_string,
                              help='Google Sheets spreadsheet ID. If given, '
                                   '-k/--keyfile is required. The sheet must '
                                   'be shared with the service account email '
                                   'address associated with the key.')
   logging_group.add_argument('-k', '--keyfile',
+                             type=util.argparse_utils.non_empty_string,
                              help='Path to Google API service account JSON key '
                                   'file. If given, -s/--sheet_id is required.')
   logging_group.add_argument('-f', '--log_file',
+                             type=util.argparse_utils.non_empty_string,
                              help='CSV file to which to log data')
 
   sampling_group = parser.add_argument_group('Data sampling')
@@ -62,9 +66,9 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   # -k/--keyfile and -s/--sheet_id are mutually inclusive
-  if args.keyfile and args.sheet_id is None:
+  if args.keyfile is not None and args.sheet_id is None:
     parser.error('-k/--keyfile requires -s/--sheet_id')
-  if args.keyfile is None and args.sheet_id:
+  if args.keyfile is None and args.sheet_id is not None:
     parser.error('-s/--sheet_id requires -k/--keyfile')
 
   sensor = MCP9808.MCP9808()

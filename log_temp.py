@@ -17,6 +17,8 @@ import util
 DEFAULT_NUM_SAMPLES = 1
 DEFAULT_SAMPLE_DELAY_SECS = 2
 
+DATE_COL_HEADER = 'Date'
+
 
 def log_to_csv(filename, data):
   # Write headers if the file doesn't exist or if it's empty
@@ -26,8 +28,8 @@ def log_to_csv(filename, data):
     csv_writer = csv.writer(f)
 
     if write_header:
-      headers = ['Date'] + ['Temp%d' % (i + 1)
-                            for i in xrange(args.num_samples)]
+      headers = [DATE_COL_HEADER] + ['Temp%d' % (i + 1)
+                                     for i in xrange(args.num_samples)]
       csv_writer.writerow(headers)
 
     csv_writer.writerow(data)

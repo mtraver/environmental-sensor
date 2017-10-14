@@ -18,23 +18,11 @@ Set up a cron job, use it in a daemon, the world's your oyster...as long as the 
 
 ## Prerequisites
 
+This will install [pandas](http://pandas.pydata.org), as it's needed for plotting. It may take some time for pandas to build and install, so if you'd rather not install it, comment it out in ``requirements.txt``.
+
+    pip install --user -r requirements.txt
+
 Adafruit have a tutorial with information on wiring up the hardware: https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
-
-Reading from the sensor requires your board's GPIO library plus the [Adafruit MCP9808 library](https://github.com/adafruit/Adafruit_MCP9808_Library):
-
-    # Raspberry Pi
-    pip install --upgrade RPi.GPIO
-
-    # BeagleBone Black
-    pip install --upgrade Adafruit_BBIO
-
-    git clone https://github.com/adafruit/Adafruit_Python_MCP9808.git
-    cd Adafruit_Python_MCP9808
-    python setup.py install
-
-Logging to Google Sheets requires the [Google Sheets API](https://developers.google.com/sheets/api/) Python client:
-
-    pip install --upgrade google-api-python-client
 
 __NOTE:__ You may need to enable I<sup>2</sup>C on your board. For Raspberry Pi, this can be done with ``raspi-config``. Go to "Advanced Options" and find the "I2C" option.
 

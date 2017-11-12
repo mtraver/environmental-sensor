@@ -22,11 +22,18 @@ world is temperature values read from the MCP9808.
 
 ## Prerequisites
 
-This will install [pandas](http://pandas.pydata.org), as it's needed for
-plotting. It may take some time for pandas to build and install, so if you'd
-rather not install it, comment it out in ``requirements.txt``.
+On the Raspberry Pi / BeagleBone, install packages from
+``requirements_logging.txt``:
 
-    pip install --user -r requirements.txt
+    pip install --user -r requirements_logging.txt
+
+On your development machine, install packages from ``requirements_dev.txt``.
+This will install [pandas](http://pandas.pydata.org), as it's needed for
+plotting. Pandas is not required for logging and can take a long time to build
+and install on a system like a Raspberry Pi so it's only included in
+``requirements_dev.txt``.
+
+    pip install --user -r requirements_dev.txt
 
 Adafruit have a tutorial with information on wiring up the hardware:
 https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview

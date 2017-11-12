@@ -36,6 +36,40 @@ def c_to_f(c):
   return c * 9.0 / 5.0 + 32.0
 
 
+def sheets_data_to_dataframe(raw_data, header=0, index_col=None,
+                             parse_dates=None):
+  """Converts raw data from a Google Sheet into a pandas.DataFrame.
+
+  Args:
+    raw_data: A list, where each element is a list of the cell values of a
+              single row of the Google Sheet. The first element is assumed
+              to be the column headers. If this is not the case, be sure to
+              give an appropriate value for header.
+    header: The row to use as column headers. Defaults to 0.
+      If None, then no headers are set.
+    index_col: The name of the column to use as the index. Defaults to None,
+      in which case pandas' default numeric index is used.
+    parse_dates: List of column names to attempt to parse as datetimes.
+
+  Returns:
+    A pandas.DataFrame
+  """
+  if header is not None:
+    headers = raw_data.pop(header)
+    df = pandas.DataFrame(raw_data, columns=headers)
+  else:
+    df = pandas.DataFrame(raw_data)
+
+  if parse_dates is not None:
+    for col in parse_dates:
+      df[col] = pandas.to_datetime(df[col], infer_datetime_format=True)
+
+  if index_col is not None:
+    df.set_index(index_col, inplace=True)
+
+  return df
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description=__doc__)
 
@@ -93,9 +127,9 @@ if __name__ == '__main__':
   # Read data from file or Google Sheet
   data = None
   if args.keyfile is not None:
-    data = google_sheets_logger.read_sheet(args.keyfile, args.sheet_id,
-                                           parse_dates=[DATE_COL_HEADER],
-                                           index_col=DATE_COL_HEADER)
+    raw_data = google_sheets_logger.read_sheet(args.keyfile, args.sheet_id)
+    data = sheets_data_to_dataframe(raw_data, parse_dates=[DATE_COL_HEADER],
+                                    index_col=DATE_COL_HEADER)
 
     # Temp measurements may be strings in the spreadsheet,
     # so convert just to be sure they're recorded as floats

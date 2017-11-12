@@ -1,8 +1,10 @@
+# Requirements for logging data. Install this requirements file on
+# the Raspberry Pi / BeagleBone.
+
+-r requirements_common.txt
+
 # https://github.com/adafruit/Adafruit_Python_MCP9808
 # https://pypi.python.org/pypi/Adafruit-MCP9808
 # Depends on Adafruit's cross-platform GPIO library:
 #   https://github.com/adafruit/Adafruit_Python_GPIO
 Adafruit-MCP9808>=1.5.3
-
-google-api-python-client>=1.6.2
-pandas>=0.19.2

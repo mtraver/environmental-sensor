@@ -2,7 +2,6 @@
 import apiclient
 import httplib2
 from oauth2client.service_account import ServiceAccountCredentials
-import pandas
 
 SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
 DISCOVERY_URL = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
@@ -43,9 +42,8 @@ def append_to_sheet(keyfile, spreadsheet_id, values,
       body={'values': values}).execute()
 
 
-def read_sheet(keyfile, spreadsheet_id, sheet_range=DEFAULT_SHEET_RANGE,
-               header=0, index_col=None, parse_dates=None):
-  """Reads data from a Google Sheet into a pandas.DataFrame.
+def read_sheet(keyfile, spreadsheet_id, sheet_range=DEFAULT_SHEET_RANGE):
+  """Reads data from a Google Sheet.
 
   Args:
     keyfile: Path to service account JSON keyfile.
@@ -53,33 +51,15 @@ def read_sheet(keyfile, spreadsheet_id, sheet_range=DEFAULT_SHEET_RANGE,
     sheet_range: Range to read, in A1 notation. Defaults to 'Sheet1'.
       See this page for details:
       https://developers.google.com/sheets/api/guides/concepts#a1_notation
-    header: The row to use as column headers. Defaults to 0.
-      If None, then no headers are set.
-    index_col: The name of the column to use as the index. Defaults to None,
-      in which case pandas' default numeric index is used.
-    parse_dates: List of column names to attempt to parse as datetimes.
 
   Returns:
-    A pandas.DataFrame
+    A list, where each element is a list of the cell values
+    of a single row of the Google Sheet.
   """
   service = _get_authenticated_service(keyfile)
 
   response = service.spreadsheets().values().get(
       spreadsheetId=spreadsheet_id, majorDimension='ROWS',
       range=sheet_range).execute()
-  raw_data = response['values']
 
-  if header is not None:
-    headers = raw_data.pop(header)
-    data = pandas.DataFrame(raw_data, columns=headers)
-  else:
-    data = pandas.DataFrame(raw_data)
-
-  if parse_dates is not None:
-    for col in parse_dates:
-      data[col] = pandas.to_datetime(data[col], infer_datetime_format=True)
-
-  if index_col is not None:
-    data.set_index(index_col, inplace=True)
-
-  return data
+  return response['values']

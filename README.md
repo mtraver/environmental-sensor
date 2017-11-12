@@ -32,8 +32,8 @@ Adafruit have a tutorial with information on wiring up the hardware:
 https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
 
 __NOTE:__ You may need to enable I<sup>2</sup>C on your board. For Raspberry Pi,
-this can be done with ``raspi-config``. Go to "Advanced Options" and find the
-"I2C" option.
+this can be done with ``raspi-config``. You'll find the "I2C" option under
+either "Advanced Options" or "Interfacing Options".
 
 ## Setting up Google Sheets logging
 

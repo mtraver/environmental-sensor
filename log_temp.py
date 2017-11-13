@@ -11,7 +11,7 @@ import time
 
 import Adafruit_MCP9808.MCP9808 as MCP9808
 
-import google_sheets_logger
+import data_logging.sheets
 import util
 
 DEFAULT_NUM_SAMPLES = 1
@@ -89,7 +89,8 @@ if __name__ == '__main__':
     log_to_csv(args.log_file, data)
 
   if args.keyfile:
-    google_sheets_logger.append_to_sheet(args.keyfile, args.sheet_id, [data])
+    sheets_writer = data_logging.sheets.Writer(args.keyfile, args.sheet_id)
+    sheets_writer.append([data])
 
   # Log to stdout if not logging anywhere else
   if not args.log_file and not args.keyfile:

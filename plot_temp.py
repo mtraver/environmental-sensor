@@ -9,7 +9,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas
 
-import google_sheets_logger
+import data_logging.sheets
 import util
 
 DATE_COL_HEADER = 'Date'
@@ -127,9 +127,10 @@ if __name__ == '__main__':
   # Read data from file or Google Sheet
   data = None
   if args.keyfile is not None:
-    raw_data = google_sheets_logger.read_sheet(args.keyfile, args.sheet_id)
-    data = sheets_data_to_dataframe(raw_data, parse_dates=[DATE_COL_HEADER],
-                                    index_col=DATE_COL_HEADER)
+    sheets_reader = data_logging.sheets.Reader(args.keyfile, args.sheet_id)
+    data = sheets_data_to_dataframe(
+        sheets_reader.read(), parse_dates=[DATE_COL_HEADER],
+        index_col=DATE_COL_HEADER)
 
     # Temp measurements may be strings in the spreadsheet,
     # so convert just to be sure they're recorded as floats

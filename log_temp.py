@@ -9,10 +9,16 @@ from datetime import datetime
 import os
 import time
 
-import Adafruit_MCP9808.MCP9808 as MCP9808
-
 import data_logging.sheets
 import util
+
+# pylint: disable=wrong-import-position
+DEBUG = False
+if DEBUG:
+  import util.dummy_mcp9808 as MCP9808
+else:
+  import Adafruit_MCP9808.MCP9808 as MCP9808  # pylint: disable=import-error
+# pylint: enable=wrong-import-position
 
 DEFAULT_NUM_SAMPLES = 1
 DEFAULT_SAMPLE_DELAY_SECS = 2
@@ -82,7 +88,7 @@ if __name__ == '__main__':
     data.append(sensor.readTempC())
 
     # No need to sleep after last measurement is recorded
-    if i < args.num_samples - 1:
+    if not DEBUG and i < args.num_samples - 1:
       time.sleep(args.sample_delay)
 
   if args.log_file:

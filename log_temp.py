@@ -41,7 +41,7 @@ def log_to_csv(filename, data):
     csv_writer.writerow(data)
 
 
-if __name__ == '__main__':
+def main():
   parser = argparse.ArgumentParser(
       description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 
@@ -103,3 +103,7 @@ if __name__ == '__main__':
   # Log to stdout if not logging anywhere else
   if not args.log_file and not args.keyfile:
     print ','.join([timestamp.isoformat()] + [str(x) for x in data])
+
+
+if __name__ == '__main__':
+  main()

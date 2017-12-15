@@ -26,7 +26,7 @@ DEFAULT_SAMPLE_DELAY_SECS = 2
 DATE_COL_HEADER = 'Date'
 
 
-def log_to_csv(filename, data):
+def log_to_csv(filename, timestamp, data):
   # Write headers if the file doesn't exist or if it's empty
   write_header = not os.path.isfile(filename) or os.stat(filename).st_size == 0
 
@@ -35,10 +35,10 @@ def log_to_csv(filename, data):
 
     if write_header:
       headers = [DATE_COL_HEADER] + ['Temp%d' % (i + 1)
-                                     for i in xrange(args.num_samples)]
+                                     for i in xrange(len(data))]
       csv_writer.writerow(headers)
 
-    csv_writer.writerow(data)
+    csv_writer.writerow([timestamp.isoformat()] + data)
 
 
 def main():
@@ -94,7 +94,7 @@ def main():
       time.sleep(args.sample_delay)
 
   if args.log_file:
-    log_to_csv(args.log_file, data)
+    log_to_csv(args.log_file, timestamp, data)
 
   if args.sheet_id:
     sheets_writer = data_logging.sheets.Writer(args.keyfile, args.sheet_id)

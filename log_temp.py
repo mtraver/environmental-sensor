@@ -82,8 +82,10 @@ if __name__ == '__main__':
   sensor = MCP9808.MCP9808()
   sensor.begin()
 
-  # Construct list of timestamp followed by temperature measurements
-  data = [datetime.utcnow().isoformat()]
+  timestamp = datetime.utcnow()
+
+  # Construct list of temperature measurements
+  data = []
   for i in xrange(args.num_samples):
     data.append(sensor.readTempC())
 
@@ -94,10 +96,10 @@ if __name__ == '__main__':
   if args.log_file:
     log_to_csv(args.log_file, data)
 
-  if args.keyfile:
+  if args.sheet_id:
     sheets_writer = data_logging.sheets.Writer(args.keyfile, args.sheet_id)
-    sheets_writer.append([data])
+    sheets_writer.append(timestamp, data)
 
   # Log to stdout if not logging anywhere else
   if not args.log_file and not args.keyfile:
-    print ','.join([str(x) for x in data])
+    print ','.join([timestamp.isoformat()] + [str(x) for x in data])

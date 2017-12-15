@@ -35,10 +35,11 @@ class _SheetsLogger(object):
 
 class Writer(_SheetsLogger):
 
-  def append(self, values, sheet_range=DEFAULT_SHEET_RANGE):
+  def append(self, timestamp, values, sheet_range=DEFAULT_SHEET_RANGE):
     """Appends data to a Google Sheet.
 
     Args:
+      timestamp: A datetime.datetime.
       values: List of values to append to the sheet, one element per column.
       sheet_range: A range, in A1 notation, specifying a "table" in the
                    spreadsheet to which to append data. Defaults to 'Sheet1'.
@@ -49,9 +50,14 @@ class Writer(_SheetsLogger):
     """
     service = self._get_authenticated_service()
 
+    # The Sheets API expects a list of lists, with each inner list representing
+    # a major dimension (which in this case is rows). Put the timestamp in the
+    # first column, followed by the data.
+    values_to_log = [[timestamp.isoformat()] + values]
+
     service.spreadsheets().values().append(
         spreadsheetId=self.spreadsheet_id, range=sheet_range,
-        valueInputOption='RAW', body={'values': values}).execute()
+        valueInputOption='RAW', body={'values': values_to_log}).execute()
 
 
 class Reader(_SheetsLogger):

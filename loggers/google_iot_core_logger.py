@@ -29,8 +29,9 @@ class CloudIotLogger(object):
     Args:
       project_id: The cloud project ID this device belongs to.
       registry_id: The Cloud IoT Core device registry this device belongs to.
-      priv_key_file: Path to a file containing the device's
-                     RSA256 or ES256 private key.
+      priv_key_file: Path to a file containing the device's RSA256 or ES256
+                     private key. It must have been added to the IoT Core
+                     registry.
       device_id: Device ID string. Must be the same as the device ID registered
                  with Cloud IoT Core.
       signing_alg: The signing algorithm used to make a JWT for authentication
@@ -129,13 +130,24 @@ class CloudIotMqttLogger(CloudIotLogger):
   def __init__(self, project_id, registry_id, priv_key_file, device_id,
                signing_alg=DEFAULT_ALG, cloud_region=None,
                bridge_hostname=None, bridge_port=None):
-    """TODO
+    """Creates a logger that logs to Google Cloud IoT Core via MQTT.
 
     Args:
-      project_id: The cloud project ID this device belongs to
-      registry_id: TODO
-      priv_key_file: Path to a file containing an RSA256 or ES256 private key.
-      device_id: TODO
+      project_id: The cloud project ID this device belongs to.
+      registry_id: The Cloud IoT Core device registry this device belongs to.
+      priv_key_file: Path to a file containing the device's RSA256 or ES256
+                     private key. It must have been added to the IoT Core
+                     registry.
+      device_id: Device ID string. Must be the same as the device ID registered
+                 with Cloud IoT Core.
+      signing_alg: The signing algorithm used to make a JWT for authentication
+                   with Cloud IoT Core. Must be one of {RSA256, ES256}.
+      cloud_region: The cloud region of the Cloud IoT Core device registry.
+      bridge_hostname: URL of the MQTT bridge. Defaults to mqtt.googleapis.com.
+      bridge_port: Port to connect to on the MQTT bridge. Defaults to 8883.
+
+    Raises:
+      ValueError: If signing_alg is not one of {RSA256, ES256}.
     """
     if cloud_region is None:
       cloud_region = self.DEFAULT_CLOUD_REGION
@@ -241,13 +253,22 @@ class CloudIotHttpLogger(CloudIotLogger):
 
   def __init__(self, project_id, registry_id, priv_key_file, device_id,
                signing_alg=DEFAULT_ALG, cloud_region=None):
-    """TODO
+    """Creates a logger that logs to Google Cloud IoT Core via HTTP.
 
     Args:
-      project_id: The cloud project ID this device belongs to
-      registry_id: TODO
-      priv_key_file: Path to a file containing an RSA256 or ES256 private key.
-      device_id: TODO
+      project_id: The cloud project ID this device belongs to.
+      registry_id: The Cloud IoT Core device registry this device belongs to.
+      priv_key_file: Path to a file containing the device's RSA256 or ES256
+                     private key. It must have been added to the IoT Core
+                     registry.
+      device_id: Device ID string. Must be the same as the device ID registered
+                 with Cloud IoT Core.
+      signing_alg: The signing algorithm used to make a JWT for authentication
+                   with Cloud IoT Core. Must be one of {RSA256, ES256}.
+      cloud_region: The cloud region of the Cloud IoT Core device registry.
+
+    Raises:
+      ValueError: If signing_alg is not one of {RSA256, ES256}.
     """
     if cloud_region is None:
       cloud_region = self.DEFAULT_CLOUD_REGION

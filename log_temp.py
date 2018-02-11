@@ -4,7 +4,6 @@ Temperature can be logged via Google Cloud IoT Core, Google Cloud Pub/Sub,
 to a Google Sheets spreadsheet, a CSV file, or stdout.
 """
 import argparse
-import csv
 from datetime import datetime
 import os
 import re
@@ -13,7 +12,6 @@ import time
 import cryptography.x509
 
 import loggers
-import loggers.sheets
 import util
 
 # pylint: disable=wrong-import-position
@@ -29,8 +27,6 @@ DEVICE_ID_REGEX = re.compile(r'^[a-zA-Z0-9_-]+$')
 DEFAULT_NUM_SAMPLES = 1
 DEFAULT_SAMPLE_INTERVAL_SECS = 2
 
-DATE_COL_HEADER = 'Date'
-
 IOTCORE_COMMAND = 'iotcore'
 PUBSUB_COMMAND = 'pubsub'
 SHEETS_COMMAND = 'sheets'
@@ -38,21 +34,6 @@ CSV_COMMAND = 'csv'
 STDOUT_COMMAND = 'stdout'
 
 PROJECT_ID_HELP = 'Google Cloud Platform project name'
-
-
-def log_to_csv(filename, timestamp, data):
-  # Write headers if the file doesn't exist or if it's empty
-  write_header = not os.path.isfile(filename) or os.stat(filename).st_size == 0
-
-  with open(filename, 'a') as f:
-    csv_writer = csv.writer(f)
-
-    if write_header:
-      headers = [DATE_COL_HEADER] + ['Temp%d' % (i + 1)
-                                     for i in xrange(len(data))]
-      csv_writer.writerow(headers)
-
-    csv_writer.writerow([timestamp.isoformat()] + data)
 
 
 def valid_device_id(device_id):
@@ -170,7 +151,7 @@ def parse_args():
                           help='CSV file to which to log data.')
 
   # Standard out
-  csv_parser = subparsers.add_parser(STDOUT_COMMAND, help='Log to standard out')
+  subparsers.add_parser(STDOUT_COMMAND, help='Log to standard out')
 
   return parser.parse_args()
 
@@ -224,34 +205,33 @@ def main():
     if not DEBUG and i < args.num_samples - 1:
       time.sleep(args.sample_interval)
 
+  logger = None
   if args.command == IOTCORE_COMMAND:
     # Paho always reports '1: Out of memory.' in the disconnect callback,
     # so disable MQTT for now and just use HTTP.
     # See https://github.com/GoogleCloudPlatform/python-docs-samples/issues/1357
-    # iotcore_logger = loggers.CloudIotMqttLogger(
+    # logger = loggers.CloudIotMqttLogger(
     #     args.project_id, args.registry_id, args.private_key_file,
     #     get_device_id(args), cloud_region=args.cloud_region,
     #     bridge_hostname=args.mqtt_bridge_hostname,
     #     bridge_port=args.mqtt_bridge_port)
 
-    iotcore_logger = loggers.CloudIotHttpLogger(
+    logger = loggers.CloudIotHttpLogger(
         args.project_id, args.registry_id, args.private_key_file,
         get_device_id(args), cloud_region=args.cloud_region)
-
-    iotcore_logger.log(timestamp, data)
   elif args.command == PUBSUB_COMMAND:
-    pubsub_logger = loggers.PubSubLogger(
-        args.project_id, args.topic, args.device_id)
-    pubsub_logger.log(timestamp, data)
+    logger = loggers.PubSubLogger(args.project_id, args.topic, args.device_id)
   elif args.command == SHEETS_COMMAND:
-    sheets_writer = loggers.sheets.Writer(args.keyfile, args.sheet_id)
-    sheets_writer.append(timestamp, data)
+    logger = loggers.SheetsLogger(args.keyfile, args.sheet_id)
   elif args.command == CSV_COMMAND:
-    log_to_csv(args.log_file, timestamp, data)
+    logger = loggers.CsvLogger(args.log_file)
   elif args.command == STDOUT_COMMAND:
     print ','.join([timestamp.isoformat()] + [str(x) for x in data])
   else:
     raise Exception('Unknown command: "{}"'.format(args.command))
+
+  if logger:
+    logger.log(timestamp, data)
 
 
 if __name__ == '__main__':

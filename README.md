@@ -37,6 +37,9 @@ world is temperature values read from the MCP9808.
 On the Raspberry Pi / BeagleBone, install packages from
 ``requirements_logging.txt``:
 
+    # This is required for the cryptography package
+    sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+
     pip install --user -r requirements_logging.txt
 
 On your development machine, install packages from ``requirements_dev.txt``.

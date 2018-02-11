@@ -1,0 +1,25 @@
+# https://cloud.google.com/appengine/docs/standard/python/config/appref
+runtime: go
+api_version: go1.8
+
+env_variables:
+  # Provide the name of your Google Cloud project
+  GOOGLE_CLOUD_PROJECT: 'TODO'
+
+  # To save to Datastore, uncomment the line below
+  # DB_TYPE: 'datastore'
+
+  # To save to Bigtable, uncomment the lines below and fill in the TODOs
+  # DB_TYPE: 'bigtable'
+  # BIGTABLE_INSTANCE: 'TODO'
+  # BIGTABLE_TABLE: 'TODO'
+
+handlers:
+- url: /_ah/push-handlers/.*
+  script: _go_app
+  login: admin
+  secure: always
+- url: /.*
+  script: _go_app
+  login: admin
+  secure: always

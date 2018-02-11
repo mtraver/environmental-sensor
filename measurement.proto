@@ -1,0 +1,8 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+message Measurement {
+  string device_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  float temp = 3;
+}

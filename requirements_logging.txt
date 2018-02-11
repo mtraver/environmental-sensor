@@ -8,3 +8,10 @@
 # Depends on Adafruit's cross-platform GPIO library:
 #   https://github.com/adafruit/Adafruit_Python_GPIO
 Adafruit-MCP9808>=1.5.3
+
+cryptography>=2.1.3
+google-cloud-pubsub>=0.30.1
+paho-mqtt>=1.3.1
+protobuf>=3.5.1
+pyjwt>=1.5.3
+requests>=2.18.4

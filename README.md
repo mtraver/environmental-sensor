@@ -5,17 +5,29 @@ BeagleBone Black.
 
 Print timestamp and temperature to stdout:
 
-    python log_temp.py
+    python log_temp.py stdout
 
 Log timestamp and three temperature values, taken two seconds apart,
 to a CSV file:
 
-    python log_temp.py -n 3 -f temp_log.csv
+    python log_temp.py -n 3 csv temp_log.csv
+
+Log via [Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing
+the data in Google Cloud Datastore or Google Cloud Bigtable (see the App Engine
+app in the [receiver](receiver) directory):
+
+    python log_temp.py iotcore -p my-gcp-project -r my-iot-core-registry -k device_key.pem --device_id my-device
+
+Log via [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/), which like
+IoT Core can store the data in Google Cloud Datastore or Google Cloud Bigtable
+with the [receiver](receiver) App Engine app:
+
+    python log_temp.py pubsub -p my-gcp-project -t my-pubsub-topic --device_id my-device
 
 Log timestamp and three temperature values, taken five seconds apart, to a
 Google Sheets spreadsheet:
 
-    python log_temp.py -n 3 -d 5 -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+    python log_temp.py -n 3 -i 5 sheets -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
 
 Set up a cron job, use it in a daemon, the world's your oyster...as long as the
 world is temperature values read from the MCP9808.
@@ -41,6 +53,14 @@ https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
 __NOTE:__ You may need to enable I<sup>2</sup>C on your board. For Raspberry Pi,
 this can be done with ``raspi-config``. You'll find the "I2C" option under
 either "Advanced Options" or "Interfacing Options".
+
+## Setting up Google Cloud IoT Core logging
+
+TODO
+
+## Setting up Google Cloud Pub/Sub logging
+
+TODO
 
 ## Setting up Google Sheets logging
 
@@ -71,33 +91,30 @@ the sheet.
 
 ## Full usage
 
-    usage: log_temp.py [-h] [-s SHEET_ID] [-k KEYFILE] [-f LOG_FILE]
-                       [-n NUM_SAMPLES] [-d SAMPLE_DELAY]
+    usage: log_temp.py [-h] [-n NUM_SAMPLES] [-i SAMPLE_INTERVAL]
+                       {iotcore,pubsub,sheets,csv,stdout} ...
 
-    Log temperature from MCP9808 sensor.
+    Log temperature in degrees Celsius from MCP9808 sensor.
 
-    Temperature can be logged to a file and/or a Google Sheets spreadsheet. If
-    neither a file nor a spreadsheet is specified, data is logged to stdout.
+    Temperature can be logged via Google Cloud IoT Core, Google Cloud Pub/Sub,
+    to a Google Sheets spreadsheet, a CSV file, or stdout.
 
-    Temperature is recorded in degrees Celsius.
+    positional arguments:
+      {iotcore,pubsub,sheets,csv,stdout}
+                            Run one of these commands with the -h/--help flag to
+                            see its usage.
+        iotcore             Log via Google Cloud IoT Core
+        pubsub              Publish to Google Cloud Pub/Sub
+        sheets              Log to a Google Sheet
+        csv                 Log to a CSV file
+        stdout              Log to standard out
 
     optional arguments:
       -h, --help            show this help message and exit
 
-    Logging:
-      -s SHEET_ID, --sheet_id SHEET_ID
-                            Google Sheets spreadsheet ID. If given, -k/--keyfile
-                            is required. The sheet must be shared with the service
-                            account email address associated with the key.
-      -k KEYFILE, --keyfile KEYFILE
-                            Path to Google API service account JSON key file. If
-                            given, -s/--sheet_id is required.
-      -f LOG_FILE, --log_file LOG_FILE
-                            CSV file to which to log data
-
     Data sampling:
       -n NUM_SAMPLES, --num_samples NUM_SAMPLES
                             Number of samples to take. Defaults to 1.
-      -d SAMPLE_DELAY, --sample_delay SAMPLE_DELAY
-                            Number of seconds to sleep between samples. Defaults
-                            to 2.
+      -i SAMPLE_INTERVAL, --sample_interval SAMPLE_INTERVAL
+                            Number of seconds to wait between samples. Defaults to
+                            2.

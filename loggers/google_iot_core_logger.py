@@ -1,4 +1,4 @@
-"""Log to Google Clpud IoT Core."""
+"""Log to Google Cloud IoT Core."""
 import base64
 import datetime
 import json

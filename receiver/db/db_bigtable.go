@@ -3,12 +3,10 @@ package db
 import (
   "bytes"
   "encoding/binary"
-  "net/http"
 
   "golang.org/x/net/context"
 
   "cloud.google.com/go/bigtable"
-  "google.golang.org/appengine"
 
   "receiver/measurement"
 )
@@ -38,10 +36,6 @@ type bigtableDB struct {
   projectID string
   instanceName string
   tableName string
-
-  ctx context.Context
-  client *bigtable.Client
-  table *bigtable.Table
 }
 
 // Ensure bigtableDB implements Database
@@ -56,29 +50,18 @@ func NewBigtableDB(projectID string, instanceName string,
   }
 }
 
-func (db *bigtableDB) init(req *http.Request) error {
-  db.ctx = appengine.NewContext(req)
-
-  client, err := bigtable.NewClient(db.ctx, db.projectID, db.instanceName)
-  if err != nil {
-    return err
-  }
-
-  db.client = client
-  db.table = client.Open(db.tableName)
-
-  return nil
-}
-
 // Save saves a Measurement to Bigtable.
 // The measurement's timestamp will be formatted as RFC 3339
 // and promoted into the row key along with the device ID.
 // It returns an error, nil if nothing went wrong.
-func (db *bigtableDB) Save(req *http.Request,
+func (db *bigtableDB) Save(ctx context.Context,
                            m *measurement.Measurement) error {
-  if err := db.init(req); err != nil {
+  client, err := bigtable.NewClient(ctx, db.projectID, db.instanceName)
+  if err != nil {
     return err
   }
+
+  table := client.Open(db.tableName)
 
   storableMeasurement, err := m.ToStorableMeasurement()
   if err != nil {
@@ -90,7 +73,7 @@ func (db *bigtableDB) Save(req *http.Request,
   rowKey := storableMeasurement.DBKey()
 
   // Check if the row exists and return if it does
-  row, err := db.table.ReadRow(db.ctx, rowKey)
+  row, err := table.ReadRow(ctx, rowKey)
   if err != nil {
     return err
   }
@@ -102,5 +85,5 @@ func (db *bigtableDB) Save(req *http.Request,
   mut.Set(bigtableFamily, "temp", bigtable.Now(),
           floatToBytes(storableMeasurement.Temp))
 
-  return db.table.Apply(db.ctx, rowKey, mut)
+  return table.Apply(ctx, rowKey, mut)
 }

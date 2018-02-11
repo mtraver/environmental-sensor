@@ -1,11 +1,8 @@
 package db
 
 import (
-  "net/http"
-
   "golang.org/x/net/context"
 
-  "google.golang.org/appengine"
   "google.golang.org/appengine/datastore"
 
   "receiver/measurement"
@@ -26,14 +23,12 @@ func NewDatastoreDB(projectID string) Database {
   }
 }
 
-func (db *datastoreDB) Save(req *http.Request,
+func (db *datastoreDB) Save(ctx context.Context,
                             m *measurement.Measurement) error {
   storableMeasurement, err := m.ToStorableMeasurement()
   if err != nil {
     return err
   }
-
-  ctx := appengine.NewContext(req)
 
   key := datastore.NewKey(
       ctx, datastoreKind, storableMeasurement.DBKey(), 0, nil)

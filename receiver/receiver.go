@@ -98,7 +98,7 @@ func pushHandler(database db.Database) func(w http.ResponseWriter,
       return
     }
 
-    if err := database.Save(r, m); err != nil {
+    if err := database.Save(ctx, m); err != nil {
       gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
     }
 

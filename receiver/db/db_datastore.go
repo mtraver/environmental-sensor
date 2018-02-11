@@ -1,7 +1,6 @@
 package db
 
 import (
-  "log"
   "net/http"
 
   "golang.org/x/net/context"
@@ -43,11 +42,9 @@ func (db *datastoreDB) Save(req *http.Request,
   err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
     var x measurement.StorableMeasurement
     if err := datastore.Get(ctx, key, &x); err != datastore.ErrNoSuchEntity {
-      log.Println("Measurement DOES exist")
       return err
     }
 
-    log.Println("Measurement does not exist")
     _, err := datastore.Put(ctx, key, &storableMeasurement)
     return err
   }, nil)

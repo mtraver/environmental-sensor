@@ -11,6 +11,9 @@ import (
 
   "github.com/golang/protobuf/proto"
 
+  "google.golang.org/appengine"
+  gaelog "google.golang.org/appengine/log"
+
   "receiver/db"
   "receiver/measurement"
 )
@@ -64,19 +67,23 @@ func init() {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+  ctx := appengine.NewContext(r)
+
   measurementsMu.Lock()
   defer measurementsMu.Unlock()
   if err := indexTemplate.Execute(w, measurements); err != nil {
-    log.Printf("Could not execute template: %v", err)
+    gaelog.Errorf(ctx, "Could not execute template: %v", err)
   }
 }
 
 func pushHandler(database db.Database) func(w http.ResponseWriter,
                                             r *http.Request) {
   return func(w http.ResponseWriter, r *http.Request) {
+    ctx := appengine.NewContext(r)
+
     msg := &pushRequest{}
     if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
-      log.Printf("Could not decode body: %v\n", err)
+      gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
       http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
                  http.StatusBadRequest)
       return
@@ -85,14 +92,14 @@ func pushHandler(database db.Database) func(w http.ResponseWriter,
     m := &measurement.Measurement{}
     err := proto.Unmarshal(msg.Message.Data, m)
     if err != nil {
-      log.Printf("Failed to unmarshal protobuf: %v\n", err)
+      gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
       http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
                  http.StatusBadRequest)
       return
     }
 
     if err := database.Save(r, m); err != nil {
-      log.Printf("Failed to save measurement: %v\n", err)
+      gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
     }
 
     measurementsMu.Lock()

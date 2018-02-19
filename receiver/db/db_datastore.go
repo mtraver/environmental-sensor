@@ -1,6 +1,8 @@
 package db
 
 import (
+  "time"
+
   "golang.org/x/net/context"
 
   "google.golang.org/appengine/datastore"
@@ -45,4 +47,33 @@ func (db *datastoreDB) Save(ctx context.Context,
   }, nil)
 
   return err
+}
+
+func (db *datastoreDB) GetMeasurementsSince(
+    ctx context.Context,
+    startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+  results := make(map[string][]measurement.StorableMeasurement)
+
+  // Don't need to filter by device ID here because building the map
+  // has the effect of sorting by device ID.
+  q := datastore.NewQuery(datastoreKind).Filter(
+      "timestamp >=", startTime).Order("timestamp")
+
+  it := q.Run(ctx)
+  for {
+    var m measurement.StorableMeasurement
+    _, err := it.Next(&m)
+    if err == datastore.Done {
+      break
+    } else if err != nil {
+      return make(map[string][]measurement.StorableMeasurement), err
+    }
+
+    if _, ok := results[m.DeviceId]; !ok {
+      results[m.DeviceId] = []measurement.StorableMeasurement{}
+    }
+    results[m.DeviceId] = append(results[m.DeviceId], m)
+  }
+
+  return results, nil
 }

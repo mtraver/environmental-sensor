@@ -1,15 +1,119 @@
+{{ define "index" }}
+<!-- Based on https://bl.ocks.org/mbostock/3884955 -->
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Measurements</title>
+    <title>Environmental Monitor</title>
   </head>
   <body>
-    <div>
-      <ul>
-        {{ range . }}
-          <li>{{ . }}</li>
-        {{ end }}
-      </ul>
-    </div>
+    <h1>Environmental Monitor</h1>
+    {{ if .Error }}
+      <p>Error fetching data: {{ .Error }}</p>
+    {{ else }}
+      <svg width="980" height="600"></svg>
+    {{ end }}
   </body>
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script type="text/javascript">
+    function makePlot(data) {
+      var svg = d3.select("svg");
+      var margin = {top: 20, right: 80, bottom: 90, left: 60};
+      var width = svg.attr("width") - margin.left - margin.right;
+      var height = svg.attr("height") - margin.top - margin.bottom;
+      var g = svg.append("g").attr(
+          "transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      var x = d3.scaleTime().range([0, width]);
+      var y = d3.scaleLinear().range([height, 0]);
+      var z = d3.scaleOrdinal(d3.schemeCategory10);
+
+      var line = d3.line()
+          .curve(d3.curveBasis)
+          .x(function(d) { return x(d.timestamp); })
+          .y(function(d) { return y(d.temp); });
+
+      x.domain([new Date({{ millis .StartTime }}),
+                new Date({{ millis .EndTime }})])
+
+      y.domain([
+        d3.min(data, function(c) {
+          return d3.min(c.values, function(d) {
+            return d.temp;
+          });
+        }),
+        d3.max(data, function(c) {
+          return d3.max(c.values, function(d) {
+              return d.temp;
+          });
+        })
+      ]);
+
+      z.domain(data.map(function(c) { return c.id; }));
+
+      g.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y-%m-%d %H:%M:%S")))
+          .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-50)");
+
+      g.append("g")
+          .attr("class", "axis axis--y")
+          .call(d3.axisLeft(y))
+        .append("text")
+          .attr("text-anchor", "middle")
+          .attr("transform", "rotate(-90)")
+          .attr("dy", -margin.left + 15)
+          .attr("dx", -height / 2)
+          .attr("fill", "#000")
+          .text("Temperature (°C)");
+
+      var device = g.selectAll(".device")
+        .data(data)
+        .enter().append("g")
+          .attr("class", "device");
+
+      device.append("path")
+          .attr("class", "line")
+          .attr("d", function(d) { return line(d.values); })
+          .style("stroke", function(d) { return z(d.id); })
+          .style("fill", function(d) { return "none"; });
+
+      device.append("text")
+          .datum(function(d) {
+            return {id: d.id, value: d.values[d.values.length - 1]};
+          })
+          .attr("transform", function(d) {
+            return ("translate(" + x(d.value.timestamp) + ","
+                    + y(d.value.temp) + ")");
+          })
+          .attr("x", 3)
+          .attr("dy", "0.35em")
+          .style("font", "10px sans-serif")
+          .text(function(d) { return d.id; });
+    }
+
+    {{ if not .Error }}
+      var valuesByDevice = [
+        {{ range $key, $val := .Measurements }}
+          {
+            id: {{ $key }},
+            values: [
+              {{ range $val }}
+                {timestamp: new Date({{ millis .Timestamp }}), temp: {{ .Temp }}},
+              {{ end }}
+            ]
+          },
+        {{ end }}
+      ];
+
+      makePlot(valuesByDevice);
+    {{ end }}
+
+  </script>
 </html>
+{{ end }}

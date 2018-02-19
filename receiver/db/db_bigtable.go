@@ -3,6 +3,8 @@ package db
 import (
   "bytes"
   "encoding/binary"
+  "errors"
+  "time"
 
   "golang.org/x/net/context"
 
@@ -86,4 +88,12 @@ func (db *bigtableDB) Save(ctx context.Context,
           floatToBytes(storableMeasurement.Temp))
 
   return table.Apply(ctx, rowKey, mut)
+}
+
+// TODO(mtraver) implement
+func (db *bigtableDB) GetMeasurementsSince(
+    ctx context.Context,
+    startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+  return make(map[string][]measurement.StorableMeasurement),
+      errors.New("Not implemented")
 }

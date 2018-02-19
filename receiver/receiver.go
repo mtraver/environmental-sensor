@@ -2,12 +2,13 @@ package receiver
 
 import (
   "encoding/json"
+  "errors"
   "fmt"
   "html/template"
   "log"
   "net/http"
   "os"
-  "sync"
+  "time"
 
   "github.com/golang/protobuf/proto"
 
@@ -18,15 +19,16 @@ import (
   "receiver/measurement"
 )
 
-// Used to display the latest measurements
-var (
-  measurementsMu sync.Mutex
-  measurements []*measurement.Measurement
-)
+// Data up to this many hours old will be plotted
+const dataDisplayAgeHours = 3
 
-const maxMeasurements = 20
-
-var indexTemplate = template.Must(template.ParseFiles("templates/index.html"))
+// Parse and cache all templates at startup instead of loading on each request
+var templates = template.Must(template.New("index.html").Funcs(
+    template.FuncMap{
+      "millis": func(t time.Time) int64 {
+        return t.Unix() * 1000
+    },
+}).ParseGlob("templates/*"))
 
 // This is the structure of the JSON payload pushed to the endpoint by
 // Cloud Pub/Sub. See https://cloud.google.com/pubsub/docs/push.
@@ -47,10 +49,11 @@ func mustGetenv(varName string) string {
   return val
 }
 
-func init() {
+func getDatabase() (db.Database, error) {
   projectID := mustGetenv("GOOGLE_CLOUD_PROJECT")
 
   var database db.Database = nil
+  var err error = nil
   switch dbType := mustGetenv("DB_TYPE"); dbType {
     case "datastore":
       database = db.NewDatastoreDB(projectID)
@@ -59,57 +62,82 @@ func init() {
           projectID, mustGetenv("BIGTABLE_INSTANCE"),
           mustGetenv("BIGTABLE_TABLE"))
     default:
-      log.Fatalf("Unknown database type: %v\n", dbType)
+      err = errors.New(fmt.Sprintf("Unknown database type: %v", dbType))
   }
 
+  return database, err
+}
+
+func init() {
   http.HandleFunc("/", rootHandler)
-  http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler(database))
+  http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
   ctx := appengine.NewContext(r)
 
-  measurementsMu.Lock()
-  defer measurementsMu.Unlock()
-  if err := indexTemplate.Execute(w, measurements); err != nil {
+  database, err := getDatabase()
+  if err != nil {
+    gaelog.Criticalf(ctx, "%v", err)
+    http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+    return
+  }
+
+  now := time.Now().UTC()
+  startTime := now.Add(-time.Duration(dataDisplayAgeHours) * time.Hour)
+
+  measurements, err := database.GetMeasurementsSince(ctx, startTime)
+  if err != nil {
+    gaelog.Errorf(ctx, "Error fetching data: %v", err)
+  }
+
+  data := struct {
+    Measurements map[string][]measurement.StorableMeasurement
+    Error error
+    StartTime time.Time
+    EndTime time.Time
+  }{
+    measurements,
+    err,
+    startTime,
+    now,
+  }
+
+  if err := templates.ExecuteTemplate(w, "index", data); err != nil {
     gaelog.Errorf(ctx, "Could not execute template: %v", err)
   }
 }
 
-func pushHandler(database db.Database) func(w http.ResponseWriter,
-                                            r *http.Request) {
-  return func(w http.ResponseWriter, r *http.Request) {
-    ctx := appengine.NewContext(r)
+func pushHandler(w http.ResponseWriter, r *http.Request) {
+  ctx := appengine.NewContext(r)
 
-    msg := &pushRequest{}
-    if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
-      gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
-      http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
-                 http.StatusBadRequest)
-      return
-    }
-
-    m := &measurement.Measurement{}
-    err := proto.Unmarshal(msg.Message.Data, m)
-    if err != nil {
-      gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
-      http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
-                 http.StatusBadRequest)
-      return
-    }
-
-    if err := database.Save(ctx, m); err != nil {
-      gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
-    }
-
-    measurementsMu.Lock()
-    defer measurementsMu.Unlock()
-
-    measurements = append(measurements, m)
-    if len(measurements) > maxMeasurements {
-      measurements = measurements[len(measurements)-maxMeasurements:]
-    }
-
-    w.WriteHeader(http.StatusOK)
+  database, err := getDatabase()
+  if err != nil {
+    gaelog.Criticalf(ctx, "%v", err)
+    http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+    return
   }
+
+  msg := &pushRequest{}
+  if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
+    gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
+    http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
+               http.StatusBadRequest)
+    return
+  }
+
+  m := &measurement.Measurement{}
+  err = proto.Unmarshal(msg.Message.Data, m)
+  if err != nil {
+    gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
+    http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
+               http.StatusBadRequest)
+    return
+  }
+
+  if err := database.Save(ctx, m); err != nil {
+    gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
+  }
+
+  w.WriteHeader(http.StatusOK)
 }

@@ -86,18 +86,25 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
   now := time.Now().UTC()
   startTime := now.Add(-time.Duration(dataDisplayAgeHours) * time.Hour)
 
+  // Get measurements and marshal to JSON for use in the template
   measurements, err := database.GetMeasurementsSince(ctx, startTime)
+  jsonBytes := []byte{}
   if err != nil {
     gaelog.Errorf(ctx, "Error fetching data: %v", err)
+  } else {
+    jsonBytes, err = measurement.MeasurementMapToJSON(measurements)
+    if err != nil {
+      gaelog.Errorf(ctx, "Error marshaling measurements to JSON: %v", err)
+    }
   }
 
   data := struct {
-    Measurements map[string][]measurement.StorableMeasurement
+    Measurements template.JS
     Error error
     StartTime time.Time
     EndTime time.Time
   }{
-    measurements,
+    template.JS(jsonBytes),
     err,
     startTime,
     now,

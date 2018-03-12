@@ -98,18 +98,14 @@
     }
 
     {{ if not .Error }}
-      var valuesByDevice = [
-        {{ range $key, $val := .Measurements }}
-          {
-            id: {{ $key }},
-            values: [
-              {{ range $val }}
-                {timestamp: new Date({{ millis .Timestamp }}), temp: {{ .Temp }}},
-              {{ end }}
-            ]
-          },
-        {{ end }}
-      ];
+      var valuesByDevice = {{ .Measurements }};
+
+      // Convert offsets from the epoch to Date objects
+      for (var device in valuesByDevice) {
+        for (var v in device.values) {
+          v.timestamp = new Date(v.timestamp);
+        }
+      }
 
       makePlot(valuesByDevice);
     {{ end }}

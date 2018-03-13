@@ -3,15 +3,18 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" type="text/css" href="/static/primer/primer-10.3.0.css">
     <title>Environmental Monitor</title>
   </head>
   <body>
-    <h1>Environmental Monitor</h1>
-    {{ if .Error }}
-      <p>Error fetching data: {{ .Error }}</p>
-    {{ else }}
-      <svg width="980" height="600"></svg>
-    {{ end }}
+    <div class="container">
+      <h1>Environmental Monitor</h1>
+      {{ if .Error }}
+        <p>Error fetching data: {{ .Error }}</p>
+      {{ else }}
+        <svg width="980" height="600"></svg>
+      {{ end }}
+    </div>
   </body>
 
   <script src="https://d3js.org/d3.v4.min.js"></script>

@@ -59,7 +59,35 @@ either "Advanced Options" or "Interfacing Options".
 
 ## Setting up Google Cloud IoT Core logging
 
-TODO
+The scripts at https://github.com/mtraver/provisioning are useful for creating
+the CA key and cert and device-specific keys and certs described below.
+
+- Create an IoT Core registry.
+  The [IoT Core quickstart](https://cloud.google.com/iot/docs/quickstart)
+  provides more info. The registry includes:
+  - A Pub/Sub topic for telemetry (you'll need to create the topic if it
+    doesn't already exist)
+  - A Pub/Sub topic for state (you'll need to create the topic if it
+    doesn't already exist)
+  - A CA cert for verifying device certs. This can be self-signed.
+- Add devices to the registry. This requires a device-specific cert that chains
+  to the CA cert. The key and cert can be made with the scripts in the repo
+  linked above. Heed the information there about key handling and about the
+  device ID (the device ID you use when making the cert must be the same as the
+  one you set when adding the device to the registry).
+- Create a subscription to the registry's telemetry topic. Configure it to
+  push to the ``/_ah/push-handlers/telemetry`` endpoint of the receiver app.
+  This is how IoT Core is tied to the receiver app.
+
+The end-to-end flow is like this:
+1. A device sends a payload (in this case a protobuf; see
+   [measurement.proto](measurement.proto)) to IoT Core.
+2. IoT Core publishes the payload as a Pub/Sub message to the registry's
+   telemetry Pub/Sub topic.
+3. Pub/Sub pushes the message to the receiver app's endpoint, as configured in
+   the subscription to the topic.
+4. The receiver app receives the request, decodes the payload, and writes
+   it to the database.
 
 ## Setting up Google Cloud Pub/Sub logging
 

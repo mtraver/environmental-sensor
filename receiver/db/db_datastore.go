@@ -49,15 +49,10 @@ func (db *datastoreDB) Save(ctx context.Context,
   return err
 }
 
-func (db *datastoreDB) GetMeasurementsSince(
+func executeQuery(
     ctx context.Context,
-    startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+    q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
   results := make(map[string][]measurement.StorableMeasurement)
-
-  // Don't need to filter by device ID here because building the map
-  // has the effect of sorting by device ID.
-  q := datastore.NewQuery(datastoreKind).Filter(
-      "timestamp >=", startTime).Order("timestamp")
 
   it := q.Run(ctx)
   for {
@@ -76,4 +71,27 @@ func (db *datastoreDB) GetMeasurementsSince(
   }
 
   return results, nil
+}
+
+func (db *datastoreDB) GetMeasurementsSince(
+    ctx context.Context,
+    startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+  // Don't need to filter by device ID here because building the map
+  // has the effect of sorting by device ID.
+  q := datastore.NewQuery(datastoreKind).Filter(
+      "timestamp >=", startTime).Order("timestamp")
+
+  return executeQuery(ctx, q)
+}
+
+func (db *datastoreDB) GetMeasurementsBetween(
+    ctx context.Context, startTime time.Time,
+    endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+  // Don't need to filter by device ID here because building the map
+  // has the effect of sorting by device ID.
+  q := datastore.NewQuery(datastoreKind).Filter(
+      "timestamp >=", startTime).Filter(
+      "timestamp <=", endTime).Order("timestamp")
+
+  return executeQuery(ctx, q)
 }

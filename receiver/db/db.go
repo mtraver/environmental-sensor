@@ -16,9 +16,16 @@ type Database interface {
   Save(ctx context.Context, m *measurement.Measurement) error
 
   // GetMeasurementsSince gets all measurements with a timestamp greater than
-  // or equal to the given time. It returns a map of device ID (a string) to
-  // a StorableMeasurement slice, and an error.
+  // or equal to startTime. It returns a map of device ID (a string) to a
+  // StorableMeasurement slice, and an error.
   GetMeasurementsSince(
       ctx context.Context,
       startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+
+  // GetMeasurementsBetween gets all measurements with a timestamp greater than
+  // or equal to startTime and less than or equal to endTime. It returns a map
+  // of device ID (a string) to a StorableMeasurement slice, and an error.
+  GetMeasurementsBetween(
+      ctx context.Context, startTime time.Time,
+      endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 }

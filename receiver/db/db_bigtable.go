@@ -97,3 +97,11 @@ func (db *bigtableDB) GetMeasurementsSince(
   return make(map[string][]measurement.StorableMeasurement),
       errors.New("Not implemented")
 }
+
+// TODO(mtraver) implement
+func (db *bigtableDB) GetMeasurementsBetween(
+    ctx context.Context, startTime time.Time,
+    endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+  return make(map[string][]measurement.StorableMeasurement),
+      errors.New("Not implemented")
+}

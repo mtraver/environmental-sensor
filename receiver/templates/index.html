@@ -4,9 +4,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous">
+    <link rel="stylesheet"
+      href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
     <title>Environmental Monitor</title>
   </head>
@@ -16,16 +22,100 @@
       {{ if .Error }}
         <p>Error fetching data: {{ .Error }}</p>
       {{ else }}
-        <svg width="980" height="600"></svg>
+        <svg width="980" height="550"></svg>
+        <hr>
+        <div class="row">
+          <div class="col-md">
+            <h5>Change displayed data</h5>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4">
+            <p>Date range</p>
+            <form id="range-form" class="needs-validation"
+              action="/" method="post" novalidate>
+              <input type="hidden" name="form-name" value="range">
+
+              <div class="form-row">
+                <div class="col-md mb-3">
+                  <label for="startdate" class="sr-only">Start Date</label>
+                  <input type="text" id="startdate" name="startdate"
+                    class="form-control form-control-sm"
+                    placeholder="yyyy-mm-dd" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                    required>
+                  <div id="startdate-feedback" class="invalid-feedback">
+                    Format must be yyyy-mm-dd
+                  </div>
+                  <input type="hidden" id="startdate-adjusted" name="startdate-adjusted">
+                </div>
+
+                <div class="col-md mb-3">
+                  <label for="enddate" class="sr-only">End Date</label>
+                  <input type="text" id="enddate" name="enddate"
+                    class="form-control form-control-sm"
+                    placeholder="yyyy-mm-dd" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                    required>
+                  <div id="enddate-feedback" class="invalid-feedback">
+                    Format must be yyyy-mm-dd
+                  </div>
+                  <input type="hidden" id="enddate-adjusted" name="enddate-adjusted">
+                </div>
+
+                <div class="col-md mb-3">
+                  <button type="submit" class="btn btn-sm">Go!</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="col-md-4">
+            <p>Hours ago</p>
+            <form id="hoursago-form" class="needs-validation"
+              action="/" method="post" novalidate>
+              <input type="hidden" name="form-name" value="hoursago">
+
+              <div class="form-row">
+                <div class="col-md mb-3">
+                  <label for="hoursago" class="sr-only">Hours Ago</label>
+                  <input type="number" id="hoursago" name="hoursago"
+                    class="form-control form-control-sm"
+                    min="1" step="1" required>
+                  <div id="hoursago-feedback" class="invalid-feedback">
+                    Must be a positive integer
+                  </div>
+                </div>
+
+                <div class="col-md mb-3">
+                  <button type="submit" class="btn btn-sm">Go!</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       {{ end }}
     </div>
   </body>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+  <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+  <script
+    src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+    integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+    crossorigin="anonymous"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
+
   <script type="text/javascript">
     function makePlot(data) {
       var svg = d3.select("svg");
@@ -45,7 +135,7 @@
           .y(function(d) { return y(d.temp); });
 
       x.domain([new Date({{ millis .StartTime }}),
-                new Date({{ millis .EndTime }})])
+                new Date({{ millis .EndTime }})]);
 
       y.domain([
         d3.min(data, function(c) {
@@ -108,6 +198,52 @@
           .text(function(d) { return d.id; });
     }
 
+    var datepickerTimeFormat = "%Y-%m-%d";
+    var parseTime = d3.timeParse(datepickerTimeFormat);
+    var formatTime = d3.timeFormat(datepickerTimeFormat);
+
+    function validateDateRange() {
+      var start = parseTime($("#startdate").val());
+      var end = parseTime($("#enddate").val());
+
+      var valid = true;
+      var now = new Date();
+      if (end > now) {
+        $("#enddate-feedback").html("End cannot be after today");
+
+        // Mark the end date field invalid. This value isn't displayed, the
+        // content of #enddate-feedback is.
+        $("#enddate")[0].setCustomValidity("invalid");
+
+        valid = false;
+      } else {
+        $("#enddate")[0].setCustomValidity("");
+      }
+
+      // Check that start date is before end date. Equal dates are fine.
+      if (end < start) {
+        $("#startdate-feedback").html("Start must be before end");
+
+        // Mark the field invalid. This value isn't displayed, the
+        // content of #startdate-feedback is.
+        $("#startdate")[0].setCustomValidity("invalid");
+
+        valid = false;
+      } else {
+        $("#startdate")[0].setCustomValidity("");
+      }
+
+      return valid;
+    }
+
+    function validateDateRangeIfFormSubmitAttempted() {
+      if (!$("#range-form").hasClass("was-validated")) {
+        return true;
+      }
+
+      return validateDateRange();
+    }
+
     {{ if not .Error }}
       var valuesByDevice = {{ .Measurements }};
 
@@ -118,9 +254,81 @@
         }
       }
 
-      makePlot(valuesByDevice);
-    {{ end }}
+      $(document).ready(function() {
+        // Set up datepickers
+        $("#startdate").datepicker({
+          dateFormat: "yy-mm-dd",
+          maxDate: 0,  // 0 days from today, i.e. today is the max date
+          onSelect: function(dateText, inst) {
+            validateDateRangeIfFormSubmitAttempted();
+          }
+        });
+        $("#enddate").datepicker({
+          dateFormat: "yy-mm-dd",
+          maxDate: 0,  // 0 days from today, i.e. today is the max date
+          onSelect: function(dateText, inst) {
+            validateDateRangeIfFormSubmitAttempted();
+          }
+        });
 
+        // Provide real-time feedback on form changes
+        $("#startdate").on("input", validateDateRangeIfFormSubmitAttempted);
+        $("#enddate").on("input", validateDateRangeIfFormSubmitAttempted);
+
+        {{ if .FillRangeForm }}
+          $("#startdate").val(formatTime(new Date({{ millis .StartTime }})));
+          $("#enddate").val(formatTime(new Date({{ millis .EndTime }})));
+        {{ else }}
+          $("#range-form").trigger("reset");
+        {{ end }}
+
+        {{ if .FillHoursAgoForm }}
+          $("#hoursago").val({{ .HoursAgo }});
+        {{ else }}
+          $("#hoursago-form").trigger("reset");
+        {{ end }}
+
+        $("#range-form").submit(function(event) {
+          // Check that the pattern constraints specified in the HTML hold,
+          // and that the dates meet custom constraints
+          if (!this.checkValidity() || !validateDateRange()) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.classList.add('was-validated');
+            return false;
+          }
+
+          var start = parseTime($("#startdate").val());
+          var end = parseTime($("#enddate").val());
+
+          // Turn the dates into full timestamps. The range is the beginning of
+          // the start day to the end of the end day.
+          start = new Date(
+              start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0);
+          end = new Date(
+              end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59);
+
+          // These are the values that the server actually uses, in UTC
+          $("#startdate-adjusted").val(start.toISOString());
+          $("#enddate-adjusted").val(end.toISOString());
+
+          this.classList.add('was-validated');
+        });
+
+        // No custom constraints here, but it's required in order to use
+        // Bootstrap's error styling instead of the browser default
+        $("#hoursago-form").submit(function(event) {
+          if (this.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
+          this.classList.add('was-validated');
+        });
+
+        makePlot(valuesByDevice);
+      });
+    {{ end }}
   </script>
 </html>
 {{ end }}

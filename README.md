@@ -1,7 +1,7 @@
 # MCP9808 Temperature Logger
 
-Log temperature from an MCP9808 sensor connected to a Raspberry Pi or
-BeagleBone Black.
+Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)
+connected to a Raspberry Pi or BeagleBone Black.
 
 Print timestamp and temperature to stdout:
 

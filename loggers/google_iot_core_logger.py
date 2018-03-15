@@ -3,6 +3,7 @@ import base64
 import datetime
 import json
 import os
+import ssl
 
 import jwt
 import paho.mqtt.client as mqtt
@@ -213,7 +214,8 @@ class CloudIotMqttLogger(CloudIotLogger):
     client.username_pw_set(username='unused', password=self._create_jwt())
 
     # Enable SSL/TLS support.
-    client.tls_set(ca_certs=self._get_google_root_certs())
+    client.tls_set(ca_certs=self._get_google_root_certs(),
+                   tls_version=ssl.PROTOCOL_TLSv1_2)
 
     # Register message callbacks. https://eclipse.org/paho/clients/python/docs/
     # describes additional callbacks that Paho supports. In this example, the

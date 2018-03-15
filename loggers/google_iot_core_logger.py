@@ -248,7 +248,7 @@ class CloudIotMqttLogger(CloudIotLogger):
 class CloudIotHttpLogger(CloudIotLogger):
   """A logger that logs to Google Cloud IoT Core via HTTP."""
 
-  PUBLISH_URL = 'https://cloudiot-device.googleapis.com/v1beta1'
+  PUBLISH_URL = 'https://cloudiotdevice.googleapis.com/v1'
 
   def __init__(self, project_id, registry_id, priv_key_file, device_id,
                signing_alg=DEFAULT_ALG, cloud_region=None):

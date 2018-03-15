@@ -137,20 +137,23 @@
       x.domain([new Date({{ millis .StartTime }}),
                 new Date({{ millis .EndTime }})]);
 
-      y.domain([
-        d3.min(data, function(c) {
-          return d3.min(c.values, function(d) {
-            return d.temp;
-          });
-        }),
-        d3.max(data, function(c) {
-          return d3.max(c.values, function(d) {
+      // We can only set y and z domains if we have data
+      if (data != null) {
+        y.domain([
+          d3.min(data, function(c) {
+            return d3.min(c.values, function(d) {
               return d.temp;
-          });
-        })
-      ]);
+            });
+          }),
+          d3.max(data, function(c) {
+            return d3.max(c.values, function(d) {
+              return d.temp;
+            });
+          })
+        ]);
 
-      z.domain(data.map(function(c) { return c.id; }));
+        z.domain(data.map(function(c) { return c.id; }));
+      }
 
       g.append("g")
           .attr("class", "axis axis--x")
@@ -172,6 +175,18 @@
           .attr("dx", -height / 2)
           .attr("fill", "#000")
           .text("Temperature (°C)");
+
+      // If we don't have any data to display, say so and bail out
+      // before attempting to draw lines
+      if (data === null) {
+        g.append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+          .append("text")
+            .attr("text-anchor", "middle")
+            .attr("fill", "#000")
+            .text("No data in this time range");
+        return;
+      }
 
       var device = g.selectAll(".device")
         .data(data)

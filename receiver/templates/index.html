@@ -20,18 +20,34 @@
   </head>
   <body>
     <div class="container">
-      <h1>Environmental Monitor</h1>
-      <p>
-        On the main plot, scroll to zoom and drag to translate.<br>
-        On the context plot, resize the transparent gray area to zoom, and drag to translate.
-      </p>
+      <div class="row">
+        <div class="col-md-auto">
+          <h1>Environmental Monitor</h1>
+        </div>
+      </div>
+
       {{ if .Error }}
         <p>Error fetching data: {{ .Error }}</p>
       {{ else }}
-        <svg width="960" height="550"></svg>
-        <hr>
         <div class="row">
-          <div class="col-md">
+          <div class="col-md-auto">
+            <p>
+              On the main plot, scroll to zoom and drag to translate.<br>
+              On the context plot, resize the transparent gray area to zoom, and drag to translate.
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-auto">
+            <svg width="960" height="550"></svg>
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="col-md-11">
+            <hr>
             <h5>Change displayed data</h5>
           </div>
         </div>

@@ -1,0 +1,14 @@
+.line {
+  clip-path: url(#clip);
+}
+
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+.legend-border {
+  fill: white;
+  stroke: black;
+}

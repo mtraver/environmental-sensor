@@ -14,15 +14,21 @@
     <link rel="stylesheet"
       href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
+    <link rel="stylesheet" href="/static/style.css">
+
     <title>Environmental Monitor</title>
   </head>
   <body>
     <div class="container">
       <h1>Environmental Monitor</h1>
+      <p>
+        On the main plot, scroll to zoom and drag to translate.<br>
+        On the context plot, resize the transparent gray area to zoom, and drag to translate.
+      </p>
       {{ if .Error }}
         <p>Error fetching data: {{ .Error }}</p>
       {{ else }}
-        <svg width="980" height="550"></svg>
+        <svg width="960" height="550"></svg>
         <hr>
         <div class="row">
           <div class="col-md">
@@ -97,7 +103,6 @@
     </div>
   </body>
 
-
   <script
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
@@ -116,17 +121,23 @@
     crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
 
+  <script src="/static/legend.js"></script>
+
   <script type="text/javascript">
     function makePlot(data) {
       var svg = d3.select("svg");
-      var margin = {top: 20, right: 80, bottom: 90, left: 60};
-      var width = svg.attr("width") - margin.left - margin.right;
-      var height = svg.attr("height") - margin.top - margin.bottom;
-      var g = svg.append("g").attr(
-          "transform", "translate(" + margin.left + "," + margin.top + ")");
+      var margin = {top: 0, right: 20, bottom: 150, left: 50};
+      var margin2 = {top: 435, right: 20, bottom: 50, left: 50};
+
+      var width = +svg.attr("width") - margin.left - margin.right;
+
+      var height = +svg.attr("height") - margin.top - margin.bottom;
+      var height2 = +svg.attr("height") - margin2.top - margin2.bottom;
 
       var x = d3.scaleTime().range([0, width]);
+      var x2 = d3.scaleTime().range([0, width]);
       var y = d3.scaleLinear().range([height, 0]);
+      var y2 = d3.scaleLinear().range([height2, 0]);
       var z = d3.scaleOrdinal(d3.schemeCategory10);
 
       var line = d3.line()
@@ -134,8 +145,14 @@
           .x(function(d) { return x(d.timestamp); })
           .y(function(d) { return y(d.temp); });
 
+      var line2 = d3.line()
+          .curve(d3.curveBasis)
+          .x(function(d) { return x2(d.timestamp); })
+          .y(function(d) { return y2(d.temp); });
+
       x.domain([new Date({{ millis .StartTime }}),
                 new Date({{ millis .EndTime }})]);
+      x2.domain(x.domain());
 
       // We can only set y and z domains if we have data
       if (data != null) {
@@ -152,22 +169,60 @@
           })
         ]);
 
+        // Add a 5% margin to the domain so that lines
+        // aren't right at the top or bottom
+        var d = y.domain();
+        var adjustment = Math.abs(d[1] - d[0]) * 0.05;
+        y.domain([d[0] - adjustment, d[1] + adjustment])
+
+        y2.domain(y.domain());
+
         z.domain(data.map(function(c) { return c.id; }));
       }
 
-      g.append("g")
+      var brush = d3.brushX()
+          .extent([[0, 0], [width, height2]])
+          .on("brush end", brushed);
+
+      var zoom = d3.zoom()
+          .scaleExtent([1, Infinity])
+          .translateExtent([[0, 0], [width, height]])
+          .extent([[0, 0], [width, height]])
+          .on("zoom", zoomed);
+
+      var xAxis = d3.axisBottom(x);
+      var xAxis2 = d3.axisBottom(x2);
+      var yAxis = d3.axisLeft(y);
+
+      // This ensures that the lines don't run off the plot
+      svg.append("defs").append("clipPath")
+          .attr("id", "clip")
+        .append("rect")
+          .attr("width", width)
+          .attr("height", height);
+
+      // The "focus" plot is the taller one at the top
+      var focus = svg.append("g")
+          .attr("class", "focus")
+          .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+      // The "context" plot is the shorter one at the bottom. It doesn't have
+      // a y-axis because it's so small. It's meant to give a sense of the
+      // region you're looking at when you're zoomed in on the focus plot.
+      var context = svg.append("g")
+          .attr("class", "context")
+          .attr("transform",
+                "translate(" + margin2.left + "," + margin2.top + ")");
+
+      focus.append("g")
           .attr("class", "axis axis--x")
           .attr("transform", "translate(0," + height + ")")
-          .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y-%m-%d %H:%M:%S")))
-          .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", ".15em")
-            .attr("transform", "rotate(-50)");
+          .call(xAxis);
 
-      g.append("g")
+      focus.append("g")
           .attr("class", "axis axis--y")
-          .call(d3.axisLeft(y))
+          .call(yAxis)
         .append("text")
           .attr("text-anchor", "middle")
           .attr("transform", "rotate(-90)")
@@ -176,10 +231,16 @@
           .attr("fill", "#000")
           .text("Temperature (°C)");
 
+      // The context plot just gets an x-axis
+      context.append("g")
+          .attr("class", "axis axis--x")
+          .attr("transform", "translate(0," + height2 + ")")
+          .call(xAxis2);
+
       // If we don't have any data to display, say so and bail out
       // before attempting to draw lines
       if (data === null) {
-        g.append("g")
+        focus.append("g")
             .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
           .append("text")
             .attr("text-anchor", "middle")
@@ -188,29 +249,84 @@
         return;
       }
 
-      var device = g.selectAll(".device")
-        .data(data)
+      // Draw lines on the focus plot
+      focus.selectAll(".device")
+          .data(data)
         .enter().append("g")
-          .attr("class", "device");
-
-      device.append("path")
+          .attr("class", "device")
+        .append("path")
           .attr("class", "line")
           .attr("d", function(d) { return line(d.values); })
           .style("stroke", function(d) { return z(d.id); })
           .style("fill", function(d) { return "none"; });
 
-      device.append("text")
-          .datum(function(d) {
-            return {id: d.id, value: d.values[d.values.length - 1]};
-          })
-          .attr("transform", function(d) {
-            return ("translate(" + x(d.value.timestamp) + ","
-                    + y(d.value.temp) + ")");
-          })
-          .attr("x", 3)
-          .attr("dy", "0.35em")
-          .style("font", "10px sans-serif")
-          .text(function(d) { return d.id; });
+      // Draw lines on the context plot
+      context.selectAll(".device")
+          .data(data)
+        .enter().append("g")
+          .attr("class", "device")
+        .append("path")
+          .attr("class", "line")
+          .attr("d", function(d) { return line2(d.values); })
+          .style("stroke", function(d) { return z(d.id); })
+          .style("fill", function(d) { return "none"; });
+
+      // Add a legend at the very bottom
+      var legendRectSize = 15;
+      var legendFunc = legend()
+        .rectSize(legendRectSize)
+        .label(function(d) { return d.id; })
+        .color(function(d) { return z(d.id); });
+
+      focus.append("g")
+        .attr("class", "legend")
+        .style("font", "11px sans-serif")
+        .attr("transform",
+              "translate(" + 0 + "," + (height + margin.top + margin.bottom
+                                        - legendRectSize * 1.25) + ")")
+        .call(legendFunc, data);
+
+      context.append("g")
+        .attr("class", "brush")
+        .call(brush)
+        .call(brush.move, x.range());
+
+      svg.append("rect")
+        .attr("class", "zoom")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .call(zoom);
+
+      function brushed() {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") {
+          // Ignore brush-by-zoom
+          return;
+        }
+
+        var s = d3.event.selection || x2.range();
+        x.domain(s.map(x2.invert, x2));
+        focus.selectAll(".line")
+            .attr("d", function(d) { return line(d.values); });
+        focus.select(".axis--x").call(xAxis);
+        svg.select(".zoom").call(
+            zoom.transform,
+            d3.zoomIdentity.scale(width / (s[1] - s[0])).translate(-s[0], 0));
+      }
+
+      function zoomed() {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
+          // Ignore zoom-by-brush
+          return;
+        }
+
+        var t = d3.event.transform;
+        x.domain(t.rescaleX(x2).domain());
+        focus.selectAll(".line")
+            .attr("d", function(d) { return line(d.values); });
+        focus.select(".axis--x").call(xAxis);
+        context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+      }
     }
 
     var datepickerTimeFormat = "%Y-%m-%d";

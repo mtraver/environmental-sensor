@@ -75,6 +75,11 @@ func mean(x []float32) float32 {
 
 func lineToProto(
     line []string, deviceID string) (*measurement.Measurement, error) {
+  if len(line) < 2 {
+    return nil, errors.New(
+        "Line length must be at least 2 (timestamp and one measurement)")
+  }
+
   // Convert the timestamp string to a timestamp for packing into a protobuf
   timestamp, err := time.Parse(timeFormat, line[0])
   if err != nil {
@@ -108,7 +113,7 @@ func publishFromCSV(csvFile string, projectID string, pubsubTopic string,
   }
   reader := csv.NewReader(bufio.NewReader(f))
 
-  // Set up the Pub.Sub client
+  // Set up the Pub/Sub client
   ctx := context.Background()
   client, err := pubsub.NewClient(ctx, projectID)
   if err != nil {

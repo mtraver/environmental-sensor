@@ -1,6 +1,7 @@
 package receiver
 
 import (
+  "context"
   "encoding/json"
   "errors"
   "fmt"
@@ -9,6 +10,7 @@ import (
   "net/http"
   "os"
   "strconv"
+  "strings"
   "time"
 
   "github.com/golang/protobuf/proto"
@@ -50,8 +52,18 @@ func mustGetenv(varName string) string {
   return val
 }
 
-func getDatabase() (db.Database, error) {
-  projectID := mustGetenv("GOOGLE_CLOUD_PROJECT")
+func getDatabase(ctx context.Context) (db.Database, error) {
+  // From the documentation of appengine.AppID:
+  //
+  //   AppID returns the application ID for the current application. The string
+  //   will be a plain application ID (e.g. "appid"), with a domain prefix for
+  //   custom domain deployments (e.g. "example.com:appid").
+  //
+  // Here we just want the app ID (don't care if it's deployed to a custom
+  // domain) so split at the first colon. This is fine because an app ID can
+  // only have lowercase letters, digits, and hyphens.
+  appIDParts := strings.Split(appengine.AppID(ctx), ":")
+  projectID := appIDParts[len(appIDParts)-1]
 
   var database db.Database = nil
   var err error = nil
@@ -77,7 +89,7 @@ func init() {
 func rootHandler(w http.ResponseWriter, r *http.Request) {
   ctx := appengine.NewContext(r)
 
-  database, err := getDatabase()
+  database, err := getDatabase(ctx)
   if err != nil {
     gaelog.Criticalf(ctx, "%v", err)
     http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
@@ -178,7 +190,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func pushHandler(w http.ResponseWriter, r *http.Request) {
   ctx := appengine.NewContext(r)
 
-  database, err := getDatabase()
+  database, err := getDatabase(ctx)
   if err != nil {
     gaelog.Criticalf(ctx, "%v", err)
     http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)

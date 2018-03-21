@@ -3,9 +3,6 @@ runtime: go
 api_version: go1.8
 
 env_variables:
-  # Provide the name of your Google Cloud project
-  GOOGLE_CLOUD_PROJECT: 'TODO'
-
   # To save to Datastore, uncomment the line below
   # DB_TYPE: 'datastore'
 

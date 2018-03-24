@@ -1,4 +1,4 @@
-package receiver
+package main
 
 import (
   "context"
@@ -81,9 +81,11 @@ func getDatabase(ctx context.Context) (db.Database, error) {
   return database, err
 }
 
-func init() {
+func main() {
   http.HandleFunc("/", rootHandler)
   http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
+
+  appengine.Main()
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {

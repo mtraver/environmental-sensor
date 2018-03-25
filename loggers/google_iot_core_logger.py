@@ -16,7 +16,7 @@ SUPPORTED_ALGORITHMS = ['RS256', 'ES256']
 DEFAULT_ALG = 'ES256'
 
 
-class CloudIotLogger(loggers.base_logger.Logger):
+class CloudIotLogger(loggers.base_logger.GCPLogger):
   """Base class for loggers that log to Google Cloud IoT Core."""
 
   DEFAULT_CLOUD_REGION = 'us-central1'
@@ -26,7 +26,7 @@ class CloudIotLogger(loggers.base_logger.Logger):
     """Creates a logger that logs data via Google Cloud IoT Core.
 
     Args:
-      project_id: The cloud project ID this device belongs to.
+      project_id: The ID of the Google Cloud project the device belongs to.
       registry_id: The Cloud IoT Core device registry this device belongs to.
       priv_key_file: Path to a file containing the device's RSA256 or ES256
                      private key. It must have been added to the IoT Core
@@ -40,14 +40,14 @@ class CloudIotLogger(loggers.base_logger.Logger):
     Raises:
       ValueError: If signing_alg is not one of {RSA256, ES256}.
     """
+    super(CloudIotLogger, self).__init__(project_id, device_id)
+
     if signing_alg not in SUPPORTED_ALGORITHMS:
       raise ValueError('Algorithm not supported: "{}"'.format(signing_alg))
     self._signing_alg = signing_alg
 
-    self._project_id = project_id
     self._registry_id = registry_id
     self._priv_key_file = priv_key_file
-    self._device_id = device_id
     self._cloud_region = cloud_region
 
   def _create_jwt(self, validity_minutes=60):

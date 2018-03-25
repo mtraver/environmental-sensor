@@ -89,6 +89,16 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+  // Ensure that we only serve the root.
+  // From https://golang.org/pkg/net/http/#ServeMux:
+  //   Note that since a pattern ending in a slash names a rooted subtree, the
+  //   pattern "/" matches all paths not matched by other registered patterns,
+  //   not just the URL with Path == "/".
+  if r.URL.Path != "/" {
+    http.NotFound(w, r)
+    return
+  }
+
   ctx := appengine.NewContext(r)
 
   database, err := getDatabase(ctx)

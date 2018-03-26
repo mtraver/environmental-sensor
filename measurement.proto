@@ -1,8 +1,16 @@
 syntax = "proto3";
+package measurement;
+option go_package = "measurement";
+
+import "google/protobuf/descriptor.proto";
 import "google/protobuf/timestamp.proto";
 
+extend google.protobuf.FieldOptions {
+  string regex = 50000;
+}
+
 message Measurement {
-  string device_id = 1;
+  string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
   google.protobuf.Timestamp timestamp = 2;
   float temp = 3;
 }

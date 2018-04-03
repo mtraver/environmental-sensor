@@ -21,19 +21,19 @@ var _ Database = &datastoreDB{}
 
 func NewDatastoreDB(projectID string) Database {
 	return &datastoreDB{
-			projectID: projectID,
+		projectID: projectID,
 	}
 }
 
 func (db *datastoreDB) Save(ctx context.Context,
-														m *measurement.Measurement) error {
+	m *measurement.Measurement) error {
 	storableMeasurement, err := m.ToStorableMeasurement()
 	if err != nil {
 		return err
 	}
 
 	key := datastore.NewKey(
-			ctx, datastoreKind, storableMeasurement.DBKey(), 0, nil)
+		ctx, datastoreKind, storableMeasurement.DBKey(), 0, nil)
 
 	// Only store the measurement if it doesn't exist
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -50,8 +50,8 @@ func (db *datastoreDB) Save(ctx context.Context,
 }
 
 func executeQuery(
-		ctx context.Context,
-		q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
+	ctx context.Context,
+	q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
 	results := make(map[string][]measurement.StorableMeasurement)
 
 	it := q.Run(ctx)
@@ -74,24 +74,24 @@ func executeQuery(
 }
 
 func (db *datastoreDB) GetMeasurementsSince(
-		ctx context.Context,
-		startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+	ctx context.Context,
+	startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
 	q := datastore.NewQuery(datastoreKind).Filter(
-			"timestamp >=", startTime).Order("timestamp")
+		"timestamp >=", startTime).Order("timestamp")
 
 	return executeQuery(ctx, q)
 }
 
 func (db *datastoreDB) GetMeasurementsBetween(
-		ctx context.Context, startTime time.Time,
-		endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+	ctx context.Context, startTime time.Time,
+	endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
 	q := datastore.NewQuery(datastoreKind).Filter(
-			"timestamp >=", startTime).Filter(
-			"timestamp <=", endTime).Order("timestamp")
+		"timestamp >=", startTime).Filter(
+		"timestamp <=", endTime).Order("timestamp")
 
 	return executeQuery(ctx, q)
 }

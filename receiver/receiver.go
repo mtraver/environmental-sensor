@@ -27,11 +27,11 @@ const defaultDataDisplayAgeHours = 6
 
 // Parse and cache all templates at startup instead of loading on each request
 var templates = template.Must(template.New("index.html").Funcs(
-		template.FuncMap{
-			"millis": func(t time.Time) int64 {
-				return t.Unix() * 1000
-			},
-}).ParseGlob("templates/*"))
+	template.FuncMap{
+		"millis": func(t time.Time) int64 {
+			return t.Unix() * 1000
+		},
+	}).ParseGlob("templates/*"))
 
 // This is the structure of the JSON payload pushed to the endpoint by
 // Cloud Pub/Sub. See https://cloud.google.com/pubsub/docs/push.
@@ -68,14 +68,14 @@ func getDatabase(ctx context.Context) (db.Database, error) {
 	var database db.Database = nil
 	var err error = nil
 	switch dbType := mustGetenv("DB_TYPE"); dbType {
-		case "datastore":
-			database = db.NewDatastoreDB(projectID)
-		case "bigtable":
-			database = db.NewBigtableDB(
-					projectID, mustGetenv("BIGTABLE_INSTANCE"),
-					mustGetenv("BIGTABLE_TABLE"))
-		default:
-			err = errors.New(fmt.Sprintf("Unknown database type: %v", dbType))
+	case "datastore":
+		database = db.NewDatastoreDB(projectID)
+	case "bigtable":
+		database = db.NewBigtableDB(
+			projectID, mustGetenv("BIGTABLE_INSTANCE"),
+			mustGetenv("BIGTABLE_TABLE"))
+	default:
+		err = errors.New(fmt.Sprintf("Unknown database type: %v", dbType))
 	}
 
 	return database, err
@@ -122,18 +122,18 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		switch formName := r.FormValue("form-name"); formName {
 		case "range":
 			startTime, err = time.Parse(time.RFC3339Nano,
-																	r.FormValue("startdate-adjusted"))
+				r.FormValue("startdate-adjusted"))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Bad start time: %v", err),
-									 http.StatusBadRequest)
+					http.StatusBadRequest)
 				return
 			}
 
 			endTime, err = time.Parse(time.RFC3339Nano,
-																r.FormValue("enddate-adjusted"))
+				r.FormValue("enddate-adjusted"))
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Bad end time: %v", err),
-									 http.StatusBadRequest)
+					http.StatusBadRequest)
 				return
 			}
 
@@ -146,9 +146,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if (hoursAgo < 1) {
+			if hoursAgo < 1 {
 				http.Error(w, fmt.Sprintf("Hours ago must be >= 1"),
-									 http.StatusBadRequest)
+					http.StatusBadRequest)
 				return
 			}
 
@@ -158,8 +158,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			fillRangeForm = false
 			fillHoursAgoForm = true
 		default:
-			http.Error(
-					w, fmt.Sprintf("Unknown form name"), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Unknown form name"), http.StatusBadRequest)
 			return
 		}
 	}
@@ -177,20 +176,20 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Measurements template.JS
-		Error error
-		StartTime time.Time
-		EndTime time.Time
-		HoursAgo int
-		FillRangeForm bool
+		Measurements     template.JS
+		Error            error
+		StartTime        time.Time
+		EndTime          time.Time
+		HoursAgo         int
+		FillRangeForm    bool
 		FillHoursAgoForm bool
 	}{
-		Measurements: template.JS(jsonBytes),
-		Error: err,
-		StartTime: startTime,
-		EndTime: endTime,
-		HoursAgo: hoursAgo,
-		FillRangeForm: fillRangeForm,
+		Measurements:     template.JS(jsonBytes),
+		Error:            err,
+		StartTime:        startTime,
+		EndTime:          endTime,
+		HoursAgo:         hoursAgo,
+		FillRangeForm:    fillRangeForm,
 		FillHoursAgoForm: fillHoursAgoForm,
 	}
 
@@ -213,7 +212,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
 		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
-							 http.StatusBadRequest)
+			http.StatusBadRequest)
 		return
 	}
 
@@ -222,7 +221,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
 		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
-							 http.StatusBadRequest)
+			http.StatusBadRequest)
 		return
 	}
 

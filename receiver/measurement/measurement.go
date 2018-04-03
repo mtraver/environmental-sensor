@@ -19,9 +19,9 @@ const keySep = "#"
 
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type
 type StorableMeasurement struct {
-	DeviceId  string     `json:"device_id,omitempty" datastore:"device_id"`
-	Timestamp time.Time  `json:"timestamp,omitempty" datastore:"timestamp"`
-	Temp      float32    `json:"temp,omitempty" datastore:"temp"`
+	DeviceId  string    `json:"device_id,omitempty" datastore:"device_id"`
+	Timestamp time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
+	Temp      float32   `json:"temp,omitempty" datastore:"temp"`
 }
 
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type.
@@ -31,8 +31,8 @@ type StorableMeasurement struct {
 type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in millieconds
 	// (compare to Timestamp in StorableMeasurement).
-	Timestamp int64    `json:"timestamp,omitempty" datastore:"timestamp"`
-	Temp      float32  `json:"temp,omitempty" datastore:"temp"`
+	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
+	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
 }
 
 // ToStorableMeasurement converts the automatically-generated Measurement
@@ -45,9 +45,9 @@ func (m *Measurement) ToStorableMeasurement() (StorableMeasurement, error) {
 	}
 
 	return StorableMeasurement{
-		DeviceId: m.GetDeviceId(),
+		DeviceId:  m.GetDeviceId(),
 		Timestamp: timestamp,
-		Temp: m.GetTemp(),
+		Temp:      m.GetTemp(),
 	}, nil
 }
 
@@ -60,7 +60,7 @@ func (m *Measurement) ToStorableMeasurement() (StorableMeasurement, error) {
 //   https://github.com/golang/protobuf/issues/364 (proto: make the Message
 //     interface behaviorally complete)
 func (m *Measurement) getField(
-		fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
+	fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
 	messageVal := reflect.ValueOf(*m)
 	props := proto.GetProperties(reflect.TypeOf(m).Elem())
 
@@ -77,7 +77,7 @@ func (m *Measurement) getField(
 		for _, oneof := range props.OneofTypes {
 			if int32(oneof.Prop.Tag) == fd.GetNumber() {
 				field = messageVal.Field(
-						oneof.Field).Elem().FieldByName(oneof.Prop.Name)
+					oneof.Field).Elem().FieldByName(oneof.Prop.Name)
 				break
 			}
 		}
@@ -85,8 +85,8 @@ func (m *Measurement) getField(
 
 	if !field.IsValid() {
 		panic(fmt.Sprintf(
-				"Cannot find struct field for proto field name %q, number/tag %d",
-				fd.GetName(), fd.GetNumber()))
+			"Cannot find struct field for proto field name %q, number/tag %d",
+			fd.GetName(), fd.GetNumber()))
 	}
 
 	return field
@@ -118,8 +118,8 @@ func (m *Measurement) Validate() error {
 		regex := regexp.MustCompile(*regexExt.(*string))
 		if !regex.MatchString(field.String()) {
 			return fmt.Errorf(
-					"Field failed regex validation. Field: %q Value: %q Regex: %q",
-					f.GetName(), field.String(), regex)
+				"Field failed regex validation. Field: %q Value: %q Regex: %q",
+				f.GetName(), field.String(), regex)
 		}
 	}
 
@@ -132,7 +132,7 @@ func (m *Measurement) Validate() error {
 // https://cloud.google.com/bigtable/docs/schema-design-time-series.
 func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)},
-											keySep)
+		keySep)
 }
 
 // MeasurementMapToJSON converts a string -> []StorableMeasurement map
@@ -141,9 +141,9 @@ func (m *StorableMeasurement) DBKey() string {
 // as a map where keys are device IDs, because the JavaScript visualization
 // package D3 (https://d3js.org/) works better with arrays of data than maps.
 func MeasurementMapToJSON(measurements map[string][]StorableMeasurement) (
-		[]byte, error) {
+	[]byte, error) {
 	type dataForTemplate struct {
-		ID string `json:"id"`
+		ID     string                    `json:"id"`
 		Values []serializableMeasurement `json:"values"`
 	}
 

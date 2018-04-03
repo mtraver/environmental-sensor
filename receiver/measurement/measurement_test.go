@@ -7,12 +7,15 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
+var (
+	timestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
+)
+
 func TestToStorableMeasurement(t *testing.T) {
 	deviceID := "foo"
 	var temp float32 = 18.5
 
-	goTimestamp := time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
-	pbTimestamp, _ := ptypes.TimestampProto(goTimestamp)
+	pbTimestamp, _ := ptypes.TimestampProto(timestamp)
 	m := Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,
@@ -29,8 +32,8 @@ func TestToStorableMeasurement(t *testing.T) {
 		t.Errorf("Incorrect devie ID. Expected %q, got %q", deviceID, s.DeviceId)
 	}
 
-	if s.Timestamp != goTimestamp {
-		t.Errorf("Incorrect timestamp. Expected %v, got %v", goTimestamp,
+	if s.Timestamp != timestamp {
+		t.Errorf("Incorrect timestamp. Expected %v, got %v", timestamp,
 			s.Timestamp)
 	}
 
@@ -132,4 +135,47 @@ func TestMeasurementMapToJSON(t *testing.T) {
 		t.Errorf("Incorrect JSON. Expected %q, got %q", expected,
 			string(marshalledJSON))
 	}
+}
+
+func getMeasurement(deviceID string) Measurement {
+	pbTimestamp, _ := ptypes.TimestampProto(timestamp)
+	return Measurement{
+		DeviceId:  deviceID,
+		Timestamp: pbTimestamp,
+		Temp:      18.5,
+	}
+}
+
+func doMeasurementValidTest(t *testing.T, deviceID string) {
+	m := getMeasurement(deviceID)
+	if err := m.Validate(); err != nil {
+		t.Errorf("Measurement invalid, but expected valid: %v", err)
+	}
+}
+
+func doMeasurementInvalidTest(t *testing.T, deviceID string) {
+	m := getMeasurement(deviceID)
+	if err := m.Validate(); err == nil {
+		t.Errorf("Measurement valid, but expected invalid")
+	}
+}
+
+func TestMeasurementValid(t *testing.T) {
+	doMeasurementValidTest(t, "foo+.%~_-0123")
+}
+
+func TestInvalidDeviceIDEmpty(t *testing.T) {
+	doMeasurementInvalidTest(t, "")
+}
+
+func TestInvalidDeviceIDShort(t *testing.T) {
+	doMeasurementInvalidTest(t, "a")
+}
+
+func TestInvalidDeviceIDNonAlphaStart(t *testing.T) {
+	doMeasurementInvalidTest(t, "7abcd")
+}
+
+func TestInvalidDeviceIDIllegalChars(t *testing.T) {
+	doMeasurementInvalidTest(t, "foo`!@#$^&*()={}[]<>,?/|\\':;")
 }

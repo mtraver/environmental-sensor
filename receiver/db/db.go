@@ -1,9 +1,8 @@
 package db
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"receiver/measurement"
 )

@@ -1,8 +1,9 @@
 package db
 
 import (
-	"context"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
 

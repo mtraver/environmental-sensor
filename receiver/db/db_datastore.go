@@ -10,7 +10,13 @@ import (
 	"receiver/measurement"
 )
 
-const datastoreKind = "measurement"
+const (
+	datastoreKind = "measurement"
+
+	// Datastore queries are limited to this many entities, and multiple queries
+	// are made to fetch all results.
+	queryLimit = 1000
+)
 
 type datastoreDB struct {
 	projectID string
@@ -54,20 +60,44 @@ func executeQuery(
 	q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
 	results := make(map[string][]measurement.StorableMeasurement)
 
-	it := q.Run(ctx)
+	// Don't modify the original query. We'll continue to derive queries from it
+	// using a cursor to break apart the whole query into multiple smaller ones.
+	derivedQuery := q.Limit(queryLimit)
+
 	for {
-		var m measurement.StorableMeasurement
-		_, err := it.Next(&m)
-		if err == datastore.Done {
-			break
-		} else if err != nil {
-			return make(map[string][]measurement.StorableMeasurement), err
+		processed := 0
+
+		it := derivedQuery.Run(ctx)
+		for {
+			var m measurement.StorableMeasurement
+			_, err := it.Next(&m)
+			if err == datastore.Done {
+				cursor, err := it.Cursor()
+				if err != nil {
+					return make(map[string][]measurement.StorableMeasurement), err
+				}
+
+				// The current query finished, so make a new one that starts
+				// where it left off.
+				derivedQuery = q.Start(cursor).Limit(queryLimit)
+				break
+			} else if err != nil {
+				return make(map[string][]measurement.StorableMeasurement), err
+			}
+
+			if _, ok := results[m.DeviceId]; !ok {
+				results[m.DeviceId] = []measurement.StorableMeasurement{}
+			}
+			results[m.DeviceId] = append(results[m.DeviceId], m)
+
+			processed++
 		}
 
-		if _, ok := results[m.DeviceId]; !ok {
-			results[m.DeviceId] = []measurement.StorableMeasurement{}
+		if processed < queryLimit {
+			// The last query returned fewer results than the limit, meaning that a
+			// subsequent query would return nothing, so we're done.
+			break
 		}
-		results[m.DeviceId] = append(results[m.DeviceId], m)
 	}
 
 	return results, nil

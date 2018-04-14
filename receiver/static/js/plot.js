@@ -1,6 +1,6 @@
 function makePlot(data, startDate, endDate) {
   var svg = d3.select("svg");
-  var margin = {top: 0, right: 20, bottom: 150, left: 50};
+  var margin = {top: 5, right: 20, bottom: 150, left: 50};
   var margin2 = {top: 435, right: 20, bottom: 50, left: 50};
 
   var width = +svg.attr("width") - margin.left - margin.right;
@@ -155,7 +155,7 @@ function makePlot(data, startDate, endDate) {
     .attr("class", "legend")
     .style("font", "11px sans-serif")
     .attr("transform",
-          "translate(" + 0 + "," + (height + margin.top + margin.bottom
+          "translate(" + 0 + "," + (height + margin.bottom
                                     - legendRectSize * 1.25) + ")")
     .call(legendFunc, data);
 

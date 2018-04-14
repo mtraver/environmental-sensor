@@ -3,10 +3,11 @@ runtime: go
 api_version: go1.9
 
 env_variables:
-  # To save to Datastore, uncomment the line below
-  # DB_TYPE: 'datastore'
+  # Save data to Datastore
+  DB_TYPE: 'datastore'
 
-  # To save to Bigtable, uncomment the lines below and fill in the TODOs
+  # To save to Bigtable, comment out the DB_TYPE line above, uncomment the
+  # lines below, and fill in the TODOs.
   # DB_TYPE: 'bigtable'
   # BIGTABLE_INSTANCE: 'TODO'
   # BIGTABLE_TABLE: 'TODO'

@@ -1,3 +1,20 @@
+function multiExtent(data, startTimestamp, endTimestamp) {
+  // Get the extent of the values for each device
+  var extents = data.map(d => d3.extent(
+    d.values.filter(e => e.timestamp > startTimestamp && e.timestamp < endTimestamp),
+    e => e.temp));
+
+  // Flatten the array of extents, and then get the overall extent
+  return d3.extent(extents.reduce((acc, val) => acc.concat(val), []), e => e);
+}
+
+// Adds a 5% margin to the given extent (an array of length 2).
+// This is useful for adding some margin to axis domains.
+function padExtent(extent) {
+  var adjustment = Math.abs(extent[1] - extent[0]) * 0.05;
+  return [extent[0] - adjustment, extent[1] + adjustment];
+}
+
 function makePlot(data, startDate, endDate) {
   var svg = d3.select("svg");
   var margin = {top: 5, right: 20, bottom: 150, left: 50};
@@ -44,9 +61,7 @@ function makePlot(data, startDate, endDate) {
 
     // Add a 5% margin to the domain so that lines
     // aren't right at the top or bottom
-    var d = y.domain();
-    var adjustment = Math.abs(d[1] - d[0]) * 0.05;
-    y.domain([d[0] - adjustment, d[1] + adjustment])
+    y.domain(padExtent(y.domain()));
 
     y2.domain(y.domain());
 
@@ -171,6 +186,18 @@ function makePlot(data, startDate, endDate) {
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
     .call(zoom);
 
+  // Rescales the y-axis to fit just the visible data
+  function updateYAxis() {
+    // Get the domain of the visible data
+    var domain = multiExtent(data, x.domain()[0], x.domain()[1]);
+
+    // Add a 5% margin to the domain so that lines
+    // aren't right at the top or bottom
+    y.domain(padExtent(domain));
+
+    focus.select(".axis--y").call(yAxis);
+  }
+
   function brushed() {
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") {
       // Ignore brush-by-zoom
@@ -185,6 +212,8 @@ function makePlot(data, startDate, endDate) {
     svg.select(".zoom").call(
         zoom.transform,
         d3.zoomIdentity.scale(width / (s[1] - s[0])).translate(-s[0], 0));
+
+    updateYAxis();
   }
 
   function zoomed() {
@@ -199,5 +228,7 @@ function makePlot(data, startDate, endDate) {
         .attr("d", function(d) { return line(d.values); });
     focus.select(".axis--x").call(xAxis);
     context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+
+    updateYAxis();
   }
 }

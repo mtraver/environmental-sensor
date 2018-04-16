@@ -4,8 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -39,8 +38,8 @@
         </div>
 
         <div class="row">
-          <div class="col-md-auto">
-            <svg width="960" height="550"></svg>
+          <div class="col-md-12">
+            <svg id="plot"></svg>
           </div>
         </div>
 
@@ -269,7 +268,7 @@
           this.classList.add('was-validated');
         });
 
-        makePlot(valuesByDevice, new Date({{ millis .StartTime }}),
+        makePlot("svg#plot", valuesByDevice, new Date({{ millis .StartTime }}),
                  new Date({{ millis .EndTime }}));
       });
     {{ end }}

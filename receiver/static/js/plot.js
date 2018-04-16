@@ -15,15 +15,26 @@ function padExtent(extent) {
   return [extent[0] - adjustment, extent[1] + adjustment];
 }
 
-function makePlot(data, startDate, endDate) {
-  var svg = d3.select("svg");
+function makePlot(selector, data, startDate, endDate) {
+  // This width and height are just used here and for the viewBox (set below).
+  // The SVG is given width and height of 100% in the CSS, so it scales
+  // automatically based on the viewBox and preserveAspectRatio settings.
+  var fullWidth = 960;
+  var fullHeight = 550;
+
+  // Margins around the focus plot (main plot) and context plot (smaller plot).
+  // Vars that end with a 2 (e.g. margin2, x2) refer to the context plot.
   var margin = {top: 5, right: 20, bottom: 150, left: 50};
   var margin2 = {top: 435, right: 20, bottom: 50, left: 50};
 
-  var width = +svg.attr("width") - margin.left - margin.right;
+  var svg = d3.select(selector);
+  svg.attr("viewBox", "0 0 " + fullWidth + " " + fullHeight)
+    .attr("preserveAspectRatio", "xMidYMid meet");
 
-  var height = +svg.attr("height") - margin.top - margin.bottom;
-  var height2 = +svg.attr("height") - margin2.top - margin2.bottom;
+  // Calculate per-plot dimensions from the overall SVG size and the margins
+  var width = fullWidth - margin.left - margin.right;
+  var height = fullHeight - margin.top - margin.bottom;
+  var height2 = fullHeight - margin2.top - margin2.bottom;
 
   var x = d3.scaleTime().range([0, width]);
   var x2 = d3.scaleTime().range([0, width]);

@@ -8,6 +8,14 @@
   pointer-events: all;
 }
 
+.brush rect.selection {
+  fill-opacity: 0.2;
+  stroke: gray;
+  stroke-opacity: 0.5;
+  stroke-width: 1;
+  stroke-dasharray: 5,5;
+}
+
 .legend-border {
   fill: white;
   stroke: black;

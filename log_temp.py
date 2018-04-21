@@ -168,7 +168,7 @@ def get_device_id(args):
     if not os.path.isfile(cert_path):
       raise Exception('Certificate file does not exist: {}'.format(cert_path))
 
-    with open(cert_path, 'r') as f:
+    with open(cert_path, 'rb') as f:
       cert = cryptography.x509.load_pem_x509_certificate(
           f.read(), cryptography.hazmat.backends.default_backend())
 

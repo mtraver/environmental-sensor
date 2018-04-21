@@ -294,7 +294,7 @@ class CloudIotHttpLogger(CloudIotLogger):
 
   def log(self, timestamp, values):
     headers = {
-        'authorization': 'Bearer {}'.format(self._create_jwt()),
+        'authorization': 'Bearer {}'.format(self._create_jwt().decode('utf-8')),
         'content-type': 'application/json',
         'cache-control': 'no-cache'
     }

@@ -49,10 +49,18 @@ func TestDBKey(t *testing.T) {
 		Temp:      18.5,
 	}
 
-	expectedKey := "foo#2018-03-25T00:00:00Z"
-	dbKey := m.DBKey()
-	if dbKey != expectedKey {
-		t.Errorf("Incorrect DB key. Expected %q, got %q", expectedKey, dbKey)
+	expected := "foo#2018-03-25T00:00:00Z"
+	key := m.DBKey()
+	if key != expected {
+		t.Errorf("Incorrect DB key. Expected %q, got %q", expected, key)
+	}
+}
+
+func TestCacheKeyLatest(t *testing.T) {
+	expected := "foo#latest"
+	key := CacheKeyLatest("foo")
+	if key != expected {
+		t.Errorf("Incorrect key. Expected %q, got %q", expected, key)
 	}
 }
 

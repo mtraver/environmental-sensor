@@ -3,6 +3,8 @@ runtime: go
 api_version: go1.9
 
 env_variables:
+  IOTCORE_REGISTRY: 'TODO'
+
   # Save data to Datastore
   DB_TYPE: 'datastore'
 

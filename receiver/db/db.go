@@ -28,4 +28,11 @@ type Database interface {
 	GetMeasurementsBetween(
 		ctx context.Context, startTime time.Time,
 		endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+
+	// GetLatestMeasurements gets the most recent measurement for each of the given
+	// device IDs. It returns a map of device ID to StorableMeasurement, and an
+	// error. If no measurement is found for a device ID then the returned map will
+	// not contain that device ID.
+	GetLatestMeasurements(ctx context.Context, deviceIDs []string) (
+		map[string]measurement.StorableMeasurement, error)
 }

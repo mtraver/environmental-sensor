@@ -15,6 +15,9 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
+// Used for separating substrings in database and cache keys. The octothorpe is
+// fine for this because device IDs and timestamps, the two things most likely
+// to be used in keys, can't contain it.
 const keySep = "#"
 
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type
@@ -133,6 +136,12 @@ func (m *Measurement) Validate() error {
 func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)},
 		keySep)
+}
+
+// CacheKeyLatest returns the cache key of the latest measurement
+// for the given device ID.
+func CacheKeyLatest(deviceID string) string {
+	return strings.Join([]string{deviceID, "latest"}, keySep)
 }
 
 // MeasurementMapToJSON converts a string -> []StorableMeasurement map

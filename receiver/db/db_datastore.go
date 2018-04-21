@@ -7,6 +7,7 @@ import (
 
 	"google.golang.org/appengine/datastore"
 
+	"receiver/cache"
 	"receiver/measurement"
 )
 
@@ -33,13 +34,13 @@ func NewDatastoreDB(projectID string) Database {
 
 func (db *datastoreDB) Save(ctx context.Context,
 	m *measurement.Measurement) error {
-	storableMeasurement, err := m.ToStorableMeasurement()
+	sm, err := m.ToStorableMeasurement()
 	if err != nil {
 		return err
 	}
 
 	key := datastore.NewKey(
-		ctx, datastoreKind, storableMeasurement.DBKey(), 0, nil)
+		ctx, datastoreKind, sm.DBKey(), 0, nil)
 
 	// Only store the measurement if it doesn't exist
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -48,9 +49,14 @@ func (db *datastoreDB) Save(ctx context.Context,
 			return err
 		}
 
-		_, err := datastore.Put(ctx, key, &storableMeasurement)
+		_, err := datastore.Put(ctx, key, &sm)
 		return err
 	}, nil)
+
+	// Each device has a cache entry for its latest value. Update it.
+	if err == nil {
+		cache.Set(ctx, measurement.CacheKeyLatest(sm.DeviceId), &sm)
+	}
 
 	return err
 }
@@ -124,4 +130,45 @@ func (db *datastoreDB) GetMeasurementsBetween(
 		"timestamp <=", endTime).Order("timestamp")
 
 	return executeQuery(ctx, q)
+}
+
+func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []string) (
+	map[string]measurement.StorableMeasurement, error) {
+	latest := make(map[string]measurement.StorableMeasurement)
+
+	for _, id := range deviceIDs {
+		if _, ok := latest[id]; ok {
+			continue
+		}
+
+		cacheKey := measurement.CacheKeyLatest(id)
+
+		// Try the cache
+		var m measurement.StorableMeasurement
+		err := cache.Get(ctx, cacheKey, &m)
+		if err != nil && err != cache.ErrCacheMiss {
+			return latest, err
+		} else if err == nil {
+			// Cache hit
+			latest[id] = m
+			continue
+		}
+
+		// Try the Datastore
+		q := datastore.NewQuery(datastoreKind).Filter("device_id =", id).Order(
+			"-timestamp").Limit(1)
+		it := q.Run(ctx)
+		_, err = it.Next(&m)
+		if err == datastore.Done {
+			// Nothing found in the Datastore
+			continue
+		} else if err != nil {
+			return latest, err
+		}
+
+		latest[id] = m
+		cache.Add(ctx, cacheKey, &m)
+	}
+
+	return latest, nil
 }

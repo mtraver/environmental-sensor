@@ -37,7 +37,34 @@
         <div class="row">
           <div class="col-md-11">
             <hr>
-            <h5>Change displayed data</h5>
+            <strong>Current temperature</strong>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            {{ if .LatestError }}
+              <p>Error getting latest temperature data</p>
+            {{ else }}
+              <ul class="list-group" id="current-temp-list">
+                {{ range $id, $m := .Latest }}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ $id }}
+                    <div>
+                      <small>{{ timeAgoString $m.Timestamp }}</small>
+                      <span class="badge badge-primary badge-pill">{{ printf "%.1f" $m.Temp }} &#8451;</span>
+                    </div>
+                  </li>
+                {{ end }}
+              </ul>
+            {{ end }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-11">
+            <hr>
+            <strong>Change displayed data</strong>
           </div>
         </div>
 

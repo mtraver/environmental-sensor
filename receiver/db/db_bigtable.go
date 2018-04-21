@@ -105,3 +105,8 @@ func (db *bigtableDB) GetMeasurementsBetween(
 	return make(map[string][]measurement.StorableMeasurement),
 		errors.New("Not implemented")
 }
+
+func (db *bigtableDB) GetLatestMeasurements(ctx context.Context, deviceIDs []string) (
+	map[string]measurement.StorableMeasurement, error) {
+	return make(map[string]measurement.StorableMeasurement), errors.New("Not implemented")
+}

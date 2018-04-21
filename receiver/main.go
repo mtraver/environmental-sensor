@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -18,20 +17,74 @@ import (
 	"google.golang.org/appengine"
 	gaelog "google.golang.org/appengine/log"
 
+	"receiver/aeutil"
 	"receiver/db"
+	"receiver/device"
 	"receiver/measurement"
 )
 
 // Data up to this many hours old will be plotted
 const defaultDataDisplayAgeHours = 6
 
-// Parse and cache all templates at startup instead of loading on each request
-var templates = template.Must(template.New("index.html").Funcs(
-	template.FuncMap{
-		"millis": func(t time.Time) int64 {
-			return t.Unix() * 1000
-		},
-	}).ParseGlob("templates/*"))
+var (
+	// These environment variables should be defined in app.yaml.
+	dbType          = mustGetenv("DB_TYPE")
+	iotcoreRegistry = mustGetenv("IOTCORE_REGISTRY")
+
+	// Parse and cache all templates at startup instead of loading on each request
+	templates = template.Must(template.New("index.html").Funcs(
+		template.FuncMap{
+			"millis": func(t time.Time) int64 {
+				return t.Unix() * 1000
+			},
+			"timeAgoString": timeAgoString,
+		}).ParseGlob("templates/*"))
+)
+
+func mustGetenv(varName string) string {
+	val := os.Getenv(varName)
+	if val == "" {
+		log.Fatalf("Environment variable must be set: %v\n", varName)
+	}
+	return val
+}
+
+// No round function in the std lib before go1.10
+func round(x, unit float64) float64 {
+	return float64(int64(x/unit+0.5)) * unit
+}
+
+func divmod(a, b int64) (int64, int64) {
+	return a / b, a % b
+}
+
+// timeAgoString turns a time into a friendly string like "just now" or "10 min ago".
+func timeAgoString(t time.Time) string {
+	d := time.Now().UTC().Sub(t)
+
+	if d < time.Second*5 {
+		return "just now"
+	}
+
+	if d < time.Second*60 {
+		return fmt.Sprintf("%d s ago", int(round(d.Seconds(), 5)))
+	}
+
+	if d < time.Hour {
+		return fmt.Sprintf("%d min ago", int(round(d.Minutes(), 1)))
+	}
+
+	if d < time.Hour*24 {
+		h, m := divmod(int64(d.Minutes()), 60)
+		if m == 0 {
+			return fmt.Sprintf("%d hr ago", h)
+		}
+
+		return fmt.Sprintf("%d hr %d min ago", h, m)
+	}
+
+	return "> 24 hr ago"
+}
 
 // This is the structure of the JSON payload pushed to the endpoint by
 // Cloud Pub/Sub. See https://cloud.google.com/pubsub/docs/push.
@@ -44,30 +97,12 @@ type pushRequest struct {
 	Subscription string
 }
 
-func mustGetenv(varName string) string {
-	val := os.Getenv(varName)
-	if val == "" {
-		log.Fatalf("Environment variable must be set: %v\n", varName)
-	}
-	return val
-}
-
 func getDatabase(ctx context.Context) (db.Database, error) {
-	// From the documentation of appengine.AppID:
-	//
-	//   AppID returns the application ID for the current application. The string
-	//   will be a plain application ID (e.g. "appid"), with a domain prefix for
-	//   custom domain deployments (e.g. "example.com:appid").
-	//
-	// Here we just want the app ID (don't care if it's deployed to a custom
-	// domain) so split at the first colon. This is fine because an app ID can
-	// only have lowercase letters, digits, and hyphens.
-	appIDParts := strings.Split(appengine.AppID(ctx), ":")
-	projectID := appIDParts[len(appIDParts)-1]
+	projectID := aeutil.GetProjectID(ctx)
 
 	var database db.Database = nil
 	var err error = nil
-	switch dbType := mustGetenv("DB_TYPE"); dbType {
+	switch dbType {
 	case "datastore":
 		database = db.NewDatastoreDB(projectID)
 	case "bigtable":
@@ -175,6 +210,19 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Get the latest measurement for each device
+	var latest map[string]measurement.StorableMeasurement
+	ids, latestErr := device.GetDeviceIDs(ctx, aeutil.GetProjectID(ctx), iotcoreRegistry)
+	if latestErr != nil {
+		gaelog.Errorf(ctx, "Error getting device IDs: %v", latestErr)
+	} else {
+		latest, latestErr = database.GetLatestMeasurements(ctx, ids)
+
+		if latestErr != nil {
+			gaelog.Errorf(ctx, "Error getting latest measurements: %v", latestErr)
+		}
+	}
+
 	data := struct {
 		Measurements     template.JS
 		Error            error
@@ -183,6 +231,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		HoursAgo         int
 		FillRangeForm    bool
 		FillHoursAgoForm bool
+		Latest           map[string]measurement.StorableMeasurement
+		LatestError      error
 	}{
 		Measurements:     template.JS(jsonBytes),
 		Error:            err,
@@ -191,6 +241,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		HoursAgo:         hoursAgo,
 		FillRangeForm:    fillRangeForm,
 		FillHoursAgoForm: fillHoursAgoForm,
+		Latest:           latest,
+		LatestError:      latestErr,
 	}
 
 	if err := templates.ExecuteTemplate(w, "index", data); err != nil {

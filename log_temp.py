@@ -198,7 +198,7 @@ def main():
 
   # Construct list of temperature measurements
   data = []
-  for i in xrange(args.num_samples):
+  for i in range(args.num_samples):
     data.append(sensor.readTempC())
 
     # No need to sleep after last measurement is recorded
@@ -226,7 +226,7 @@ def main():
   elif args.command == CSV_COMMAND:
     logger = loggers.CsvLogger(args.log_file)
   elif args.command == STDOUT_COMMAND:
-    print ','.join([timestamp.isoformat()] + [str(x) for x in data])
+    print(','.join([timestamp.isoformat()] + [str(x) for x in data]))
   else:
     raise Exception('Unknown command: "{}"'.format(args.command))
 

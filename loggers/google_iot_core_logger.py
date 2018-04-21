@@ -88,17 +88,17 @@ def error_str(return_code):
 
 def on_connect(unused_client, unused_userdata, unused_flags, return_code):
   """Callback for when a device connects."""
-  print 'on_connect', mqtt.connack_string(return_code)
+  print('on_connect', mqtt.connack_string(return_code))
 
 
 def on_disconnect(unused_client, unused_userdata, return_code):
   """Paho callback for when a device disconnects."""
-  print 'on_disconnect', error_str(return_code)
+  print('on_disconnect', error_str(return_code))
 
 
 def on_publish(unused_client, unused_userdata, unused_mid):
   """Paho callback when a message is sent to the broker."""
-  print 'on_publish'
+  print('on_publish')
 
 
 class CloudIotMqttLogger(CloudIotLogger):

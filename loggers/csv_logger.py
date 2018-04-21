@@ -21,7 +21,7 @@ class CsvLogger(loggers.base_logger.Logger):
 
       if write_header:
         headers = [self.DATE_COL_HEADER] + ['Temp%d' % (i + 1)
-                                            for i in xrange(len(values))]
+                                            for i in range(len(values))]
         csv_writer.writerow(headers)
 
       csv_writer.writerow([timestamp.isoformat()] + values)

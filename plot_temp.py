@@ -162,7 +162,7 @@ if __name__ == '__main__':
   # the timezone for all locators and formatters it's actually not.
   ax.xaxis.set_major_locator(mdates.DayLocator(tz=TZ_LOCAL))
   ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d', tz=TZ_LOCAL))
-  ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=range(3, 24, 3),
+  ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=list(range(3, 24, 3)),
                                                 tz=TZ_LOCAL))
   ax.xaxis.set_minor_formatter(mdates.DateFormatter('%H:%M', tz=TZ_LOCAL))
 

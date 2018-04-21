@@ -2,3 +2,7 @@
 *.json
 *.pem
 *.pyc
+
+# Common names for virtualenv directories
+env
+env3

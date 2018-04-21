@@ -3,31 +3,34 @@
 Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)
 connected to a Raspberry Pi or BeagleBone Black.
 
+Note: This project only supports Python 3. The future is now. The future was in
+[2008](https://www.python.org/download/releases/3.0/). Come with us into the future.
+
 Print timestamp and temperature to stdout:
 
-    python log_temp.py stdout
+    python3 log_temp.py stdout
 
 Log timestamp and three temperature values, taken two seconds apart,
 to a CSV file:
 
-    python log_temp.py -n 3 csv temp_log.csv
+    python3 log_temp.py -n 3 csv temp_log.csv
 
 Log via [Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing
 the data in Google Cloud Datastore or Google Cloud Bigtable (see the App Engine
 app in the [receiver](receiver) directory):
 
-    python log_temp.py iotcore -p my-gcp-project -r my-iot-core-registry -k device_key.pem --device_id my-device
+    python3 log_temp.py iotcore -p my-gcp-project -r my-iot-core-registry -k device_key.pem --device_id my-device
 
 Log via [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/), which like
 IoT Core can store the data in Google Cloud Datastore or Google Cloud Bigtable
 with the [receiver](receiver) App Engine app:
 
-    python log_temp.py pubsub -p my-gcp-project -t my-pubsub-topic --device_id my-device
+    python3 log_temp.py pubsub -p my-gcp-project -t my-pubsub-topic --device_id my-device
 
 Log timestamp and three temperature values, taken five seconds apart, to a
 Google Sheets spreadsheet:
 
-    python log_temp.py -n 3 -i 5 sheets -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+    python3 log_temp.py -n 3 -i 5 sheets -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
 
 Set up a cron job, use it in a daemon, the world's your oyster...as long as the
 world is temperature values read from the MCP9808.
@@ -38,9 +41,23 @@ On the Raspberry Pi / BeagleBone, install packages from
 ``requirements_logging.txt``:
 
     # This is required for the cryptography package
-    sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+    sudo apt-get install build-essential libssl-dev libffi-dev python-dev python3-dev
 
-    pip install --user -r requirements_logging.txt
+    # I highly recommend using a virtualenv. This makes an isolated Python environment
+    # so that reasoning about your dependencies is easier.
+    virtualenv -p python3 env3
+
+    # Enter the virtualenv (your prompt will change to signal you're inside)
+    . env3/bin/activate
+
+    # Upgrade the virtualenv's version of pip and setuptools
+    pip install --upgrade pip setuptools
+
+    # Install dependencies in the virtualenv
+    pip install -r requirements_logging.txt
+
+    # If you want to leave the virtualenv execute this
+    deactivate
 
 On your development machine, install packages from ``requirements_dev.txt``.
 This will install [pandas](http://pandas.pydata.org), as it's needed for
@@ -48,6 +65,9 @@ plotting. Pandas is not required for logging and can take a long time to build
 and install on a system like a Raspberry Pi so it's only included in
 ``requirements_dev.txt``.
 
+    # virtualenv is useful on your dev machine too! See above if you want to use it.
+
+    # Install dev dependencies
     pip install --user -r requirements_dev.txt
 
 Adafruit have a tutorial with information on wiring up the hardware:

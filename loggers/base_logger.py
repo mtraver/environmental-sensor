@@ -86,7 +86,7 @@ class GCPLogger(Logger):
 
     # Just one value can be stored, so take the mean of the given values.
     # TODO(mtraver) Allow user to configure this behavior?
-    mean_temp = float(sum(values)) / len(values)
+    mean_temp = sum(values) / len(values)
 
     proto = measurement_pb2.Measurement(
         device_id=self._device_id, timestamp=timestamp_proto, temp=mean_temp)

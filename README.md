@@ -44,8 +44,11 @@ On the Raspberry Pi / BeagleBone, install packages from
     sudo apt-get install build-essential libssl-dev libffi-dev python-dev python3-dev
 
     # I highly recommend using a virtualenv. This makes an isolated Python environment
-    # so that reasoning about your dependencies is easier.
+    # so that reasoning about your dependencies is easier. One of the commands below
+    # should work, depending on how virtualenv is installed.
     virtualenv -p python3 env3
+    # OR
+    python3 -m virtualenv env3
 
     # Enter the virtualenv (your prompt will change to signal you're inside)
     . env3/bin/activate

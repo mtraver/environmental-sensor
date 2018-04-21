@@ -1,2 +1,2 @@
 """Utility functions."""
-import argparse_utils
+from . import argparse_utils

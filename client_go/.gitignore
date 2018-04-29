@@ -1,0 +1,6 @@
+# Generated protobuf code
+*.pb.go
+
+# Binaries
+iotcorelogger
+iotcorelogger_arm*

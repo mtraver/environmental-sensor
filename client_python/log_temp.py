@@ -22,7 +22,7 @@ else:
   import Adafruit_MCP9808.MCP9808 as MCP9808  # pylint: disable=import-error
 # pylint: enable=wrong-import-position
 
-DEVICE_ID_REGEX = re.compile(r'^[a-zA-Z0-9_-]+$')
+DEVICE_ID_REGEX = re.compile(r'^[a-z][a-z0-9+.%~_-]{2,254}$')
 
 DEFAULT_NUM_SAMPLES = 1
 DEFAULT_SAMPLE_INTERVAL_SECS = 2

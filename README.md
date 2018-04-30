@@ -1,82 +1,44 @@
 # MCP9808 Temperature Logger
 
 Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)
-connected to a Raspberry Pi or BeagleBone Black.
+connected to a Raspberry Pi.
 
-Note: This project only supports Python 3. The future is now. The future was in
-[2008](https://www.python.org/download/releases/3.0/). Come with us into the future.
+Send temperature to [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
+which can then be saved and plotted using the Google App Engine app in the
+[receiver](receiver) directory:
 
-Print timestamp and temperature to stdout:
-
-    python3 log_temp.py stdout
-
-Log timestamp and three temperature values, taken two seconds apart,
-to a CSV file:
-
-    python3 log_temp.py -n 3 csv temp_log.csv
-
-Log via [Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing
-the data in Google Cloud Datastore or Google Cloud Bigtable (see the App Engine
-app in the [receiver](receiver) directory):
-
-    python3 log_temp.py iotcore -p my-gcp-project -r my-iot-core-registry -k device_key.pem --device_id my-device
-
-Log via [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/), which like
-IoT Core can store the data in Google Cloud Datastore or Google Cloud Bigtable
-with the [receiver](receiver) App Engine app:
-
-    python3 log_temp.py pubsub -p my-gcp-project -t my-pubsub-topic --device_id my-device
-
-Log timestamp and three temperature values, taken five seconds apart, to a
-Google Sheets spreadsheet:
-
-    python3 log_temp.py -n 3 -i 5 sheets -k keyfile.json -s 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
+    ./iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
+      -key device_key.pem -cacerts roots.pem
 
 Set up a cron job, use it in a daemon, the world's your oyster...as long as the
 world is temperature values read from the MCP9808.
 
+## Choose a Client
+
+This project includes clients — code that runs on the Raspberry Pi to read the
+temperature and log it — written in Go and Python.
+
+Use the [Go client](client_go) if you're sending temperature data to Google
+Cloud IoT Core (it only supports Cloud IoT Core at the moment). It's easier to
+work with than the Python client because you get a statically-linked binary that
+just works on the Raspberry Pi. You don't have to clone this repository on the
+Raspberry Pi or install dependencies or set up a virtualenv. Just `make` and run.
+
+Use the [Python client](client_python) if you want to log directly to Google
+Cloud Pub/Sub, or to Google Sheets. The Python client supports Cloud IoT Core
+as well. Note: This project only supports Python 3. The future is now. The
+future was in [2008](https://www.python.org/download/releases/3.0/). Come with
+us into the future.
+
 ## Prerequisites
 
-On the Raspberry Pi / BeagleBone, install packages from
-``requirements_logging.txt``:
+Each client's README has information about its prerequisites.
 
-    # This is required for the cryptography package
-    sudo apt-get install build-essential libssl-dev libffi-dev python-dev python3-dev
+Regardless of your choice of client, you'll need to:
 
-    # I highly recommend using a virtualenv. This makes an isolated Python environment
-    # so that reasoning about your dependencies is easier. One of the commands below
-    # should work, depending on how virtualenv is installed.
-    virtualenv -p python3 env3
-    # OR
-    python3 -m virtualenv env3
-
-    # Enter the virtualenv (your prompt will change to signal you're inside)
-    . env3/bin/activate
-
-    # Upgrade the virtualenv's version of pip and setuptools
-    pip install --upgrade pip setuptools
-
-    # Install dependencies in the virtualenv
-    pip install -r requirements_logging.txt
-
-    # If you want to leave the virtualenv execute this
-    deactivate
-
-On your development machine, install packages from ``requirements_dev.txt``.
-This will install [pandas](http://pandas.pydata.org), as it's needed for
-plotting. Pandas is not required for logging and can take a long time to build
-and install on a system like a Raspberry Pi so it's only included in
-``requirements_dev.txt``.
-
-    # virtualenv is useful on your dev machine too! See above if you want to use it.
-
-    # Install dev dependencies
-    pip install --user -r requirements_dev.txt
-
-Adafruit have a tutorial with information on wiring up the hardware:
+  - **Wire up the hardware.** Adafruit have a nice tutorial:
 https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
-
-__NOTE:__ You may need to enable I<sup>2</sup>C on your board. For Raspberry Pi,
+  - **Enable I<sup>2</sup>C on your board.** For Raspberry Pi,
 this can be done with ``raspi-config``. You'll find the "I2C" option under
 either "Advanced Options" or "Interfacing Options".
 
@@ -142,33 +104,3 @@ https://developers.google.com/sheets/api/quickstart/python.
 
 The JSON key file and spreadsheet ID are the two things you'll need to log to
 the sheet.
-
-## Full usage
-
-    usage: log_temp.py [-h] [-n NUM_SAMPLES] [-i SAMPLE_INTERVAL]
-                       {iotcore,pubsub,sheets,csv,stdout} ...
-
-    Log temperature in degrees Celsius from MCP9808 sensor.
-
-    Temperature can be logged via Google Cloud IoT Core, Google Cloud Pub/Sub,
-    to a Google Sheets spreadsheet, a CSV file, or stdout.
-
-    positional arguments:
-      {iotcore,pubsub,sheets,csv,stdout}
-                            Run one of these commands with the -h/--help flag to
-                            see its usage.
-        iotcore             Log via Google Cloud IoT Core
-        pubsub              Publish to Google Cloud Pub/Sub
-        sheets              Log to a Google Sheet
-        csv                 Log to a CSV file
-        stdout              Log to standard out
-
-    optional arguments:
-      -h, --help            show this help message and exit
-
-    Data sampling:
-      -n NUM_SAMPLES, --num_samples NUM_SAMPLES
-                            Number of samples to take. Defaults to 1.
-      -i SAMPLE_INTERVAL, --sample_interval SAMPLE_INTERVAL
-                            Number of seconds to wait between samples. Defaults to
-                            2.

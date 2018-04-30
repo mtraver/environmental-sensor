@@ -49,7 +49,9 @@ func init() {
 	flag.StringVar(&deviceConf.RegistryID, "registry", "", "Google Cloud IoT Core registry ID")
 	flag.StringVar(&deviceConf.Region, "region", defaultRegion, "Google Cloud Platform region")
 	flag.StringVar(&deviceConf.PrivKeyPath, "key", "", "path to device's private key")
-	flag.StringVar(&caCerts, "cacerts", "", "path to Google's CA certs")
+	flag.StringVar(&caCerts, "cacerts", "",
+		"Path to a set of trustworthy CA certs.\n"+
+			"Download Google's from https://pki.google.com/roots.pem.")
 
 	flag.StringVar(&bridge.Host, "mqtthost", defaultHost, "MQTT host")
 	flag.IntVar(&bridge.Port, "mqttport", 8883, "MQTT port")

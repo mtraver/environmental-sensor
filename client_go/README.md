@@ -61,6 +61,6 @@ Raspberry Pi 3 B<sup>1</sup>).
           Google Cloud IoT Core registry ID
 
 ## Footnotes
-<sup>1</sup> The Raspberry Pi 3 B uses the BCM2837 SoC, which is an ARMv8 chip,
-but my Raspberry Pi 3 B (which is revision `a02082`) runs ARMv7 executables but
-not ARMv8 executables. It is...unclear to me what is going on here.
+<sup>1</sup> "How can this be!? The Raspberry Pi 3 B uses the BCM2837, a 64-bit
+ARMv8 SoC!" you exclaim. "That is correct," I reply, "but Raspbian is 32-bit
+only so the chip runs in 32-bit mode. It therefore cannot execute ARMv8 binaries."

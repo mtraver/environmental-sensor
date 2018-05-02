@@ -3,12 +3,12 @@ import apiclient
 import httplib2
 from oauth2client.service_account import ServiceAccountCredentials
 
-import loggers.base_logger
+from . import base_logger
 
 DEFAULT_SHEET_RANGE = 'Sheet1'
 
 
-class BaseSheetsLogger(loggers.base_logger.Logger):
+class BaseSheetsLogger(base_logger.Logger):
   """Base class for classes that read and write Google Sheets."""
 
   SCOPE = 'https://www.googleapis.com/auth/spreadsheets'

@@ -1,10 +1,10 @@
 """Publish to Google Cloud Pub/Sub"""
 from google.cloud import pubsub_v1  # pylint: disable=import-error
 
-import loggers.base_logger
+from . import base_logger
 
 
-class PubSubLogger(loggers.base_logger.GCPLogger):
+class PubSubLogger(base_logger.GCPLogger):
   """A logger that publishes to Google Cloud Pub/Sub."""
 
   def __init__(self, project_id, topic, device_id):

@@ -9,14 +9,14 @@ import jwt
 import paho.mqtt.client as mqtt
 import requests
 
-import loggers.base_logger
+from . import base_logger
 
 
 SUPPORTED_ALGORITHMS = ['RS256', 'ES256']
 DEFAULT_ALG = 'ES256'
 
 
-class CloudIotLogger(loggers.base_logger.GCPLogger):
+class CloudIotLogger(base_logger.GCPLogger):
   """Base class for loggers that log to Google Cloud IoT Core."""
 
   DEFAULT_CLOUD_REGION = 'us-central1'

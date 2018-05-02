@@ -1,10 +1,10 @@
 import csv
 import os
 
-import loggers.base_logger
+from . import base_logger
 
 
-class CsvLogger(loggers.base_logger.Logger):
+class CsvLogger(base_logger.Logger):
 
   DATE_COL_HEADER = 'Date'
 

@@ -34,6 +34,9 @@ func GetDevices(ctx context.Context, projectID, registryID string) ([]*cloudiot.
 	}
 
 	cloudiotService, err := cloudiot.New(client)
+	if err != nil {
+		return []*cloudiot.Device{}, err
+	}
 
 	response, err := cloudiotService.Projects.Locations.Registries.Devices.List(
 		getRegistryPath(projectID, registryID)).Do()

@@ -37,7 +37,9 @@ var (
 			"millis": func(t time.Time) int64 {
 				return t.Unix() * 1000
 			},
-			"timeAgoString": timeAgoString,
+			"RFC3339": func(t time.Time) string {
+				return t.Format(time.RFC3339)
+			},
 		}).ParseGlob("templates/*"))
 )
 
@@ -47,43 +49,6 @@ func mustGetenv(varName string) string {
 		log.Fatalf("Environment variable must be set: %v\n", varName)
 	}
 	return val
-}
-
-// No round function in the std lib before go1.10
-func round(x, unit float64) float64 {
-	return float64(int64(x/unit+0.5)) * unit
-}
-
-func divmod(a, b int64) (int64, int64) {
-	return a / b, a % b
-}
-
-// timeAgoString turns a time into a friendly string like "just now" or "10 min ago".
-func timeAgoString(t time.Time) string {
-	d := time.Now().UTC().Sub(t)
-
-	if d < time.Second*5 {
-		return "just now"
-	}
-
-	if d < time.Second*60 {
-		return fmt.Sprintf("%d s ago", int(round(d.Seconds(), 5)))
-	}
-
-	if d < time.Hour {
-		return fmt.Sprintf("%d min ago", int(round(d.Minutes(), 1)))
-	}
-
-	if d < time.Hour*24 {
-		h, m := divmod(int64(d.Minutes()), 60)
-		if m == 0 {
-			return fmt.Sprintf("%d hr ago", h)
-		}
-
-		return fmt.Sprintf("%d hr %d min ago", h, m)
-	}
-
-	return "> 24 hr ago"
 }
 
 // This is the structure of the JSON payload pushed to the endpoint by

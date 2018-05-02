@@ -51,7 +51,7 @@
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ $id }}
                     <div>
-                      <small>{{ timeAgoString $m.Timestamp }}</small>
+                      <small class="timeago" data-timestamp="{{ RFC3339 $m.Timestamp }}"></small>
                       <span class="badge badge-primary badge-pill">{{ printf "%.1f" $m.Temp }} &#8451;</span>
                     </div>
                   </li>
@@ -152,6 +152,7 @@
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.min.js"></script>
 
   <script src="/static/js/legend.js"></script>
   <script src="/static/js/plot.js"></script>
@@ -203,10 +204,20 @@
       return validateDateRange();
     }
 
+    // Updates the "time ago" strings in the current temperature display.
+    function updateCurrentTempTimeAgo() {
+      $(".timeago").each(function() {
+        $(this).html(moment($(this).attr("data-timestamp")).fromNow());
+      });
+    }
+
     {{ if not .Error }}
       var valuesByDevice = {{ .Measurements }};
 
       $(document).ready(function() {
+        updateCurrentTempTimeAgo();
+        setInterval(updateCurrentTempTimeAgo, 5000);
+
         // Set up datepickers
         $("#startdate").datepicker({
           dateFormat: "yy-mm-dd",

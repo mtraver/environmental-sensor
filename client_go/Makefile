@@ -1,16 +1,27 @@
-PB_OUT_DIR = measurement
-BINARY_NAME = iotcorelogger
+BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 go build
+BUILD_ARMV7 := GOOS=linux GOARCH=arm GOARM=7 go build
 
-all: pb
-	go build -o $(BINARY_NAME) ./cmd/...
-	GOOS=linux GOARCH=arm GOARM=7 go build -o $(BINARY_NAME)_armv7 ./cmd/...
-	GOOS=linux GOARCH=arm GOARM=6 go build -o $(BINARY_NAME)_armv6 ./cmd/...
+OUT_DIR := out
 
-pb_out_dir:
-	mkdir -p $(PB_OUT_DIR)
+all: iotcorelogger readtemp
 
-pb: pb_out_dir
-	protoc --go_out=$(PB_OUT_DIR) --proto_path=.. measurement.proto
+.PHONY: iotcorelogger
+iotcorelogger: pb
+	go build -o $(OUT_DIR)/$@ ./cmd/$@/...
+	$(BUILD_ARMV7) -o $(OUT_DIR)/$@_armv7 ./cmd/$@/...
+	$(BUILD_ARMV6) -o $(OUT_DIR)/$@_armv6 ./cmd/$@/...
+
+.PHONY: readtemp
+readtemp:
+	go build -o $(OUT_DIR)/$@ ./cmd/$@/...
+	$(BUILD_ARMV7) -o $(OUT_DIR)/$@_armv7 ./cmd/$@/...
+	$(BUILD_ARMV6) -o $(OUT_DIR)/$@_armv6 ./cmd/$@/...
+
+measurement:
+	mkdir -p $@
+
+pb: measurement
+	protoc --go_out=$< --proto_path=.. measurement.proto
 
 clean:
-	rm -rf $(PB_OUT_DIR) $(BINARY_NAME)*
+	rm -rf measurement $(OUT_DIR)

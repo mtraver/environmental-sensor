@@ -37,7 +37,7 @@ type MCP9808 struct {
 func NewMCP9808() (*MCP9808, error) {
 	d, err := i2c.Open(&i2c.Devfs{Dev: devPath}, defaultI2CAddr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("mcp9808: %v", err)
 	}
 
 	return &MCP9808{
@@ -62,7 +62,7 @@ func (m *MCP9808) Check() error {
 
 	if mID != manufacturerID || dID != deviceID {
 		return fmt.Errorf(
-			"Incorrect manufacturer or device ID. Got 0x%x, 0x%x. Expected 0x%x, 0x%x.",
+			"mcp9808: incorrect manufacturer or device ID. Got 0x%x, 0x%x. Expected 0x%x, 0x%x.",
 			mID, dID, manufacturerID, deviceID)
 	}
 

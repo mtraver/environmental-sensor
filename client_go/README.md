@@ -5,8 +5,14 @@ temperature and logs it via [Google Cloud IoT Core](https://cloud.google.com/iot
 storing the data in Google Cloud Datastore or Google Cloud Bigtable (see the
 Google App Engine app in the [receiver](receiver) directory).
 
-    ./iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
+    make
+
+    # Log temp to Google Cloud IoT Core
+    ./out/iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
       -key device_key.pem -cacerts roots.pem
+
+    # Print temp to stdout
+    ./out/readtemp
 
 ## Prerequisites
 

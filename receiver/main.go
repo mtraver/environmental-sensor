@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -65,8 +64,8 @@ type pushRequest struct {
 func getDatabase(ctx context.Context) (db.Database, error) {
 	projectID := aeutil.GetProjectID(ctx)
 
-	var database db.Database = nil
-	var err error = nil
+	var database db.Database
+	var err error
 	switch dbType {
 	case "datastore":
 		database = db.NewDatastoreDB(projectID)
@@ -75,7 +74,7 @@ func getDatabase(ctx context.Context) (db.Database, error) {
 			projectID, mustGetenv("BIGTABLE_INSTANCE"),
 			mustGetenv("BIGTABLE_TABLE"))
 	default:
-		err = errors.New(fmt.Sprintf("Unknown database type: %v", dbType))
+		err = fmt.Errorf("Unknown database type: %v", dbType)
 	}
 
 	return database, err

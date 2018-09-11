@@ -66,7 +66,7 @@ func strsToFloats(x []string) ([]float32, error) {
 }
 
 func mean(x []float32) float32 {
-	var total float32 = 0.0
+	var total float32
 	for _, v := range x {
 		total += v
 	}
@@ -123,8 +123,7 @@ func publishFromCSV(csvFile string, projectID string, pubsubTopic string,
 	if exists, err := client.Topic(pubsubTopic).Exists(ctx); err != nil {
 		return err
 	} else if !exists {
-		return errors.New(
-			fmt.Sprintf("Topic does not exist. Create it first: %v", pubsubTopic))
+		return fmt.Errorf("Topic does not exist. Create it first: %v", pubsubTopic)
 	}
 
 	topic := client.Topic(pubsubTopic)

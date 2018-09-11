@@ -49,9 +49,9 @@ func DeviceIDFromCert(certPath string) (string, error) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", fmt.Errorf("iotcore: cert file does not exist: %v", certPath)
-		} else {
-			return "", fmt.Errorf("iotcore: failed to read cert: %v", err)
 		}
+
+		return "", fmt.Errorf("iotcore: failed to read cert: %v", err)
 	}
 
 	block, _ := pem.Decode(certBytes)

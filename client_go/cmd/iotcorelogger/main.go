@@ -103,7 +103,7 @@ func parseFlags() error {
 }
 
 func mean(s []float32) float32 {
-	var sum float32 = 0.0
+	var sum float32
 	for _, e := range s {
 		sum += e
 	}

@@ -80,7 +80,7 @@ func TestMeasurementMapToJSONEmpty(t *testing.T) {
 
 func TestMeasurementMapToJSONNoMeasurements(t *testing.T) {
 	measurements := map[string][]StorableMeasurement{
-		"foo": []StorableMeasurement{},
+		"foo": {},
 	}
 
 	marshalledJSON, err := MeasurementMapToJSON(measurements)
@@ -97,35 +97,35 @@ func TestMeasurementMapToJSONNoMeasurements(t *testing.T) {
 
 func TestMeasurementMapToJSON(t *testing.T) {
 	measurements := map[string][]StorableMeasurement{
-		"foo": []StorableMeasurement{
-			StorableMeasurement{
+		"foo": {
+			{
 				DeviceId:  "foo",
 				Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
 				Temp:      18.5,
 			},
-			StorableMeasurement{
+			{
 				DeviceId:  "foo",
 				Timestamp: time.Date(2018, time.March, 26, 0, 0, 0, 0, time.UTC),
 				Temp:      18.5,
 			},
-			StorableMeasurement{
+			{
 				DeviceId:  "foo",
 				Timestamp: time.Date(2018, time.March, 27, 0, 0, 0, 0, time.UTC),
 				Temp:      18.5,
 			},
 		},
-		"bar": []StorableMeasurement{
-			StorableMeasurement{
+		"bar": {
+			{
 				DeviceId:  "bar",
 				Timestamp: time.Date(2018, time.March, 25, 17, 0, 0, 0, time.UTC),
 				Temp:      18.5,
 			},
-			StorableMeasurement{
+			{
 				DeviceId:  "bar",
 				Timestamp: time.Date(2018, time.March, 26, 17, 0, 0, 0, time.UTC),
 				Temp:      18.5,
 			},
-			StorableMeasurement{
+			{
 				DeviceId:  "bar",
 				Timestamp: time.Date(2018, time.March, 27, 17, 0, 0, 0, time.UTC),
 				Temp:      18.5,

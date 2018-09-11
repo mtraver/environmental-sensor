@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/mtraver/environmental-sensor/client_go/mcp9808"
+	"github.com/mtraver/mcp9808"
 )
 
 func readTempMulti(samples int, interval time.Duration) ([]float32, error) {

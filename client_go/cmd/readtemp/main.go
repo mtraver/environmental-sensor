@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mtraver/environmental-sensor/client_go/mcp9808"
+	"github.com/mtraver/mcp9808"
 )
 
 func fatal(format string, a ...interface{}) {

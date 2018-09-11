@@ -35,7 +35,7 @@ func TestStrsToFloatsValid(t *testing.T) {
 		t.Errorf("Error on valid input: %v", err)
 	}
 
-	for i, _ := range input {
+	for i := range input {
 		if !floatsEqual(floats[i], output[i]) {
 			t.Errorf("Incorrect for input %q: Expected %v, got %v",
 				input[i], output[i], floats[i])

@@ -21,9 +21,9 @@ handlers:
   static_dir: static
   secure: always
 - url: /_ah/push-handlers/.*
-  script: _go_app
+  script: auto
   login: admin
   secure: always
 - url: /.*
-  script: _go_app
+  script: auto
   secure: always

@@ -7,8 +7,8 @@ import (
 
 	"google.golang.org/appengine/datastore"
 
-	"receiver/cache"
-	"receiver/measurement"
+	"github.com/mtraver/environmental-sensor/receiver/cache"
+	"github.com/mtraver/environmental-sensor/receiver/measurement"
 )
 
 const (

@@ -10,7 +10,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 
-	"receiver/measurement"
+	"github.com/mtraver/environmental-sensor/receiver/measurement"
 )
 
 const bigtableFamily = "measurement"

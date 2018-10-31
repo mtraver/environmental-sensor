@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"receiver/measurement"
+	"github.com/mtraver/environmental-sensor/receiver/measurement"
 )
 
 // Interface that must be implemented for each database backend

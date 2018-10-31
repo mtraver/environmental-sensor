@@ -3,14 +3,11 @@ package device
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
 	cloudiot "google.golang.org/api/cloudiot/v1"
-	"google.golang.org/appengine/urlfetch"
 )
 
 const region = "us-central1"
@@ -22,21 +19,11 @@ func getRegistryPath(projectID, registryID string) string {
 
 // GetDevices returns a list of the devices in the given registry.
 func GetDevices(ctx context.Context, projectID, registryID string) ([]*cloudiot.Device, error) {
-	source, err := google.DefaultTokenSource(ctx, cloudiot.CloudiotScope)
+	client, err := google.DefaultClient(ctx, cloudiot.CloudiotScope)
 	if err != nil {
 		return []*cloudiot.Device{}, err
 	}
-
-	// We need a client that supports OAuth2 *and* that uses the urlfetch
-	// transport, so we have to create it manually instead of using either
-	// package's helper functions.
-	client := &http.Client{
-		Transport: &oauth2.Transport{
-			Source: source,
-			Base:   &urlfetch.Transport{Context: ctx},
-		},
-		Timeout: time.Second * 10,
-	}
+	client.Timeout = time.Second * 10
 
 	cloudiotService, err := cloudiot.New(client)
 	if err != nil {

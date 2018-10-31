@@ -22,12 +22,17 @@ func getRegistryPath(projectID, registryID string) string {
 
 // GetDevices returns a list of the devices in the given registry.
 func GetDevices(ctx context.Context, projectID, registryID string) ([]*cloudiot.Device, error) {
+	source, err := google.DefaultTokenSource(ctx, cloudiot.CloudiotScope)
+	if err != nil {
+		return []*cloudiot.Device{}, err
+	}
+
 	// We need a client that supports OAuth2 *and* that uses the urlfetch
 	// transport, so we have to create it manually instead of using either
 	// package's helper functions.
 	client := &http.Client{
 		Transport: &oauth2.Transport{
-			Source: google.AppEngineTokenSource(ctx, cloudiot.CloudiotScope),
+			Source: source,
 			Base:   &urlfetch.Transport{Context: ctx},
 		},
 		Timeout: time.Second * 10,

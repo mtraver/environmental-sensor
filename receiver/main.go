@@ -16,7 +16,6 @@ import (
 	"google.golang.org/appengine"
 	gaelog "google.golang.org/appengine/log"
 
-	"receiver/aeutil"
 	"receiver/db"
 	"receiver/device"
 	"receiver/measurement"
@@ -26,6 +25,8 @@ import (
 const defaultDataDisplayAgeHours = 6
 
 var (
+	projectID = mustGetenv("GOOGLE_CLOUD_PROJECT")
+
 	// These environment variables should be defined in app.yaml.
 	dbType          = mustGetenv("DB_TYPE")
 	iotcoreRegistry = mustGetenv("IOTCORE_REGISTRY")
@@ -62,8 +63,6 @@ type pushRequest struct {
 }
 
 func getDatabase(ctx context.Context) (db.Database, error) {
-	projectID := aeutil.GetProjectID(ctx)
-
 	var database db.Database
 	var err error
 	switch dbType {
@@ -176,7 +175,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the latest measurement for each device
 	var latest map[string]measurement.StorableMeasurement
-	ids, latestErr := device.GetDeviceIDs(ctx, aeutil.GetProjectID(ctx), iotcoreRegistry)
+	ids, latestErr := device.GetDeviceIDs(ctx, projectID, iotcoreRegistry)
 	if latestErr != nil {
 		gaelog.Errorf(ctx, "Error getting device IDs: %v", latestErr)
 	} else {

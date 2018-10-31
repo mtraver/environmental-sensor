@@ -29,8 +29,7 @@ func Get(ctx context.Context, key string, m *measurement.StorableMeasurement) er
 	}
 }
 
-func doWrite(ctx context.Context, key string, m *measurement.StorableMeasurement,
-	f memcacheWriteFunc) error {
+func doWrite(ctx context.Context, key string, m *measurement.StorableMeasurement, f memcacheWriteFunc) error {
 	data, err := json.Marshal(m)
 	if err != nil {
 		return err

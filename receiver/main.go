@@ -22,7 +22,7 @@ import (
 )
 
 // Data up to this many hours old will be plotted
-const defaultDataDisplayAgeHours = 6
+const defaultDataDisplayAgeHours = 12
 
 var (
 	projectID = mustGetenv("GOOGLE_CLOUD_PROJECT")

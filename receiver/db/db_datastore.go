@@ -23,15 +23,15 @@ type datastoreDB struct {
 	projectID string
 }
 
-// Ensure datastoreDB implements Database
-var _ Database = &datastoreDB{}
-
-func NewDatastoreDB(projectID string) Database {
+func NewDatastoreDB(projectID string) *datastoreDB {
 	return &datastoreDB{
 		projectID: projectID,
 	}
 }
 
+// Save saves the given Measurement to the database. If the Measurement
+// already exists in the database it makes no change to the database and
+// returns nil as the error.
 func (db *datastoreDB) Save(ctx context.Context,
 	m *measurement.Measurement) error {
 	sm, err := m.ToStorableMeasurement()
@@ -109,6 +109,9 @@ func executeQuery(
 	return results, nil
 }
 
+// GetMeasurementsSince gets all measurements with a timestamp greater than
+// or equal to startTime. It returns a map of device ID (a string) to a
+// StorableMeasurement slice, and an error.
 func (db *datastoreDB) GetMeasurementsSince(
 	ctx context.Context,
 	startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
@@ -120,6 +123,9 @@ func (db *datastoreDB) GetMeasurementsSince(
 	return executeQuery(ctx, q)
 }
 
+// GetMeasurementsBetween gets all measurements with a timestamp greater than
+// or equal to startTime and less than or equal to endTime. It returns a map
+// of device ID (a string) to a StorableMeasurement slice, and an error.
 func (db *datastoreDB) GetMeasurementsBetween(
 	ctx context.Context, startTime time.Time,
 	endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
@@ -132,6 +138,10 @@ func (db *datastoreDB) GetMeasurementsBetween(
 	return executeQuery(ctx, q)
 }
 
+// GetLatestMeasurements gets the most recent measurement for each of the given
+// device IDs. It returns a map of device ID to StorableMeasurement, and an
+// error. If no measurement is found for a device ID then the returned map will
+// not contain that device ID.
 func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []string) (
 	map[string]measurement.StorableMeasurement, error) {
 	latest := make(map[string]measurement.StorableMeasurement)

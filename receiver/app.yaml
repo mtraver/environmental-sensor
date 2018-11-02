@@ -4,15 +4,6 @@ runtime: go111
 env_variables:
   IOTCORE_REGISTRY: 'TODO'
 
-  # Save data to Datastore
-  DB_TYPE: 'datastore'
-
-  # To save to Bigtable, comment out the DB_TYPE line above, uncomment the
-  # lines below, and fill in the TODOs.
-  # DB_TYPE: 'bigtable'
-  # BIGTABLE_INSTANCE: 'TODO'
-  # BIGTABLE_TABLE: 'TODO'
-
 handlers:
 - url: /favicon\.ico
   static_files: static/images/favicon.ico

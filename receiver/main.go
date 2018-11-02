@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -27,8 +26,7 @@ const defaultDataDisplayAgeHours = 12
 var (
 	projectID = mustGetenv("GOOGLE_CLOUD_PROJECT")
 
-	// These environment variables should be defined in app.yaml.
-	dbType          = mustGetenv("DB_TYPE")
+	// This environment variable should be defined in app.yaml.
 	iotcoreRegistry = mustGetenv("IOTCORE_REGISTRY")
 
 	// Parse and cache all templates at startup instead of loading on each request
@@ -62,23 +60,6 @@ type pushRequest struct {
 	Subscription string
 }
 
-func getDatabase(ctx context.Context) (db.Database, error) {
-	var database db.Database
-	var err error
-	switch dbType {
-	case "datastore":
-		database = db.NewDatastoreDB(projectID)
-	case "bigtable":
-		database = db.NewBigtableDB(
-			projectID, mustGetenv("BIGTABLE_INSTANCE"),
-			mustGetenv("BIGTABLE_TABLE"))
-	default:
-		err = fmt.Errorf("Unknown database type: %v", dbType)
-	}
-
-	return database, err
-}
-
 func main() {
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
@@ -99,13 +80,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := appengine.NewContext(r)
 
-	database, err := getDatabase(ctx)
-	if err != nil {
-		gaelog.Criticalf(ctx, "%v", err)
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
-		return
-	}
-
 	// By default display data up to defaultDataDisplayAgeHours hours old
 	hoursAgo := defaultDataDisplayAgeHours
 	endTime := time.Now().UTC()
@@ -119,18 +93,19 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		switch formName := r.FormValue("form-name"); formName {
 		case "range":
-			startTime, err = time.Parse(time.RFC3339Nano,
+			var rangeErr error
+			startTime, rangeErr = time.Parse(time.RFC3339Nano,
 				r.FormValue("startdate-adjusted"))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Bad start time: %v", err),
+			if rangeErr != nil {
+				http.Error(w, fmt.Sprintf("Bad start time: %v", rangeErr),
 					http.StatusBadRequest)
 				return
 			}
 
-			endTime, err = time.Parse(time.RFC3339Nano,
+			endTime, rangeErr = time.Parse(time.RFC3339Nano,
 				r.FormValue("enddate-adjusted"))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Bad end time: %v", err),
+			if rangeErr != nil {
+				http.Error(w, fmt.Sprintf("Bad end time: %v", rangeErr),
 					http.StatusBadRequest)
 				return
 			}
@@ -138,9 +113,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			fillRangeForm = true
 			fillHoursAgoForm = false
 		case "hoursago":
-			hoursAgo, err = strconv.Atoi(r.FormValue("hoursago"))
-			if err != nil {
-				http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
+			var hoursAgoErr error
+			hoursAgo, hoursAgoErr = strconv.Atoi(r.FormValue("hoursago"))
+			if hoursAgoErr != nil {
+				http.Error(w, fmt.Sprintf("%v", hoursAgoErr), http.StatusBadRequest)
 				return
 			}
 
@@ -160,6 +136,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	database := db.NewDatastoreDB(projectID)
 
 	// Get measurements and marshal to JSON for use in the template
 	measurements, err := database.GetMeasurementsBetween(ctx, startTime, endTime)
@@ -216,13 +194,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func pushHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	database, err := getDatabase(ctx)
-	if err != nil {
-		gaelog.Criticalf(ctx, "%v", err)
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
-		return
-	}
-
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
 		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
@@ -232,8 +203,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m := &measurement.Measurement{}
-	err = proto.Unmarshal(msg.Message.Data, m)
-	if err != nil {
+	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
 		gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
 		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
 			http.StatusBadRequest)
@@ -253,6 +223,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	database := db.NewDatastoreDB(projectID)
 	if err := database.Save(ctx, m); err != nil {
 		gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
 	}

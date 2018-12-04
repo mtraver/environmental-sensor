@@ -17,7 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	"web/measurement"
+	"github.com/mtraver/environmental-sensor/web/measurement"
 )
 
 const usageStr = `usage: %v csv_file project_id topic_id device_id

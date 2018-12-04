@@ -1,4 +1,4 @@
-module github.com/mtraver/environmental-sensor/receiver
+module github.com/mtraver/environmental-sensor/web
 
 require (
 	cloud.google.com/go/compute/metadata v0.0.0-20181114215827-b51c7c77b284 // indirect

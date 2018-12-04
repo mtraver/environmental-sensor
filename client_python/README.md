@@ -18,14 +18,14 @@ to a CSV file:
 
 Log via [Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing
 the data in Google Cloud Datastore or Google Cloud Bigtable (see the Google App
-Engine app in the [receiver](receiver) directory):
+Engine app in the [web](web) directory):
 
     python3 log_temp.py iotcore -p my-gcp-project -r my-iot-core-registry \
       -k device_key.pem --device_id my-device
 
 Log via [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/), which like
 IoT Core can store the data in Google Cloud Datastore or Google Cloud Bigtable
-with the [receiver](receiver) App Engine app:
+with the App Engine app in [web](web):
 
     python3 log_temp.py pubsub -p my-gcp-project -t my-pubsub-topic --device_id my-device
 

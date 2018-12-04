@@ -1,3 +1,3 @@
 .PHONY: all
 all:
-	protoc --go_out=receiver/measurement --python_out=client_python/loggers measurement.proto
+	protoc --go_out=web/measurement --python_out=client_python/loggers measurement.proto

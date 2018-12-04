@@ -17,18 +17,18 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	"receiver/measurement"
+	"web/measurement"
 )
 
 const usageStr = `usage: %v csv_file project_id topic_id device_id
 
 Reads lines from a CSV file, converts them into Measurement protobufs as defined
 in measurement.proto, and publishes them to Google Cloud Pub/Sub. It's expected
-that an instance of the receiver app is running on App Engine to process the
+that an instance of the web app is running on App Engine to process the
 Pub/Sub messages.
 
 This program was written to migrate data stored in a Google Sheet to the
-storage back ends supported by the receiver app.
+storage back ends supported by the web app.
 
 The first line of the CSV file is expected to be column headers, followed by
 lines of this format:
@@ -44,9 +44,9 @@ Arguments:
   csv_file: Path to the CSV file.
   project_id: Google Cloud Platform project ID.
   topic_id: Google Cloud Pub/Sub topic ID. This topic must be configured to
-            push to the receiver app's Pub/Sub endpoint URL.
+            push to the web app's Pub/Sub endpoint URL.
   device_id: The device ID to include in the Pub/Sub message. Data from multiple
-             devices can be saved and displayed by the receiver app, so this
+             devices can be saved and displayed by the web app, so this
              must be a unique identifier for the device from which the data in
              the CSV file came.
 `

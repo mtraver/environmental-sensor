@@ -7,7 +7,7 @@ connected to a Raspberry Pi.
 
 Send temperature to [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
 which can then be saved and plotted using the Google App Engine app in the
-[receiver](receiver) directory:
+[web](web) directory:
 
     ./iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
       -key device_key.pem -cacerts roots.pem
@@ -63,17 +63,17 @@ the CA key and cert and device-specific keys and certs described below.
   device ID (the device ID you use when making the cert must be the same as the
   one you set when adding the device to the registry).
 - Create a subscription to the registry's telemetry topic. Configure it to
-  push to the ``/_ah/push-handlers/telemetry`` endpoint of the receiver app.
-  This is how IoT Core is tied to the receiver app.
+  push to the ``/_ah/push-handlers/telemetry`` endpoint of the web app.
+  This is how IoT Core is tied to the web app.
 
 The end-to-end flow is like this:
 1. A device sends a payload (in this case a protobuf; see
    [measurement.proto](measurement.proto)) to IoT Core.
 2. IoT Core publishes the payload as a Pub/Sub message to the registry's
    telemetry Pub/Sub topic.
-3. Pub/Sub pushes the message to the receiver app's endpoint, as configured in
+3. Pub/Sub pushes the message to the web app's endpoint, as configured in
    the subscription to the topic.
-4. The receiver app receives the request, decodes the payload, and writes
+4. The web app receives the request, decodes the payload, and writes
    it to the database.
 
 ## Setting up Google Cloud Pub/Sub logging

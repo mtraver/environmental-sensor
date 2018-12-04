@@ -6,7 +6,7 @@ OUT_DIR := out
 all: iotcorelogger readtemp
 
 .PHONY: iotcorelogger
-iotcorelogger: pb
+iotcorelogger:
 	go build -o $(OUT_DIR)/$@ ./cmd/$@/...
 	$(BUILD_ARMV7) -o $(OUT_DIR)/$@_armv7 ./cmd/$@/...
 	$(BUILD_ARMV6) -o $(OUT_DIR)/$@_armv6 ./cmd/$@/...
@@ -17,11 +17,5 @@ readtemp:
 	$(BUILD_ARMV7) -o $(OUT_DIR)/$@_armv7 ./cmd/$@/...
 	$(BUILD_ARMV6) -o $(OUT_DIR)/$@_armv6 ./cmd/$@/...
 
-measurement:
-	mkdir -p $@
-
-pb: measurement
-	protoc --go_out=$< --proto_path=.. measurement.proto
-
 clean:
-	rm -rf measurement $(OUT_DIR)
+	rm -rf $(OUT_DIR)

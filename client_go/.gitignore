@@ -1,5 +1,2 @@
-# Generated protobuf code
-*.pb.go
-
 # Binaries
 out

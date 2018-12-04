@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/appengine/memcache"
 
-	"github.com/mtraver/environmental-sensor/web/measurement"
+	"github.com/mtraver/environmental-sensor/measurement"
 )
 
 var ErrCacheMiss = errors.New("cache: cache miss")

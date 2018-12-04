@@ -15,9 +15,9 @@ import (
 	"google.golang.org/appengine"
 	gaelog "google.golang.org/appengine/log"
 
+	"github.com/mtraver/environmental-sensor/measurement"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/environmental-sensor/web/device"
-	"github.com/mtraver/environmental-sensor/web/measurement"
 )
 
 // Data up to this many hours old will be plotted

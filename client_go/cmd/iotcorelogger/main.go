@@ -14,7 +14,7 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 
 	"github.com/mtraver/environmental-sensor/client_go/iotcore"
-	measurementpb "github.com/mtraver/environmental-sensor/client_go/measurement"
+	measurementpb "github.com/mtraver/environmental-sensor/measurement"
 )
 
 const (

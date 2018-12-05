@@ -8,14 +8,14 @@ import (
 )
 
 var (
-	timestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
+	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
 )
 
 func TestToStorableMeasurement(t *testing.T) {
 	deviceID := "foo"
 	var temp float32 = 18.5
 
-	pbTimestamp, _ := ptypes.TimestampProto(timestamp)
+	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
 	m := Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,
@@ -32,8 +32,8 @@ func TestToStorableMeasurement(t *testing.T) {
 		t.Errorf("Incorrect devie ID. Expected %q, got %q", deviceID, s.DeviceId)
 	}
 
-	if s.Timestamp != timestamp {
-		t.Errorf("Incorrect timestamp. Expected %v, got %v", timestamp,
+	if s.Timestamp != testTimestamp {
+		t.Errorf("Incorrect timestamp. Expected %v, got %v", testTimestamp,
 			s.Timestamp)
 	}
 
@@ -146,7 +146,7 @@ func TestMeasurementMapToJSON(t *testing.T) {
 }
 
 func getMeasurement(deviceID string) Measurement {
-	pbTimestamp, _ := ptypes.TimestampProto(timestamp)
+	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
 	return Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,

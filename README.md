@@ -20,7 +20,7 @@ world is temperature values read from the MCP9808.
 This project includes clients — code that runs on the Raspberry Pi to read the
 temperature and log it — written in Go and Python.
 
-Use the [Go client](client_go) if you're sending temperature data to Google
+Use the [Go client](cmd) if you're sending temperature data to Google
 Cloud IoT Core (it only supports Cloud IoT Core at the moment). It's easier to
 work with than the Python client because you get a statically-linked binary that
 just works on the Raspberry Pi. You don't have to clone this repository on the

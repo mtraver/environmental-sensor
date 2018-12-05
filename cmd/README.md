@@ -7,6 +7,8 @@ on the Raspberry Pi. `iotcorelogger`, the "Go client" mentioned in the
 in Google Cloud Datastore (see the Google App Engine app in the [web](../web)
 directory).
 
+From the root of this repository,
+
     make
 
     # Log temp to Google Cloud IoT Core
@@ -38,6 +40,8 @@ This is a set of trustworthy root certificates. See [here](http://pki.google.com
 for details. The `cacerts` flag takes the path to this file.
 
 ## Building
+
+From the root of this repository,
 
     make
 

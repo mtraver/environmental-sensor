@@ -3,6 +3,9 @@
 *.pem
 *.pyc
 
+# Binaries
+out
+
 # Common names for virtualenv directories
 env
 env3

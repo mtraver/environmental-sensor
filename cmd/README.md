@@ -1,9 +1,11 @@
-# Go Client
+# Go CLI Programs
 
-This directory contains code that runs on the Raspberry Pi. It reads the
-temperature and logs it via [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
-storing the data in Google Cloud Datastore or Google Cloud Bigtable (see the
-Google App Engine app in the [web](../web) directory).
+[iotcorelogger](iotcorelogger) and [readtemp](readtemp) contain code that runs
+on the Raspberry Pi. `iotcorelogger`, the "Go client" mentioned in the
+[main README](../README.md), reads the temperature and logs it via
+[Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing the data
+in Google Cloud Datastore (see the Google App Engine app in the [web](../web)
+directory).
 
     make
 

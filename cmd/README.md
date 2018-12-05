@@ -3,7 +3,7 @@
 This directory contains code that runs on the Raspberry Pi. It reads the
 temperature and logs it via [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
 storing the data in Google Cloud Datastore or Google Cloud Bigtable (see the
-Google App Engine app in the [web](web) directory).
+Google App Engine app in the [web](../web) directory).
 
     make
 

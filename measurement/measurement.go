@@ -129,10 +129,8 @@ func (m *Measurement) Validate() error {
 	return nil
 }
 
-// DBKey returns a string key suitable for Bigtable and Datastore.
-// It promotes Device ID and timestamp into the key, which is especially
-// useful for Bigtable. For more info see
-// https://cloud.google.com/bigtable/docs/schema-design-time-series.
+// DBKey returns a string key suitable for Datastore.
+// It promotes Device ID and timestamp into the key.
 func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)},
 		keySep)

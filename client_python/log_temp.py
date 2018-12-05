@@ -151,7 +151,16 @@ def parse_args():
                           help='CSV file to which to log data.')
 
   # Standard out
-  subparsers.add_parser(STDOUT_COMMAND, help='Log to standard out')
+  stdout_parser = subparsers.add_parser(
+      STDOUT_COMMAND, help='Log to standard out')
+  stdout_parser.add_argument(
+      '-p', '--proto', action='store_true',
+      help='Log as an ASCII-encoded protobuf instead of as CSV')
+  stdout_parser.add_argument(
+      '-d', '--device_id', type=util.argparse_utils.non_empty_string,
+      default='device', required=False,
+      help=('Device ID. Only used if -p/--proto is given, since it is only '
+            'included in protobuf output'))
 
   return parser.parse_args()
 
@@ -226,7 +235,7 @@ def main():
   elif args.command == CSV_COMMAND:
     logger = loggers.CsvLogger(args.log_file)
   elif args.command == STDOUT_COMMAND:
-    print(','.join([timestamp.isoformat()] + [str(x) for x in data]))
+    logger = loggers.StdoutLogger(args.proto, args.device_id)
   else:
     raise Exception('Unknown command: "{}"'.format(args.command))
 

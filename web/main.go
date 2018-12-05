@@ -29,7 +29,9 @@ var (
 	// This environment variable should be defined in app.yaml.
 	iotcoreRegistry = mustGetenv("IOTCORE_REGISTRY")
 
-	// Parse and cache all templates at startup instead of loading on each request
+	// Parse and cache all templates at startup instead of loading on each request.
+	// The path to the templates is relative to go.mod, as that's how the path should
+	// be specified when deployed to App Engine.
 	templates = template.Must(template.New("index.html").Funcs(
 		template.FuncMap{
 			"millis": func(t time.Time) int64 {
@@ -38,7 +40,7 @@ var (
 			"RFC3339": func(t time.Time) string {
 				return t.Format(time.RFC3339)
 			},
-		}).ParseGlob("templates/*"))
+		}).ParseGlob("web/templates/*"))
 )
 
 func mustGetenv(varName string) string {

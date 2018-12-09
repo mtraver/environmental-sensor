@@ -11,9 +11,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-
+	"github.com/mtraver/gaelog"
 	"google.golang.org/appengine"
-	gaelog "google.golang.org/appengine/log"
 
 	"github.com/mtraver/environmental-sensor/measurement"
 	"github.com/mtraver/environmental-sensor/web/db"
@@ -82,6 +81,12 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := appengine.NewContext(r)
 
+	lg, err := gaelog.New(r)
+	if err != nil {
+		lg.Errorf("%v", err)
+	}
+	defer lg.Close()
+
 	// By default display data up to defaultDataDisplayAgeHours hours old
 	hoursAgo := defaultDataDisplayAgeHours
 	endTime := time.Now().UTC()
@@ -145,11 +150,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	measurements, err := database.GetMeasurementsBetween(ctx, startTime, endTime)
 	jsonBytes := []byte{}
 	if err != nil {
-		gaelog.Errorf(ctx, "Error fetching data: %v", err)
+		lg.Errorf("Error fetching data: %v", err)
 	} else {
 		jsonBytes, err = measurement.MeasurementMapToJSON(measurements)
 		if err != nil {
-			gaelog.Errorf(ctx, "Error marshaling measurements to JSON: %v", err)
+			lg.Errorf("Error marshaling measurements to JSON: %v", err)
 		}
 	}
 
@@ -157,12 +162,12 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	var latest map[string]measurement.StorableMeasurement
 	ids, latestErr := device.GetDeviceIDs(ctx, projectID, iotcoreRegistry)
 	if latestErr != nil {
-		gaelog.Errorf(ctx, "Error getting device IDs: %v", latestErr)
+		lg.Errorf("Error getting device IDs: %v", latestErr)
 	} else {
 		latest, latestErr = database.GetLatestMeasurements(ctx, ids)
 
 		if latestErr != nil {
-			gaelog.Errorf(ctx, "Error getting latest measurements: %v", latestErr)
+			lg.Errorf("Error getting latest measurements: %v", latestErr)
 		}
 	}
 
@@ -189,16 +194,22 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.ExecuteTemplate(w, "index", data); err != nil {
-		gaelog.Errorf(ctx, "Could not execute template: %v", err)
+		lg.Errorf("Could not execute template: %v", err)
 	}
 }
 
 func pushHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
+	lg, err := gaelog.New(r)
+	if err != nil {
+		lg.Errorf("%v", err)
+	}
+	defer lg.Close()
+
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
-		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
+		lg.Criticalf("Could not decode body: %v\n", err)
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
 			http.StatusBadRequest)
 		return
@@ -206,14 +217,14 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 
 	m := &measurement.Measurement{}
 	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
-		gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
+		lg.Criticalf("Failed to unmarshal protobuf: %v\n", err)
 		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
 			http.StatusBadRequest)
 		return
 	}
 
 	if err := m.Validate(); err != nil {
-		gaelog.Errorf(ctx, "%v", err)
+		lg.Errorf("%v", err)
 
 		// Pub/Sub will only stop re-trying the message if it receives a status 200.
 		// The docs say that any of 200, 201, 202, 204, or 102 will have this effect
@@ -227,7 +238,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 
 	database := db.NewDatastoreDB(projectID)
 	if err := database.Save(ctx, m); err != nil {
-		gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
+		lg.Errorf("Failed to save measurement: %v\n", err)
 	}
 
 	w.WriteHeader(http.StatusOK)

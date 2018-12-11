@@ -57,7 +57,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 
 		_, err := tx.Put(key, &sm)
 		return err
-	}, nil)
+	})
 
 	// Each device has a cache entry for its latest value. Update it.
 	if err == nil {

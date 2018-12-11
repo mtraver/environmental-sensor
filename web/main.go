@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -40,7 +41,16 @@ var (
 				return t.Format(time.RFC3339)
 			},
 		}).ParseGlob("web/templates/*"))
+
+	database Database
 )
+
+type Database interface {
+	Save(ctx context.Context, m *measurement.Measurement) error
+	GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	GetMeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	GetLatestMeasurements(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
+}
 
 func mustGetenv(varName string) string {
 	val := os.Getenv(varName)
@@ -59,6 +69,14 @@ type pushRequest struct {
 		ID         string `json:"message_id"`
 	}
 	Subscription string
+}
+
+func init() {
+	var err error
+	database, err = db.NewDatastoreDB(projectID)
+	if err != nil {
+		log.Fatalf("Failed to make datastore DB: %v", err)
+	}
 }
 
 func main() {
@@ -143,8 +161,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	database := db.NewDatastoreDB(projectID)
 
 	// Get measurements and marshal to JSON for use in the template
 	measurements, err := database.GetMeasurementsBetween(ctx, startTime, endTime)
@@ -236,7 +252,6 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database := db.NewDatastoreDB(projectID)
 	if err := database.Save(ctx, m); err != nil {
 		lg.Errorf("Failed to save measurement: %v\n", err)
 	}

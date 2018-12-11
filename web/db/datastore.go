@@ -5,7 +5,8 @@ import (
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/datastore"
+	"cloud.google.com/go/datastore"
+	"google.golang.org/api/iterator"
 
 	"github.com/mtraver/environmental-sensor/measurement"
 	"github.com/mtraver/environmental-sensor/web/cache"
@@ -21,12 +22,19 @@ const (
 
 type datastoreDB struct {
 	projectID string
+	client    *datastore.Client
 }
 
-func NewDatastoreDB(projectID string) *datastoreDB {
+func NewDatastoreDB(projectID string) (*datastoreDB, error) {
+	client, err := datastore.NewClient(context.Background(), projectID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &datastoreDB{
 		projectID: projectID,
-	}
+		client:    client,
+	}, nil
 }
 
 // Save saves the given Measurement to the database. If the Measurement
@@ -38,17 +46,16 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 		return err
 	}
 
-	key := datastore.NewKey(
-		ctx, datastoreKind, sm.DBKey(), 0, nil)
+	key := datastore.NameKey(datastoreKind, sm.DBKey(), nil)
 
 	// Only store the measurement if it doesn't exist
-	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+	_, err = db.client.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		var x measurement.StorableMeasurement
-		if err := datastore.Get(ctx, key, &x); err != datastore.ErrNoSuchEntity {
+		if err := tx.Get(key, &x); err != datastore.ErrNoSuchEntity {
 			return err
 		}
 
-		_, err := datastore.Put(ctx, key, &sm)
+		_, err := tx.Put(key, &sm)
 		return err
 	}, nil)
 
@@ -60,7 +67,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 	return err
 }
 
-func executeQuery(ctx context.Context, q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
+func (db *datastoreDB) executeQuery(ctx context.Context, q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
 	results := make(map[string][]measurement.StorableMeasurement)
 
 	// Don't modify the original query. We'll continue to derive queries from it
@@ -70,11 +77,11 @@ func executeQuery(ctx context.Context, q *datastore.Query) (map[string][]measure
 	for {
 		processed := 0
 
-		it := derivedQuery.Run(ctx)
+		it := db.client.Run(ctx, derivedQuery)
 		for {
 			var m measurement.StorableMeasurement
 			_, err := it.Next(&m)
-			if err == datastore.Done {
+			if err == iterator.Done {
 				cursor, err := it.Cursor()
 				if err != nil {
 					return make(map[string][]measurement.StorableMeasurement), err
@@ -113,7 +120,7 @@ func (db *datastoreDB) GetMeasurementsSince(ctx context.Context, startTime time.
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
 	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Order("timestamp")
-	return executeQuery(ctx, q)
+	return db.executeQuery(ctx, q)
 }
 
 // GetMeasurementsBetween gets all measurements with a timestamp greater than
@@ -123,7 +130,7 @@ func (db *datastoreDB) GetMeasurementsBetween(ctx context.Context, startTime tim
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
 	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Filter("timestamp <=", endTime).Order("timestamp")
-	return executeQuery(ctx, q)
+	return db.executeQuery(ctx, q)
 }
 
 // GetLatestMeasurements gets the most recent measurement for each of the given
@@ -153,9 +160,9 @@ func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []st
 
 		// Try the Datastore
 		q := datastore.NewQuery(datastoreKind).Filter("device_id =", id).Order("-timestamp").Limit(1)
-		it := q.Run(ctx)
+		it := db.client.Run(ctx, q)
 		_, err = it.Next(&m)
-		if err == datastore.Done {
+		if err == iterator.Done {
 			// Nothing found in the Datastore
 			continue
 		} else if err != nil {

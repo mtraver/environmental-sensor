@@ -32,8 +32,7 @@ func NewDatastoreDB(projectID string) *datastoreDB {
 // Save saves the given Measurement to the database. If the Measurement
 // already exists in the database it makes no change to the database and
 // returns nil as the error.
-func (db *datastoreDB) Save(ctx context.Context,
-	m *measurement.Measurement) error {
+func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) error {
 	sm, err := m.ToStorableMeasurement()
 	if err != nil {
 		return err
@@ -61,9 +60,7 @@ func (db *datastoreDB) Save(ctx context.Context,
 	return err
 }
 
-func executeQuery(
-	ctx context.Context,
-	q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
+func executeQuery(ctx context.Context, q *datastore.Query) (map[string][]measurement.StorableMeasurement, error) {
 	results := make(map[string][]measurement.StorableMeasurement)
 
 	// Don't modify the original query. We'll continue to derive queries from it
@@ -112,29 +109,20 @@ func executeQuery(
 // GetMeasurementsSince gets all measurements with a timestamp greater than
 // or equal to startTime. It returns a map of device ID (a string) to a
 // StorableMeasurement slice, and an error.
-func (db *datastoreDB) GetMeasurementsSince(
-	ctx context.Context,
-	startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+func (db *datastoreDB) GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
-	q := datastore.NewQuery(datastoreKind).Filter(
-		"timestamp >=", startTime).Order("timestamp")
-
+	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Order("timestamp")
 	return executeQuery(ctx, q)
 }
 
 // GetMeasurementsBetween gets all measurements with a timestamp greater than
 // or equal to startTime and less than or equal to endTime. It returns a map
 // of device ID (a string) to a StorableMeasurement slice, and an error.
-func (db *datastoreDB) GetMeasurementsBetween(
-	ctx context.Context, startTime time.Time,
-	endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+func (db *datastoreDB) GetMeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
-	q := datastore.NewQuery(datastoreKind).Filter(
-		"timestamp >=", startTime).Filter(
-		"timestamp <=", endTime).Order("timestamp")
-
+	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Filter("timestamp <=", endTime).Order("timestamp")
 	return executeQuery(ctx, q)
 }
 
@@ -142,8 +130,7 @@ func (db *datastoreDB) GetMeasurementsBetween(
 // device IDs. It returns a map of device ID to StorableMeasurement, and an
 // error. If no measurement is found for a device ID then the returned map will
 // not contain that device ID.
-func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []string) (
-	map[string]measurement.StorableMeasurement, error) {
+func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error) {
 	latest := make(map[string]measurement.StorableMeasurement)
 
 	for _, id := range deviceIDs {
@@ -165,8 +152,7 @@ func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []st
 		}
 
 		// Try the Datastore
-		q := datastore.NewQuery(datastoreKind).Filter("device_id =", id).Order(
-			"-timestamp").Limit(1)
+		q := datastore.NewQuery(datastoreKind).Filter("device_id =", id).Order("-timestamp").Limit(1)
 		it := q.Run(ctx)
 		_, err = it.Next(&m)
 		if err == datastore.Done {

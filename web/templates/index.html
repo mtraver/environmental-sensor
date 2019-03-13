@@ -64,6 +64,30 @@
 
         <div class="row">
           <div class="col-md-4">
+            <p>Hours ago</p>
+            <form id="hoursago-form" class="needs-validation"
+              action="/" method="post" novalidate>
+              <input type="hidden" name="form-name" value="hoursago">
+
+              <div class="form-row">
+                <div class="col-md mb-3">
+                  <label for="hoursago" class="sr-only">Hours Ago</label>
+                  <input type="number" id="hoursago" name="hoursago"
+                    class="form-control form-control-sm"
+                    min="1" step="1" required>
+                  <div id="hoursago-feedback" class="invalid-feedback">
+                    Must be a positive integer
+                  </div>
+                </div>
+
+                <div class="col-md mb-3">
+                  <button type="submit" class="btn btn-sm">Go!</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="col-md-4">
             <p>Date range</p>
             <form id="range-form" class="needs-validation"
               action="/" method="post" novalidate>
@@ -92,30 +116,6 @@
                     Format must be yyyy-mm-dd
                   </div>
                   <input type="hidden" id="enddate-adjusted" name="enddate-adjusted">
-                </div>
-
-                <div class="col-md mb-3">
-                  <button type="submit" class="btn btn-sm">Go!</button>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <div class="col-md-4">
-            <p>Hours ago</p>
-            <form id="hoursago-form" class="needs-validation"
-              action="/" method="post" novalidate>
-              <input type="hidden" name="form-name" value="hoursago">
-
-              <div class="form-row">
-                <div class="col-md mb-3">
-                  <label for="hoursago" class="sr-only">Hours Ago</label>
-                  <input type="number" id="hoursago" name="hoursago"
-                    class="form-control form-control-sm"
-                    min="1" step="1" required>
-                  <div id="hoursago-feedback" class="invalid-feedback">
-                    Must be a positive integer
-                  </div>
                 </div>
 
                 <div class="col-md mb-3">

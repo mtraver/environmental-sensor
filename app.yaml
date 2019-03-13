@@ -1,5 +1,6 @@
 # https://cloud.google.com/appengine/docs/standard/python/config/appref
 runtime: go111
+main: web
 
 env_variables:
   IOTCORE_REGISTRY: 'TODO'

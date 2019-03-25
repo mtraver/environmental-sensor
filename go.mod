@@ -8,7 +8,6 @@ require (
 	github.com/mtraver/gaelog v0.0.0-20190325221402-178889029bf7
 	github.com/mtraver/mcp9808 v0.0.0-20181121014314-d442b3b46bf5
 	golang.org/x/exp v0.0.0-20190312203227-4b39c73a6495 // indirect
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	google.golang.org/api v0.2.0
 	google.golang.org/appengine v1.5.0

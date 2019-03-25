@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"path"
 	"strconv"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/protobuf/proto"

@@ -7,7 +7,7 @@ import (
 )
 
 func readTempMulti(samples int, interval time.Duration) ([]float32, error) {
-	sensor, err := mcp9808.NewMCP9808()
+	sensor, err := mcp9808.New()
 	if err != nil {
 		return []float32{}, err
 	}

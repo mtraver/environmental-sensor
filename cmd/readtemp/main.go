@@ -80,7 +80,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	sensor, err := mcp9808.NewMCP9808()
+	sensor, err := mcp9808.New()
 	if err != nil {
 		fatalf("Error connecting to sensor: %v", err)
 	}

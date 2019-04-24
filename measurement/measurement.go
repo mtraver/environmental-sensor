@@ -32,7 +32,7 @@ type StorableMeasurement struct {
 // data is marshaled to JSON for use in the template each record doesn't need to
 // include the device ID.
 type serializableMeasurement struct {
-	// This timestamp is an offset from the epoch in millieconds
+	// This timestamp is an offset from the epoch in milliseconds
 	// (compare to Timestamp in StorableMeasurement).
 	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
 	Temp      float32 `json:"temp,omitempty" datastore:"temp"`

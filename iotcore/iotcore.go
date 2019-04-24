@@ -16,8 +16,7 @@ import (
 
 const certExtension = ".x509"
 
-func NewMQTTOptions(config DeviceConfig, bridge MQTTBridge,
-	caCertsPath string) (*MQTT.ClientOptions, error) {
+func NewMQTTOptions(config DeviceConfig, bridge MQTTBridge, caCertsPath string) (*MQTT.ClientOptions, error) {
 	// Load CA certs
 	certpool := x509.NewCertPool()
 	pemCerts, err := ioutil.ReadFile(caCertsPath)

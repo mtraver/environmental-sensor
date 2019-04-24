@@ -62,8 +62,7 @@ func (m *Measurement) ToStorableMeasurement() (StorableMeasurement, error) {
 //     to get the corresponding struct field for a FieldDescriptorProto?)
 //   https://github.com/golang/protobuf/issues/364 (proto: make the Message
 //     interface behaviorally complete)
-func (m *Measurement) getField(
-	fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
+func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
 	messageVal := reflect.ValueOf(*m)
 	props := proto.GetProperties(reflect.TypeOf(m).Elem())
 
@@ -147,8 +146,7 @@ func CacheKeyLatest(deviceID string) string {
 // with one element for each device ID. It's constructed this way, instead of
 // as a map where keys are device IDs, because the JavaScript visualization
 // package D3 (https://d3js.org/) works better with arrays of data than maps.
-func MeasurementMapToJSON(measurements map[string][]StorableMeasurement) (
-	[]byte, error) {
+func MeasurementMapToJSON(measurements map[string][]StorableMeasurement) ([]byte, error) {
 	type dataForTemplate struct {
 		ID     string                    `json:"id"`
 		Values []serializableMeasurement `json:"values"`

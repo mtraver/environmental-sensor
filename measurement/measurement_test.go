@@ -145,7 +145,8 @@ func TestMeasurementMapToJSON(t *testing.T) {
 	}
 }
 
-func getMeasurement(deviceID string) Measurement {
+func getMeasurement(t *testing.T, deviceID string) Measurement {
+	t.Helper()
 	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
 	return Measurement{
 		DeviceId:  deviceID,
@@ -154,36 +155,25 @@ func getMeasurement(deviceID string) Measurement {
 	}
 }
 
-func doMeasurementValidTest(t *testing.T, deviceID string) {
-	m := getMeasurement(deviceID)
-	if err := m.Validate(); err != nil {
-		t.Errorf("Measurement invalid, but expected valid: %v", err)
+func TestDeviceID(t *testing.T) {
+	cases := []struct {
+		name  string
+		id    string
+		valid bool
+	}{
+		{"valid", "foo+.%~_-0123", true},
+		{"empty", "", false},
+		{"short", "a", false},
+		{"non_alpha_short", "7abcd", false},
+		{"illegal_chars", "foo`!@#$^&*()={}[]<>,?/|\\':;", false},
 	}
-}
 
-func doMeasurementInvalidTest(t *testing.T, deviceID string) {
-	m := getMeasurement(deviceID)
-	if err := m.Validate(); err == nil {
-		t.Errorf("Measurement valid, but expected invalid")
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			m := getMeasurement(t, c.id)
+			if valid := m.Validate() == nil; valid != c.valid {
+				t.Errorf("Measurement valid is %v, expected %v", valid, c.valid)
+			}
+		})
 	}
-}
-
-func TestMeasurementValid(t *testing.T) {
-	doMeasurementValidTest(t, "foo+.%~_-0123")
-}
-
-func TestInvalidDeviceIDEmpty(t *testing.T) {
-	doMeasurementInvalidTest(t, "")
-}
-
-func TestInvalidDeviceIDShort(t *testing.T) {
-	doMeasurementInvalidTest(t, "a")
-}
-
-func TestInvalidDeviceIDNonAlphaStart(t *testing.T) {
-	doMeasurementInvalidTest(t, "7abcd")
-}
-
-func TestInvalidDeviceIDIllegalChars(t *testing.T) {
-	doMeasurementInvalidTest(t, "foo`!@#$^&*()={}[]<>,?/|\\':;")
 }

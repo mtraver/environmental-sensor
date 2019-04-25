@@ -78,16 +78,14 @@ func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) refle
 		// Must be a oneof if not found in the regular fields above
 		for _, oneof := range props.OneofTypes {
 			if int32(oneof.Prop.Tag) == fd.GetNumber() {
-				field = messageVal.Field(
-					oneof.Field).Elem().FieldByName(oneof.Prop.Name)
+				field = messageVal.Field(oneof.Field).Elem().FieldByName(oneof.Prop.Name)
 				break
 			}
 		}
 	}
 
 	if !field.IsValid() {
-		panic(fmt.Sprintf(
-			"Cannot find struct field for proto field name %q, number/tag %d",
+		panic(fmt.Sprintf("Cannot find struct field for proto field name %q, number/tag %d",
 			fd.GetName(), fd.GetNumber()))
 	}
 
@@ -119,8 +117,7 @@ func (m *Measurement) Validate() error {
 
 		regex := regexp.MustCompile(*regexExt.(*string))
 		if !regex.MatchString(field.String()) {
-			return fmt.Errorf(
-				"Field failed regex validation. Field: %q Value: %q Regex: %q",
+			return fmt.Errorf("Field failed regex validation. Field: %q Value: %q Regex: %q",
 				f.GetName(), field.String(), regex)
 		}
 	}
@@ -131,8 +128,7 @@ func (m *Measurement) Validate() error {
 // DBKey returns a string key suitable for Datastore.
 // It promotes Device ID and timestamp into the key.
 func (m *StorableMeasurement) DBKey() string {
-	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)},
-		keySep)
+	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
 // CacheKeyLatest returns the cache key of the latest measurement

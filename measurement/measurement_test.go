@@ -29,7 +29,7 @@ func TestToStorableMeasurement(t *testing.T) {
 	}
 
 	if s.DeviceId != deviceID {
-		t.Errorf("Incorrect devie ID. Expected %q, got %q", deviceID, s.DeviceId)
+		t.Errorf("Incorrect device ID. Expected %q, got %q", deviceID, s.DeviceId)
 	}
 
 	if s.Timestamp != testTimestamp {

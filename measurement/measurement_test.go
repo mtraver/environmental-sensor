@@ -64,84 +64,64 @@ func TestCacheKeyLatest(t *testing.T) {
 	}
 }
 
-func TestMeasurementMapToJSONEmpty(t *testing.T) {
-	measurements := map[string][]StorableMeasurement{}
-	marshalledJSON, err := MeasurementMapToJSON(measurements)
-	if err != nil {
-		t.Errorf("Error on valid input: %v", err)
-	}
-
-	expected := "null"
-	if string(marshalledJSON) != expected {
-		t.Errorf("Incorrect JSON. Expected %q, got %q", expected,
-			string(marshalledJSON))
-	}
-}
-
-func TestMeasurementMapToJSONNoMeasurements(t *testing.T) {
-	measurements := map[string][]StorableMeasurement{
-		"foo": {},
-	}
-
-	marshalledJSON, err := MeasurementMapToJSON(measurements)
-	if err != nil {
-		t.Errorf("Error on valid input: %v", err)
-	}
-
-	expected := `[{"id":"foo","values":[]}]`
-	if string(marshalledJSON) != expected {
-		t.Errorf("Incorrect JSON. Expected %q, got %q", expected,
-			string(marshalledJSON))
-	}
-}
-
 func TestMeasurementMapToJSON(t *testing.T) {
-	measurements := map[string][]StorableMeasurement{
-		"foo": {
-			{
-				DeviceId:  "foo",
-				Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
-				Temp:      18.5,
+	cases := []struct {
+		name         string
+		measurements map[string][]StorableMeasurement
+		want         string
+	}{
+		{"none", map[string][]StorableMeasurement{}, "null"},
+		{"empty", map[string][]StorableMeasurement{"foo": {}}, `[{"id":"foo","values":[]}]`},
+		{"many", map[string][]StorableMeasurement{
+			"foo": {
+				{
+					DeviceId:  "foo",
+					Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
+				{
+					DeviceId:  "foo",
+					Timestamp: time.Date(2018, time.March, 26, 0, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
+				{
+					DeviceId:  "foo",
+					Timestamp: time.Date(2018, time.March, 27, 0, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
 			},
-			{
-				DeviceId:  "foo",
-				Timestamp: time.Date(2018, time.March, 26, 0, 0, 0, 0, time.UTC),
-				Temp:      18.5,
+			"bar": {
+				{
+					DeviceId:  "bar",
+					Timestamp: time.Date(2018, time.March, 25, 17, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
+				{
+					DeviceId:  "bar",
+					Timestamp: time.Date(2018, time.March, 26, 17, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
+				{
+					DeviceId:  "bar",
+					Timestamp: time.Date(2018, time.March, 27, 17, 0, 0, 0, time.UTC),
+					Temp:      18.5,
+				},
 			},
-			{
-				DeviceId:  "foo",
-				Timestamp: time.Date(2018, time.March, 27, 0, 0, 0, 0, time.UTC),
-				Temp:      18.5,
-			},
-		},
-		"bar": {
-			{
-				DeviceId:  "bar",
-				Timestamp: time.Date(2018, time.March, 25, 17, 0, 0, 0, time.UTC),
-				Temp:      18.5,
-			},
-			{
-				DeviceId:  "bar",
-				Timestamp: time.Date(2018, time.March, 26, 17, 0, 0, 0, time.UTC),
-				Temp:      18.5,
-			},
-			{
-				DeviceId:  "bar",
-				Timestamp: time.Date(2018, time.March, 27, 17, 0, 0, 0, time.UTC),
-				Temp:      18.5,
-			},
-		},
+		}, `[{"id":"bar","values":[{"timestamp":1521997200000,"temp":18.5},{"timestamp":1522083600000,"temp":18.5},{"timestamp":1522170000000,"temp":18.5}]},{"id":"foo","values":[{"timestamp":1521936000000,"temp":18.5},{"timestamp":1522022400000,"temp":18.5},{"timestamp":1522108800000,"temp":18.5}]}]`},
 	}
 
-	marshalledJSON, err := MeasurementMapToJSON(measurements)
-	if err != nil {
-		t.Errorf("Error on valid input: %v", err)
-	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			marshalledJSON, err := MeasurementMapToJSON(c.measurements)
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
 
-	expected := `[{"id":"bar","values":[{"timestamp":1521997200000,"temp":18.5},{"timestamp":1522083600000,"temp":18.5},{"timestamp":1522170000000,"temp":18.5}]},{"id":"foo","values":[{"timestamp":1521936000000,"temp":18.5},{"timestamp":1522022400000,"temp":18.5},{"timestamp":1522108800000,"temp":18.5}]}]`
-	if string(marshalledJSON) != expected {
-		t.Errorf("Incorrect JSON. Expected %q, got %q", expected,
-			string(marshalledJSON))
+			if string(marshalledJSON) != c.want {
+				t.Errorf("Want %q, got %q", c.want, string(marshalledJSON))
+			}
+		})
 	}
 }
 

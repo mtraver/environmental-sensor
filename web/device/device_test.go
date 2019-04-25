@@ -6,8 +6,7 @@ import (
 )
 
 func TestGetRegistryPath(t *testing.T) {
-	expected := fmt.Sprintf(
-		"projects/exampleProj/locations/%s/registries/exampleReg", region)
+	expected := fmt.Sprintf("projects/exampleProj/locations/%s/registries/exampleReg", region)
 	path := getRegistryPath("exampleProj", "exampleReg")
 
 	if path != expected {

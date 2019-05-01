@@ -11,7 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 
 	"github.com/mtraver/environmental-sensor/iotcore"
 	measurementpb "github.com/mtraver/environmental-sensor/measurement"
@@ -39,7 +39,7 @@ var (
 )
 
 // We don't currently do anything with configs from the server
-// func configHandler(client MQTT.Client, msg MQTT.Message) {
+// func configHandler(client mqtt.Client, msg mqtt.Message) {
 // 	log.Printf("config handler: topic: %v\n", msg.Topic())
 // 	log.Printf("config handler: tayload: %v\n", msg.Payload())
 // }
@@ -138,9 +138,9 @@ func main() {
 	}
 	mqttOptions.SetPassword(tokenStr)
 
-	client := MQTT.NewClient(mqttOptions)
-	if mqtt := client.Connect(); mqtt.Wait() && mqtt.Error() != nil {
-		log.Fatalf("Failed to connect MQTT client: %v", mqtt.Error())
+	client := mqtt.NewClient(mqttOptions)
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
 	}
 
 	// We don't currently do anything with configs from the server

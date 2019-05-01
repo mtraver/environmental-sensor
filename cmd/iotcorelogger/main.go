@@ -13,6 +13,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 
+	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/pending"
 	"github.com/mtraver/environmental-sensor/iotcore"
 	measurementpb "github.com/mtraver/environmental-sensor/measurement"
 )
@@ -36,6 +37,9 @@ var (
 		8883: true,
 		443:  true,
 	}
+
+	// The directory in which to store measurements that failed to publish.
+	pendingDir string
 )
 
 // We don't currently do anything with configs from the server
@@ -58,6 +62,10 @@ func init() {
 
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
+
+	flag.StringVar(
+		&pendingDir, "pendingdir", "",
+		"Directory in which to store measurements that failed to publish, e.g. because the network went down. Publication will be retried later.")
 }
 
 func parseFlags() error {
@@ -111,42 +119,52 @@ func mean(s []float32) float32 {
 	return sum / float32(len(s))
 }
 
+func newClient() (mqtt.Client, error) {
+	keyBytes, err := ioutil.ReadFile(deviceConf.PrivKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	mqttOptions, err := iotcore.NewMQTTOptions(deviceConf, bridge, caCerts)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenStr, err := deviceConf.NewJWT(keyBytes, time.Minute)
+	if err != nil {
+		return nil, err
+	}
+	mqttOptions.SetPassword(tokenStr)
+
+	return mqtt.NewClient(mqttOptions), nil
+}
+
+func save(m *measurementpb.Measurement) {
+	if pendingDir != "" {
+		if err := pending.Save(m, pendingDir); err != nil {
+			log.Printf("Failed to save measurement: %v", err)
+		}
+	}
+}
+
 func main() {
 	if err := parseFlags(); err != nil {
 		fmt.Printf("argument error: %v\n", err)
 		os.Exit(2)
 	}
 
-	keyBytes, err := ioutil.ReadFile(deviceConf.PrivKeyPath)
-	if err != nil {
-		log.Fatalf("Failed to read private key: %v", err)
-	}
-
+	var err error
 	deviceConf.DeviceID, err = iotcore.DeviceIDFromCert(deviceConf.CertPath())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	mqttOptions, err := iotcore.NewMQTTOptions(deviceConf, bridge, caCerts)
+	client, err := newClient()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to make MQTT client: %v", err)
 	}
 
-	tokenStr, err := deviceConf.NewJWT(keyBytes, time.Minute)
-	if err != nil {
-		log.Fatalf("Failed to sign JWT: %v", err)
-	}
-	mqttOptions.SetPassword(tokenStr)
-
-	client := mqtt.NewClient(mqttOptions)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
-	}
-
-	// We don't currently do anything with configs from the server
-	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
-
-	// Read temp and construct a protobuf
+	// Read the temp, construct a protobuf, and marshal it to bytes.
 	temps, err := readTempMulti(numSamples, time.Duration(sampleInterval)*time.Second)
 	if err != nil {
 		log.Fatal(err)
@@ -155,17 +173,38 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pbBytes, err := proto.Marshal(&measurementpb.Measurement{
+	m := &measurementpb.Measurement{
 		DeviceId:  deviceConf.DeviceID,
 		Timestamp: timepb,
 		Temp:      mean(temps),
-	})
+	}
+	pbBytes, err := proto.Marshal(m)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Attempt to connect using the MQTT client. If it fails, save the Measurement for later publication.
+	if token := client.Connect(); token.Wait() && token.Error() != nil {
+		save(m)
+		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
+	}
+
+	// We don't currently do anything with configs from the server.
+	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
+
 	pubToken := client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
-	pubToken.WaitTimeout(5 * time.Second)
+	waitDur := 5 * time.Second
+	if ok := pubToken.WaitTimeout(waitDur); !ok {
+		log.Printf("Failed to publish after %v", waitDur)
+
+		// Save the Measurement to retry later.
+		save(m)
+	} else if pendingDir != "" {
+		// Publish succeeded, so attempt to publish any pending measurements.
+		if err := pending.PublishAll(client, deviceConf.TelemetryTopic(), pendingDir); err != nil {
+			log.Printf("Failed to publish all pending measurements: %v", err)
+		}
+	}
 
 	client.Disconnect(250)
 

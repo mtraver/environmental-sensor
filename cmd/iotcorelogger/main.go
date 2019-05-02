@@ -130,11 +130,11 @@ func newClient() (mqtt.Client, error) {
 		return nil, err
 	}
 
-	tokenStr, err := deviceConf.NewJWT(keyBytes, time.Minute)
+	jwt, err := deviceConf.NewJWT(keyBytes, time.Minute)
 	if err != nil {
 		return nil, err
 	}
-	mqttOptions.SetPassword(tokenStr)
+	mqttOptions.SetPassword(jwt)
 
 	return mqtt.NewClient(mqttOptions), nil
 }
@@ -192,9 +192,9 @@ func main() {
 	// We don't currently do anything with configs from the server.
 	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
 
-	pubToken := client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
+	token := client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
 	waitDur := 5 * time.Second
-	if ok := pubToken.WaitTimeout(waitDur); !ok {
+	if ok := token.WaitTimeout(waitDur); !ok {
 		log.Printf("Failed to publish after %v", waitDur)
 
 		// Save the Measurement to retry later.

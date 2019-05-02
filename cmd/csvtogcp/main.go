@@ -72,11 +72,9 @@ func mean(x []float32) float32 {
 	return total / float32(len(x))
 }
 
-func lineToProto(
-	line []string, deviceID string) (*measurement.Measurement, error) {
+func lineToProto(line []string, deviceID string) (*measurement.Measurement, error) {
 	if len(line) < 2 {
-		return nil, errors.New(
-			"Line length must be at least 2 (timestamp and one measurement)")
+		return nil, errors.New("Line length must be at least 2 (timestamp and one measurement)")
 	}
 
 	// Convert the timestamp string to a timestamp for packing into a protobuf
@@ -103,8 +101,7 @@ func lineToProto(
 	return m, nil
 }
 
-func publishFromCSV(csvFile string, projectID string, pubsubTopic string,
-	deviceID string) error {
+func publishFromCSV(csvFile string, projectID string, pubsubTopic string, deviceID string) error {
 	f, err := os.Open(csvFile)
 	defer f.Close()
 	if err != nil {
@@ -172,8 +169,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	err := publishFromCSV(os.Args[1], os.Args[2], os.Args[3], os.Args[4])
-	if err != nil {
+	if err := publishFromCSV(os.Args[1], os.Args[2], os.Args[3], os.Args[4]); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

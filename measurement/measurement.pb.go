@@ -3,11 +3,13 @@
 
 package measurement
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
-import timestamp "github.com/golang/protobuf/ptypes/timestamp"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -18,7 +20,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type Measurement struct {
 	DeviceId             string               `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
@@ -33,16 +35,17 @@ func (m *Measurement) Reset()         { *m = Measurement{} }
 func (m *Measurement) String() string { return proto.CompactTextString(m) }
 func (*Measurement) ProtoMessage()    {}
 func (*Measurement) Descriptor() ([]byte, []int) {
-	return fileDescriptor_measurement_8fd95cd198cca277, []int{0}
+	return fileDescriptor_5f502a743c760a3e, []int{0}
 }
+
 func (m *Measurement) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Measurement.Unmarshal(m, b)
 }
 func (m *Measurement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Measurement.Marshal(b, m, deterministic)
 }
-func (dst *Measurement) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Measurement.Merge(dst, src)
+func (m *Measurement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Measurement.Merge(m, src)
 }
 func (m *Measurement) XXX_Size() int {
 	return xxx_messageInfo_Measurement.Size(m)
@@ -88,9 +91,9 @@ func init() {
 	proto.RegisterExtension(E_Regex)
 }
 
-func init() { proto.RegisterFile("measurement.proto", fileDescriptor_measurement_8fd95cd198cca277) }
+func init() { proto.RegisterFile("measurement.proto", fileDescriptor_5f502a743c760a3e) }
 
-var fileDescriptor_measurement_8fd95cd198cca277 = []byte{
+var fileDescriptor_5f502a743c760a3e = []byte{
 	// 243 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xcc, 0x4d, 0x4d, 0x2c,
 	0x2e, 0x2d, 0x4a, 0xcd, 0x4d, 0xcd, 0x2b, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x46,

@@ -7,14 +7,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
-
-const certExtension = ".x509"
 
 func NewMQTTOptions(config DeviceConfig, bridge MQTTBridge, caCertsPath string) (*MQTT.ClientOptions, error) {
 	// Load CA certs
@@ -89,11 +86,6 @@ func (c *DeviceConfig) TelemetryTopic() string {
 
 func (c *DeviceConfig) StateTopic() string {
 	return fmt.Sprintf("/devices/%v/state", c.DeviceID)
-}
-
-func (c *DeviceConfig) CertPath() string {
-	ext := path.Ext(c.PrivKeyPath)
-	return c.PrivKeyPath[:len(c.PrivKeyPath)-len(ext)] + certExtension
 }
 
 func (c *DeviceConfig) NewJWT(keyBytes []byte, exp time.Duration) (string, error) {

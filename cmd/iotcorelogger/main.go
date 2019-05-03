@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -21,11 +22,17 @@ import (
 const (
 	defaultRegion = "us-central1"
 	defaultHost   = "mqtt.googleapis.com"
+
+	certExtension = ".x509"
 )
 
 var (
-	deviceConf iotcore.DeviceConfig
-	bridge     iotcore.MQTTBridge
+	projectID   string
+	registryID  string
+	region      string
+	privKeyPath string
+
+	bridge iotcore.MQTTBridge
 
 	caCerts string
 
@@ -49,10 +56,10 @@ var (
 // }
 
 func init() {
-	flag.StringVar(&deviceConf.ProjectID, "project", "", "Google Cloud Platform project ID")
-	flag.StringVar(&deviceConf.RegistryID, "registry", "", "Google Cloud IoT Core registry ID")
-	flag.StringVar(&deviceConf.Region, "region", defaultRegion, "Google Cloud Platform region")
-	flag.StringVar(&deviceConf.PrivKeyPath, "key", "", "path to device's private key")
+	flag.StringVar(&projectID, "project", "", "Google Cloud Platform project ID")
+	flag.StringVar(&registryID, "registry", "", "Google Cloud IoT Core registry ID")
+	flag.StringVar(&region, "region", defaultRegion, "Google Cloud Platform region")
+	flag.StringVar(&privKeyPath, "key", "", "path to device's private key")
 	flag.StringVar(&caCerts, "cacerts", "",
 		"Path to a set of trustworthy CA certs.\n"+
 			"Download Google's from https://pki.google.com/roots.pem.")
@@ -71,19 +78,19 @@ func init() {
 func parseFlags() error {
 	flag.Parse()
 
-	if deviceConf.ProjectID == "" {
+	if projectID == "" {
 		return fmt.Errorf("project flag must be given")
 	}
 
-	if deviceConf.RegistryID == "" {
+	if registryID == "" {
 		return fmt.Errorf("registry flag must be given")
 	}
 
-	if deviceConf.Region == "" {
+	if region == "" {
 		return fmt.Errorf("region flag must be given")
 	}
 
-	if deviceConf.PrivKeyPath == "" {
+	if privKeyPath == "" {
 		return fmt.Errorf("key flag must be given")
 	}
 
@@ -119,18 +126,23 @@ func mean(s []float32) float32 {
 	return sum / float32(len(s))
 }
 
-func newClient() (mqtt.Client, error) {
-	keyBytes, err := ioutil.ReadFile(deviceConf.PrivKeyPath)
+func certPath(keyPath string) string {
+	ext := path.Ext(keyPath)
+	return keyPath[:len(keyPath)-len(ext)] + certExtension
+}
+
+func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
+	keyBytes, err := ioutil.ReadFile(conf.PrivKeyPath)
 	if err != nil {
 		return nil, err
 	}
 
-	mqttOptions, err := iotcore.NewMQTTOptions(deviceConf, bridge, caCerts)
+	mqttOptions, err := iotcore.NewMQTTOptions(conf, bridge, caCerts)
 	if err != nil {
 		return nil, err
 	}
 
-	jwt, err := deviceConf.NewJWT(keyBytes, time.Minute)
+	jwt, err := conf.NewJWT(keyBytes, time.Minute)
 	if err != nil {
 		return nil, err
 	}
@@ -153,13 +165,20 @@ func main() {
 		os.Exit(2)
 	}
 
-	var err error
-	deviceConf.DeviceID, err = iotcore.DeviceIDFromCert(deviceConf.CertPath())
+	deviceID, err := iotcore.DeviceIDFromCert(certPath(privKeyPath))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client, err := newClient()
+	deviceConf := iotcore.DeviceConfig{
+		ProjectID:   projectID,
+		RegistryID:  registryID,
+		DeviceID:    deviceID,
+		PrivKeyPath: privKeyPath,
+		Region:      region,
+	}
+
+	client, err := newClient(deviceConf)
 	if err != nil {
 		log.Fatalf("Failed to make MQTT client: %v", err)
 	}

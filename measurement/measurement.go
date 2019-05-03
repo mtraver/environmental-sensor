@@ -44,7 +44,7 @@ type serializableMeasurement struct {
 func (m *Measurement) ToStorableMeasurement() (StorableMeasurement, error) {
 	timestamp, err := ptypes.Timestamp(m.GetTimestamp())
 	if err != nil {
-		return StorableMeasurement{}, nil
+		return StorableMeasurement{}, err
 	}
 
 	return StorableMeasurement{

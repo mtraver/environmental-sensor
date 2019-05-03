@@ -9,10 +9,13 @@ import (
 	"path"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"periph.io/x/periph/conn/i2c/i2creg"
+	"periph.io/x/periph/conn/physic"
+	"periph.io/x/periph/experimental/devices/mcp9808"
+	"periph.io/x/periph/host"
 
 	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/pending"
 	"github.com/mtraver/environmental-sensor/iotcore"
@@ -117,13 +120,13 @@ func parseFlags() error {
 	return nil
 }
 
-func mean(s []float32) float32 {
-	var sum float32
-	for _, e := range s {
-		sum += e
+func mean(s []physic.Temperature) float32 {
+	var sum float64
+	for _, t := range s {
+		sum += t.Celsius()
 	}
 
-	return sum / float32(len(s))
+	return float32(sum / float64(len(s)))
 }
 
 func certPath(keyPath string) string {
@@ -183,8 +186,25 @@ func main() {
 		log.Fatalf("Failed to make MQTT client: %v", err)
 	}
 
+	// Initialize periph.
+	if _, err := host.Init(); err != nil {
+		log.Fatalf("Failed to initialize periph: %v", err)
+	}
+
+	// Open default I²C bus.
+	bus, err := i2creg.Open("")
+	if err != nil {
+		log.Fatalf("Failed to open I²C bus: %v", err)
+	}
+	defer bus.Close()
+
+	sensor, err := mcp9808.New(bus, &mcp9808.DefaultOpts)
+	if err != nil {
+		log.Fatalf("Failed to initialize MCP9808: %v", err)
+	}
+
 	// Read the temp, construct a protobuf, and marshal it to bytes.
-	temps, err := readTempMulti(numSamples, time.Duration(sampleInterval)*time.Second)
+	temps, err := readTempMulti(sensor, numSamples, time.Duration(sampleInterval)*time.Second)
 	if err != nil {
 		log.Fatal(err)
 	}

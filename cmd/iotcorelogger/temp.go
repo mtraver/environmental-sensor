@@ -3,23 +3,14 @@ package main
 import (
 	"time"
 
-	"github.com/mtraver/mcp9808"
+	"periph.io/x/periph/conn/physic"
+	"periph.io/x/periph/experimental/devices/mcp9808"
 )
 
-func readTempMulti(samples int, interval time.Duration) ([]float32, error) {
-	sensor, err := mcp9808.New()
-	if err != nil {
-		return []float32{}, err
-	}
-	defer sensor.Close()
-
-	if err = sensor.Check(); err != nil {
-		return []float32{}, err
-	}
-
-	temps := make([]float32, samples)
+func readTempMulti(sensor *mcp9808.Dev, samples int, interval time.Duration) ([]physic.Temperature, error) {
+	temps := make([]physic.Temperature, samples)
 	for i := 0; i < samples; i++ {
-		temp, err := sensor.ReadTemp()
+		temp, err := sensor.SenseTemp()
 		if err != nil {
 			return temps, err
 		}
@@ -33,8 +24,8 @@ func readTempMulti(samples int, interval time.Duration) ([]float32, error) {
 	return temps, nil
 }
 
-func readTemp() (float32, error) {
-	temps, err := readTempMulti(1, 0)
+func readTemp(sensor *mcp9808.Dev) (physic.Temperature, error) {
+	temps, err := readTempMulti(sensor, 1, 0)
 	if err != nil {
 		return 0, err
 	}

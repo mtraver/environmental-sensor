@@ -10,5 +10,5 @@ require (
 	golang.org/x/sys v0.0.0-20190312061237-fead79001313 // indirect
 	google.golang.org/api v0.2.0
 	google.golang.org/appengine v1.5.0
-	periph.io/x/periph v0.0.0-20190218125427-df7c7a4f8f86
+	periph.io/x/periph v0.0.0-20190414220951-e529d25a1b86
 )

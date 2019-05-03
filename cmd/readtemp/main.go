@@ -9,7 +9,10 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/mtraver/mcp9808"
+	"periph.io/x/periph/conn/i2c/i2creg"
+	"periph.io/x/periph/conn/physic"
+	"periph.io/x/periph/experimental/devices/mcp9808"
+	"periph.io/x/periph/host"
 
 	measurementpb "github.com/mtraver/environmental-sensor/measurement"
 )
@@ -39,7 +42,7 @@ func parseFlags() error {
 	return nil
 }
 
-func makeProto(temp float32) (*measurementpb.Measurement, error) {
+func makeProto(temp physic.Temperature) (*measurementpb.Measurement, error) {
 	timepb, err := ptypes.TimestampProto(time.Now().UTC())
 	if err != nil {
 		return nil, err
@@ -48,11 +51,11 @@ func makeProto(temp float32) (*measurementpb.Measurement, error) {
 	return &measurementpb.Measurement{
 		DeviceId:  "none",
 		Timestamp: timepb,
-		Temp:      temp,
+		Temp:      float32(temp.Celsius()),
 	}, nil
 }
 
-func toJSONProto(temp float32) (string, error) {
+func toJSONProto(temp physic.Temperature) (string, error) {
 	m, err := makeProto(temp)
 	if err != nil {
 		return "", err
@@ -64,7 +67,7 @@ func toJSONProto(temp float32) (string, error) {
 	return marshaler.MarshalToString(m)
 }
 
-func toBinaryProto(temp float32) ([]byte, error) {
+func toBinaryProto(temp physic.Temperature) ([]byte, error) {
 	m, err := makeProto(temp)
 	if err != nil {
 		return nil, err
@@ -80,17 +83,24 @@ func main() {
 		os.Exit(2)
 	}
 
-	sensor, err := mcp9808.New()
+	// Initialize periph.
+	if _, err := host.Init(); err != nil {
+		fatalf("Failed to initialize periph: %v", err)
+	}
+
+	// Open default I²C bus.
+	bus, err := i2creg.Open("")
 	if err != nil {
-		fatalf("Error connecting to sensor: %v", err)
+		fatalf("Failed to open I²C bus: %v", err)
 	}
-	defer sensor.Close()
+	defer bus.Close()
 
-	if err = sensor.Check(); err != nil {
-		fatalf("Sensor check failed: %v", err)
+	sensor, err := mcp9808.New(bus, &mcp9808.DefaultOpts)
+	if err != nil {
+		fatalf("Failed to initialize MCP9808: %v", err)
 	}
 
-	temp, err := sensor.ReadTemp()
+	temp, err := sensor.SenseTemp()
 	if err != nil {
 		fatalf("Failed to read temp: %v", err)
 	}

@@ -11,4 +11,5 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 	google.golang.org/api v0.2.0
 	google.golang.org/appengine v1.5.0
+	periph.io/x/periph v0.0.0-20190218125427-df7c7a4f8f86
 )

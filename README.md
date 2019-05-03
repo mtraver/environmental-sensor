@@ -17,6 +17,9 @@ world is temperature values read from the MCP9808.
 
 ## Choose a Client
 
+**NOTE:** The Python client is unmaintained! It may be deleted in the future.
+Please use the Go client.
+
 This project includes clients — code that runs on the Raspberry Pi to read the
 temperature and log it — written in Go and Python.
 

@@ -1,5 +1,8 @@
 # Python Client
 
+**NOTE:** The Python client is unmaintained! It may be deleted in the future.
+Please use the Go client.
+
 This directory contains code that runs on the Raspberry Pi. It reads the
 temperature and logs it to your platform of choice.
 

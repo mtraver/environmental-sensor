@@ -40,7 +40,7 @@ func NewDatastoreDB(projectID string) (*datastoreDB, error) {
 // already exists in the database it makes no change to the database and
 // returns nil as the error.
 func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) error {
-	sm, err := m.ToStorableMeasurement()
+	sm, err := measurement.NewStorableMeasurement(m)
 	if err != nil {
 		return err
 	}

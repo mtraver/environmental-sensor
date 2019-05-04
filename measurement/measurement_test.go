@@ -11,20 +11,20 @@ var (
 	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
 )
 
-func TestToStorableMeasurement(t *testing.T) {
+func TestNewStorableMeasurement(t *testing.T) {
 	deviceID := "foo"
 	var temp float32 = 18.5
 
 	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
-	m := Measurement{
+	m := &Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,
 		Temp:      temp,
 	}
 
-	s, err := m.ToStorableMeasurement()
+	s, err := NewStorableMeasurement(m)
 	if err != nil {
-		t.Errorf("Error in ToStorableMeasurement: %v", err)
+		t.Errorf("Error in NewStorableMeasurement: %v", err)
 		return
 	}
 

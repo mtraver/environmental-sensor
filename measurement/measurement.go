@@ -38,10 +38,11 @@ type serializableMeasurement struct {
 	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
 }
 
-// ToStorableMeasurement converts the automatically-generated Measurement
-// type to a type that contains non protobuf-specific types.
+// NewStorableMeasurement converts the automatically-generated Measurement type to
+// a type that contains no protobuf-specific types. The resulting StorableMeasurement
+// can be marshaled to JSON and written to Datastore.
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type
-func (m *Measurement) ToStorableMeasurement() (StorableMeasurement, error) {
+func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 	timestamp, err := ptypes.Timestamp(m.GetTimestamp())
 	if err != nil {
 		return StorableMeasurement{}, err

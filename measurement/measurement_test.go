@@ -1,6 +1,7 @@
 package measurement
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -8,37 +9,63 @@ import (
 )
 
 var (
-	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
+	testTimestamp  = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
+	pbTimestamp, _ = ptypes.TimestampProto(testTimestamp)
 )
 
 func TestNewStorableMeasurement(t *testing.T) {
 	deviceID := "foo"
 	var temp float32 = 18.5
 
-	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
-	m := &Measurement{
-		DeviceId:  deviceID,
-		Timestamp: pbTimestamp,
-		Temp:      temp,
+	cases := []struct {
+		name  string
+		m     *Measurement
+		want  StorableMeasurement
+		valid bool
+	}{
+		{"valid",
+			&Measurement{
+				DeviceId:  deviceID,
+				Timestamp: pbTimestamp,
+				Temp:      temp,
+			},
+			StorableMeasurement{
+				DeviceId:  deviceID,
+				Timestamp: testTimestamp,
+				Temp:      temp,
+			},
+			true,
+		},
+		{"nil_timestamp",
+			&Measurement{
+				DeviceId:  deviceID,
+				Timestamp: nil,
+				Temp:      temp,
+			},
+			StorableMeasurement{},
+			false,
+		},
 	}
 
-	s, err := NewStorableMeasurement(m)
-	if err != nil {
-		t.Errorf("Error in NewStorableMeasurement: %v", err)
-		return
-	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := NewStorableMeasurement(c.m)
+			if err != nil && c.valid {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			} else if err == nil && !c.valid {
+				t.Errorf("Expected error, got no error")
+				return
+			} else if err != nil && !c.valid {
+				// For this case the test has passed. We don't enforce any contract on the first
+				// return value of NewStorableMeasurement when the error is non-nil.
+				return
+			}
 
-	if s.DeviceId != deviceID {
-		t.Errorf("Incorrect device ID. Expected %q, got %q", deviceID, s.DeviceId)
-	}
-
-	if s.Timestamp != testTimestamp {
-		t.Errorf("Incorrect timestamp. Expected %v, got %v", testTimestamp,
-			s.Timestamp)
-	}
-
-	if s.Temp != temp {
-		t.Errorf("Incorrect temp. Expected %v, got %v", temp, s.Temp)
+			if !reflect.DeepEqual(got, c.want) {
+				t.Errorf("Got %v, want %v", got, c.want)
+			}
+		})
 	}
 }
 
@@ -127,7 +154,6 @@ func TestMeasurementMapToJSON(t *testing.T) {
 
 func getMeasurement(t *testing.T, deviceID string) Measurement {
 	t.Helper()
-	pbTimestamp, _ := ptypes.TimestampProto(testTimestamp)
 	return Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,

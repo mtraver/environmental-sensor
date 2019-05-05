@@ -75,7 +75,7 @@ func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
-func (m *StorableMeasurement) String() string {
+func (m StorableMeasurement) String() string {
 	delay := ""
 	if !m.UploadTimestamp.IsZero() {
 		delay = fmt.Sprintf(" (%v upload delay)", m.UploadTimestamp.Sub(m.Timestamp))

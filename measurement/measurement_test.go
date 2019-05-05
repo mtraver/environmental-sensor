@@ -1,6 +1,7 @@
 package measurement
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -54,7 +55,7 @@ func TestStorableMeasurementString(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := c.m.String()
+			got := fmt.Sprintf("%v", c.m)
 			if got != c.want {
 				t.Errorf("Got %q, want %q", got, c.want)
 			}

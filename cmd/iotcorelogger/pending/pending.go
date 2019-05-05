@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	measurementpb "github.com/mtraver/environmental-sensor/measurement"
 )
 
@@ -68,6 +69,13 @@ func publish(client mqtt.Client, topic string, filepath string) error {
 	if err := jsonpb.Unmarshal(f, &m); err != nil {
 		return err
 	}
+
+	// Set the upload timestamp, since this is a delayed upload.
+	timepb, err := ptypes.TimestampProto(time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	m.UploadTimestamp = timepb
 
 	pbBytes, err := proto.Marshal(&m)
 	if err != nil {

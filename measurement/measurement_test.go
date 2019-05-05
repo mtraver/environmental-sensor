@@ -6,15 +6,25 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
 var (
-	testTimestamp  = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
-	pbTimestamp, _ = ptypes.TimestampProto(testTimestamp)
+	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
+	pbTimestamp   = mustTimestampProto(testTimestamp)
 
-	testTimestamp2  = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
-	pbTimestamp2, _ = ptypes.TimestampProto(testTimestamp2)
+	testTimestamp2 = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
+	pbTimestamp2   = mustTimestampProto(testTimestamp2)
 )
+
+func mustTimestampProto(t time.Time) *timestamp.Timestamp {
+	pbts, err := ptypes.TimestampProto(t)
+	if err != nil {
+		panic(err)
+	}
+
+	return pbts
+}
 
 func TestNewStorableMeasurement(t *testing.T) {
 	deviceID := "foo"

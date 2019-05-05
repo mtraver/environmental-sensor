@@ -69,6 +69,12 @@ func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 	}, nil
 }
 
+// DBKey returns a string key suitable for Datastore.
+// It promotes Device ID and timestamp into the key.
+func (m *StorableMeasurement) DBKey() string {
+	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
+}
+
 // getField returns the field of the Measurement corresponding to the given
 // FieldDescriptorProto. This is a rather ugly operation as it's not supported
 // by the protobuf API; it has to be done via reflection. See these GitHub
@@ -138,12 +144,6 @@ func (m *Measurement) Validate() error {
 	}
 
 	return nil
-}
-
-// DBKey returns a string key suitable for Datastore.
-// It promotes Device ID and timestamp into the key.
-func (m *StorableMeasurement) DBKey() string {
-	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
 // CacheKeyLatest returns the cache key of the latest measurement

@@ -122,6 +122,14 @@ func (db *datastoreDB) GetMeasurementsSince(ctx context.Context, startTime time.
 	return db.executeQuery(ctx, q)
 }
 
+// GetDelayedMeasurementsSince gets all measurements with a non-nil upload timestamp greater than or equal
+// to startTime. It returns a map of device ID (a string) to a StorableMeasurement slice, and an error.
+func (db *datastoreDB) GetDelayedMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
+	// We don't need to filter by device ID here because building the map has the effect of sorting by device ID.
+	q := datastore.NewQuery(datastoreKind).Filter("upload_timestamp >=", startTime).Order("upload_timestamp")
+	return db.executeQuery(ctx, q)
+}
+
 // GetMeasurementsBetween gets all measurements with a timestamp greater than
 // or equal to startTime and less than or equal to endTime. It returns a map
 // of device ID (a string) to a StorableMeasurement slice, and an error.

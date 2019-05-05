@@ -48,6 +48,7 @@ var (
 type Database interface {
 	Save(ctx context.Context, m *measurement.Measurement) error
 	GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	GetDelayedMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	GetMeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	GetLatestMeasurements(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
 }
@@ -81,6 +82,7 @@ func init() {
 
 func main() {
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/uploadz", uploadzHandler)
 	http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
 
 	appengine.Main()

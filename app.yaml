@@ -16,6 +16,10 @@ handlers:
   script: auto
   login: admin
   secure: always
+- url: /uploadz
+  script: auto
+  secure: always
+  login: admin
 - url: /.*
   script: auto
   secure: always

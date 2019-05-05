@@ -1,0 +1,34 @@
+{{ define "uploadz" }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Environmental Monitor | uploadz</title>
+  </head>
+  <body>
+    <h1>/uploadz</h1>
+    <p><a href="/">home</a></p>
+
+    {{ if .Error }}
+      <p>Error fetching data.</p>
+    {{ else }}
+      <h2>Delayed Uploads (Past {{ .DelayedUploadsHours }} Hours)</h2>
+      <p>Total: {{ .DelayedTotal }}</p>
+      <ul>
+        {{ range $deviceID, $measurements := .DelayedMeasurements }}
+          <li>
+            {{ $deviceID }}
+            <ol>
+              {{ range $m := $measurements }}
+                <li>{{ $m }}</li>
+              {{ end }}
+            </ol>
+          </li>
+        {{ end }}
+      </ul>
+    {{ end }}
+  </body>
+</html>
+{{ end }}

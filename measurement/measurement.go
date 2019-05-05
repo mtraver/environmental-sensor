@@ -22,9 +22,10 @@ const keySep = "#"
 
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type
 type StorableMeasurement struct {
-	DeviceId  string    `json:"device_id,omitempty" datastore:"device_id"`
-	Timestamp time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
-	Temp      float32   `json:"temp,omitempty" datastore:"temp"`
+	DeviceId        string    `json:"device_id,omitempty" datastore:"device_id"`
+	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
+	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
+	Temp            float32   `json:"temp,omitempty" datastore:"temp"`
 }
 
 // IMPORTANT: Keep up to date with the automatically-generated Measurement type.
@@ -48,10 +49,23 @@ func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 		return StorableMeasurement{}, err
 	}
 
+	// The generated protobuf code uses a pointer to ptypes' timestamp.Timestamp, but in
+	// StorableMeasurement we use golang's time.Time. If the protobuf field is nil then
+	// use the zero value of time.Time. cloud.google.com/go/datastore calls IsZero() on
+	// time.Time values so omitempty does work.
+	var uploadTimestamp time.Time
+	pbUploadTimestamp := m.GetUploadTimestamp()
+	if pbUploadTimestamp != nil {
+		if uploadTimestamp, err = ptypes.Timestamp(pbUploadTimestamp); err != nil {
+			return StorableMeasurement{}, err
+		}
+	}
+
 	return StorableMeasurement{
-		DeviceId:  m.GetDeviceId(),
-		Timestamp: timestamp,
-		Temp:      m.GetTemp(),
+		DeviceId:        m.GetDeviceId(),
+		Timestamp:       timestamp,
+		UploadTimestamp: uploadTimestamp,
+		Temp:            m.GetTemp(),
 	}, nil
 }
 

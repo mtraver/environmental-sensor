@@ -11,6 +11,9 @@ import (
 var (
 	testTimestamp  = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
 	pbTimestamp, _ = ptypes.TimestampProto(testTimestamp)
+
+	testTimestamp2  = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
+	pbTimestamp2, _ = ptypes.TimestampProto(testTimestamp2)
 )
 
 func TestNewStorableMeasurement(t *testing.T) {
@@ -23,7 +26,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 		want  StorableMeasurement
 		valid bool
 	}{
-		{"valid",
+		{"valid_no_upload_timestamp",
 			&Measurement{
 				DeviceId:  deviceID,
 				Timestamp: pbTimestamp,
@@ -33,6 +36,21 @@ func TestNewStorableMeasurement(t *testing.T) {
 				DeviceId:  deviceID,
 				Timestamp: testTimestamp,
 				Temp:      temp,
+			},
+			true,
+		},
+		{"valid_with_upload_timestamp",
+			&Measurement{
+				DeviceId:        deviceID,
+				Timestamp:       pbTimestamp,
+				UploadTimestamp: pbTimestamp2,
+				Temp:            temp,
+			},
+			StorableMeasurement{
+				DeviceId:        deviceID,
+				Timestamp:       testTimestamp,
+				UploadTimestamp: testTimestamp2,
+				Temp:            temp,
 			},
 			true,
 		},

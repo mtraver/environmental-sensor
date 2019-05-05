@@ -26,6 +26,42 @@ func mustTimestampProto(t time.Time) *timestamp.Timestamp {
 	return pbts
 }
 
+func TestStorableMeasurementString(t *testing.T) {
+	cases := []struct {
+		name string
+		m    StorableMeasurement
+		want string
+	}{
+		{"empty", StorableMeasurement{}, " 0.000°C 0001-01-01T00:00:00Z"},
+		{"no_upload_timestamp",
+			StorableMeasurement{
+				DeviceId:  "foo",
+				Timestamp: testTimestamp,
+				Temp:      18.3748,
+			},
+			"foo 18.375°C 2018-03-25T00:00:00Z",
+		},
+		{"upload_timestamp",
+			StorableMeasurement{
+				DeviceId:        "foo",
+				Timestamp:       testTimestamp,
+				UploadTimestamp: testTimestamp2,
+				Temp:            18.3748,
+			},
+			"foo 18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got := c.m.String()
+			if got != c.want {
+				t.Errorf("Got %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
 func TestNewStorableMeasurement(t *testing.T) {
 	deviceID := "foo"
 	var temp float32 = 18.5

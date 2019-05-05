@@ -75,6 +75,15 @@ func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
+func (m *StorableMeasurement) String() string {
+	delay := ""
+	if !m.UploadTimestamp.IsZero() {
+		delay = fmt.Sprintf(" (%v upload delay)", m.UploadTimestamp.Sub(m.Timestamp))
+	}
+
+	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceId, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
+}
+
 // getField returns the field of the Measurement corresponding to the given
 // FieldDescriptorProto. This is a rather ugly operation as it's not supported
 // by the protobuf API; it has to be done via reflection. See these GitHub

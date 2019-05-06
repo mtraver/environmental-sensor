@@ -223,7 +223,8 @@ func main() {
 	}
 
 	// Attempt to connect using the MQTT client. If it fails, save the Measurement for later publication.
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
+	waitDur := 5 * time.Second
+	if token := client.Connect(); token.WaitTimeout(waitDur) && token.Error() != nil {
 		save(m)
 		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
 	}
@@ -232,7 +233,6 @@ func main() {
 	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
 
 	token := client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
-	waitDur := 5 * time.Second
 	if ok := token.WaitTimeout(waitDur); !ok {
 		log.Printf("Failed to publish after %v", waitDur)
 

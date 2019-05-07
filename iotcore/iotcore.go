@@ -1,6 +1,7 @@
 package iotcore
 
 import (
+	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
@@ -88,8 +89,17 @@ func (c *DeviceConfig) StateTopic() string {
 	return fmt.Sprintf("/devices/%v/state", c.DeviceID)
 }
 
-func (c *DeviceConfig) NewJWT(keyBytes []byte, exp time.Duration) (string, error) {
-	key, err := jwt.ParseECPrivateKeyFromPEM(keyBytes)
+func (c *DeviceConfig) privateKey() (*ecdsa.PrivateKey, error) {
+	keyBytes, err := ioutil.ReadFile(c.PrivKeyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return jwt.ParseECPrivateKeyFromPEM(keyBytes)
+}
+
+func (c *DeviceConfig) NewJWT(exp time.Duration) (string, error) {
+	key, err := c.privateKey()
 	if err != nil {
 		return "", fmt.Errorf("iotcore: failed to parse priv key: %v", err)
 	}

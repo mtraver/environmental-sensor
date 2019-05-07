@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -135,17 +134,12 @@ func certPath(keyPath string) string {
 }
 
 func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
-	keyBytes, err := ioutil.ReadFile(conf.PrivKeyPath)
-	if err != nil {
-		return nil, err
-	}
-
 	mqttOptions, err := iotcore.NewMQTTOptions(conf, bridge, caCerts)
 	if err != nil {
 		return nil, err
 	}
 
-	jwt, err := conf.NewJWT(keyBytes, time.Minute)
+	jwt, err := conf.NewJWT(time.Minute)
 	if err != nil {
 		return nil, err
 	}

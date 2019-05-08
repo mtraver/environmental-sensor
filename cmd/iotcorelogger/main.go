@@ -1,3 +1,5 @@
+// Program iotcorelogger reads the temperature from an MCP9808 sensor and publishes
+// it to Google Cloud IoT Core over MQTT.
 package main
 
 import (

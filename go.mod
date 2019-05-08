@@ -5,6 +5,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/golang/protobuf v1.3.1
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/gaelog v0.0.0-20190325221402-178889029bf7
 	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
 	golang.org/x/sys v0.0.0-20190312061237-fead79001313 // indirect

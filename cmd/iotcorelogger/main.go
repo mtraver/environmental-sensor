@@ -13,6 +13,7 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	homedir "github.com/mitchellh/go-homedir"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
@@ -49,8 +50,14 @@ var (
 		443:  true,
 	}
 
-	// The directory in which to store measurements that failed to publish.
-	pendingDir string
+	// This directory is where we'll store anything the program needs to persist, like JWTs and
+	// measurements that are pending upload. This is joined with the user's home directory in init.
+	dotDir = ".iotcorelogger"
+
+	// The directory in which to store measurements that failed to publish, e.g. because
+	// the network went down. Publication will be retried later. This is joined with the
+	// user's home directory in init.
+	pendingDir = path.Join(dotDir, "pending")
 )
 
 // We don't currently do anything with configs from the server
@@ -74,9 +81,21 @@ func init() {
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
 
-	flag.StringVar(
-		&pendingDir, "pendingdir", "",
-		"Directory in which to store measurements that failed to publish, e.g. because the network went down. Publication will be retried later.")
+	// Update directory paths by joining them to the user's home directory.
+	home, err := homedir.Dir()
+	if err != nil {
+		log.Fatalf("Failed to get home dir: %v", err)
+	}
+	dotDir = path.Join(home, dotDir)
+	pendingDir = path.Join(home, pendingDir)
+
+	// Make all directories required by the program.
+	dirs := []string{dotDir, pendingDir}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			log.Fatalf("Failed to make dir %s: %v", dir, err)
+		}
+	}
 }
 
 func parseFlags() error {
@@ -151,10 +170,8 @@ func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
 }
 
 func save(m *measurementpb.Measurement) {
-	if pendingDir != "" {
-		if err := pending.Save(m, pendingDir); err != nil {
-			log.Printf("Failed to save measurement: %v", err)
-		}
+	if err := pending.Save(m, pendingDir); err != nil {
+		log.Printf("Failed to save measurement: %v", err)
 	}
 }
 
@@ -221,7 +238,9 @@ func main() {
 	// Attempt to connect using the MQTT client. If it fails, save the Measurement for later publication.
 	waitDur := 5 * time.Second
 	if token := client.Connect(); token.WaitTimeout(waitDur) && token.Error() != nil {
+		// Save the Measurement to retry later.
 		save(m)
+
 		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
 	}
 
@@ -234,7 +253,7 @@ func main() {
 
 		// Save the Measurement to retry later.
 		save(m)
-	} else if pendingDir != "" {
+	} else {
 		// Publish succeeded, so attempt to publish any pending measurements.
 		if err := pending.PublishAll(client, deviceConf.TelemetryTopic(), pendingDir); err != nil {
 			log.Printf("Failed to publish all pending measurements: %v", err)

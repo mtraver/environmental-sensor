@@ -89,6 +89,15 @@ func (c *DeviceConfig) StateTopic() string {
 	return fmt.Sprintf("/devices/%v/state", c.DeviceID)
 }
 
+func (c *DeviceConfig) publicKey() (*ecdsa.PublicKey, error) {
+	priv, err := c.privateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return &priv.PublicKey, nil
+}
+
 func (c *DeviceConfig) privateKey() (*ecdsa.PrivateKey, error) {
 	keyBytes, err := ioutil.ReadFile(c.PrivKeyPath)
 	if err != nil {
@@ -96,6 +105,23 @@ func (c *DeviceConfig) privateKey() (*ecdsa.PrivateKey, error) {
 	}
 
 	return jwt.ParseECPrivateKeyFromPEM(keyBytes)
+}
+
+func (c *DeviceConfig) VerifyJWT(jwtStr string) (bool, error) {
+	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing algorithm.
+		if _, ok := token.Method.(*jwt.SigningMethodECDSA); !ok {
+			return nil, fmt.Errorf("iotcore: unexpected signing method %v", token.Header["alg"])
+		}
+
+		return c.publicKey()
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return token.Valid, err
 }
 
 func (c *DeviceConfig) NewJWT(exp time.Duration) (string, error) {

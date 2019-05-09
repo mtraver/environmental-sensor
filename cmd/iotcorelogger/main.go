@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -58,6 +59,9 @@ var (
 	// the network went down. Publication will be retried later. This is joined with the
 	// user's home directory in init.
 	pendingDir = path.Join(dotDir, "pending")
+
+	// This is joined with the user's home directory in init.
+	jwtPath = path.Join(dotDir, "iotcorelogger.jwt")
 )
 
 // We don't currently do anything with configs from the server
@@ -81,13 +85,14 @@ func init() {
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
 
-	// Update directory paths by joining them to the user's home directory.
+	// Update directory and file paths by joining them to the user's home directory.
 	home, err := homedir.Dir()
 	if err != nil {
 		log.Fatalf("Failed to get home dir: %v", err)
 	}
 	dotDir = path.Join(home, dotDir)
 	pendingDir = path.Join(home, pendingDir)
+	jwtPath = path.Join(home, jwtPath)
 
 	// Make all directories required by the program.
 	dirs := []string{dotDir, pendingDir}
@@ -154,15 +159,48 @@ func certPath(keyPath string) string {
 	return keyPath[:len(keyPath)-len(ext)] + certExtension
 }
 
+func existingJWT(conf iotcore.DeviceConfig) (string, error) {
+	f, err := os.Open(jwtPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+
+		// There is no existing JWT.
+		return "", fmt.Errorf("%s does not exist", jwtPath)
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	jwt := string(b)
+	if ok, err := conf.VerifyJWT(jwt); !ok {
+		return "", err
+	}
+
+	return jwt, nil
+}
+
 func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
 	mqttOptions, err := iotcore.NewMQTTOptions(conf, bridge, caCerts)
 	if err != nil {
 		return nil, err
 	}
 
-	jwt, err := conf.NewJWT(time.Minute)
+	jwt, err := existingJWT(conf)
 	if err != nil {
-		return nil, err
+		jwt, err = conf.NewJWT(60 * time.Minute)
+		if err != nil {
+			return nil, err
+		}
+
+		// Persist the JWT.
+		if err := ioutil.WriteFile(jwtPath, []byte(jwt), 0600); err != nil {
+			log.Printf("Failed to save JWT to %s: %v", jwtPath, err)
+		}
 	}
 	mqttOptions.SetPassword(jwt)
 

@@ -82,10 +82,12 @@ func publish(client mqtt.Client, topic string, filepath string) error {
 		return err
 	}
 
-	pubToken := client.Publish(topic, 1, false, pbBytes)
-	waitDur := 5 * time.Second
-	if ok := pubToken.WaitTimeout(waitDur); !ok {
-		return fmt.Errorf("upload: timed out after %v", waitDur)
+	token := client.Publish(topic, 1, false, pbBytes)
+	waitDur := 10 * time.Second
+	if ok := token.WaitTimeout(waitDur); !ok {
+		return fmt.Errorf("pending: publish timed out after %v", waitDur)
+	} else if token.Error() != nil {
+		return fmt.Errorf("pending: publish failed: %v", token.Error())
 	}
 
 	return nil

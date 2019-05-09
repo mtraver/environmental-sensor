@@ -274,22 +274,31 @@ func main() {
 	}
 
 	// Attempt to connect using the MQTT client. If it fails, save the Measurement for later publication.
-	waitDur := 5 * time.Second
-	if token := client.Connect(); token.WaitTimeout(waitDur) && token.Error() != nil {
-		// Save the Measurement to retry later.
+	waitDur := 10 * time.Second
+	token := client.Connect()
+	if ok := token.WaitTimeout(waitDur); !ok {
+		// Timed out. Save the Measurement to retry later.
 		save(m)
 
-		log.Fatalf("Failed to connect MQTT client: %v", token.Error())
+		log.Fatalf("MQTT connection attempt timed out after %v", waitDur)
+	} else if token.Error() != nil {
+		// Finished before the timeout but failed to connect. Save the Measurement to retry later.
+		save(m)
+
+		log.Fatalf("Failed to connect to MQTT server: %v", token.Error())
 	}
 
 	// We don't currently do anything with configs from the server.
 	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
 
-	token := client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
+	token = client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
 	if ok := token.WaitTimeout(waitDur); !ok {
-		log.Printf("Failed to publish after %v", waitDur)
-
-		// Save the Measurement to retry later.
+		// Timed out. Save the Measurement to retry later.
+		log.Printf("Publish timed out after %v", waitDur)
+		save(m)
+	} else if token.Error() != nil {
+		// Finished before timeout but failed to publish. Save the Measurement to retry later.
+		log.Printf("Failed to publish: %v", token.Error())
 		save(m)
 	} else {
 		// Publish succeeded, so attempt to publish any pending measurements.

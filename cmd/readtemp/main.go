@@ -1,3 +1,6 @@
+// Program readtemp reads the temperature from an MCP9808 sensor and prints it to stdout.
+// By default it simply prints the value (in degrees Celsius), but it may optionally create
+// a Measurement proto and print it in JSON or binary form.
 package main
 
 import (

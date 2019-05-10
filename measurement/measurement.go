@@ -20,7 +20,10 @@ import (
 // to be used in keys, can't contain it.
 const keySep = "#"
 
-// IMPORTANT: Keep up to date with the automatically-generated Measurement type
+// StorableMeasurement is equivalent to the generated Measurement type but it contains
+// no protobuf-specific types. It therefore can be marshaled to JSON and written to
+// Datastore.
+// IMPORTANT: Keep up to date with the generated Measurement type
 type StorableMeasurement struct {
 	DeviceId        string    `json:"device_id,omitempty" datastore:"device_id"`
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
@@ -28,10 +31,9 @@ type StorableMeasurement struct {
 	Temp            float32   `json:"temp,omitempty" datastore:"temp"`
 }
 
-// IMPORTANT: Keep up to date with the automatically-generated Measurement type.
-// This is almost the same as StorableMeasurement except without DeviceId. When
-// data is marshaled to JSON for use in the template each record doesn't need to
-// include the device ID.
+// serializableMeasurement is the same as StorableMeasurement except without fields that
+// the frontend doesn't need for plotting data.
+// IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
 type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in milliseconds
 	// (compare to Timestamp in StorableMeasurement).
@@ -39,10 +41,10 @@ type serializableMeasurement struct {
 	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
 }
 
-// NewStorableMeasurement converts the automatically-generated Measurement type to
-// a type that contains no protobuf-specific types. The resulting StorableMeasurement
-// can be marshaled to JSON and written to Datastore.
-// IMPORTANT: Keep up to date with the automatically-generated Measurement type
+// NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
+// which contains no protobuf-specific types, and therefore can be marshaled to JSON and
+// written to Datastore.
+// IMPORTANT: Keep up to date with the generated Measurement type
 func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 	timestamp, err := ptypes.Timestamp(m.GetTimestamp())
 	if err != nil {
@@ -69,8 +71,7 @@ func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 	}, nil
 }
 
-// DBKey returns a string key suitable for Datastore.
-// It promotes Device ID and timestamp into the key.
+// DBKey returns a string key suitable for Datastore. It promotes Device ID and timestamp into the key.
 func (m *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
@@ -122,6 +123,10 @@ func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) refle
 	return field
 }
 
+// Validate validates each field of the Measurement against an optional regex provided in the
+// .proto file. It returns nil if all fields are valid and no other errors occurred along the way.
+// Example of how to provide a regex in a .proto file:
+//   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
 func (m *Measurement) Validate() error {
 	_, msgDesc := descriptor.ForMessage(m)
 	for _, f := range msgDesc.GetField() {
@@ -155,17 +160,16 @@ func (m *Measurement) Validate() error {
 	return nil
 }
 
-// CacheKeyLatest returns the cache key of the latest measurement
-// for the given device ID.
+// CacheKeyLatest returns the cache key of the latest measurement for the given device ID.
 func CacheKeyLatest(deviceID string) string {
 	return strings.Join([]string{deviceID, "latest"}, keySep)
 }
 
-// MeasurementMapToJSON converts a string -> []StorableMeasurement map
-// into a marshaled JSON array for use in the template. The JSON is an array
-// with one element for each device ID. It's constructed this way, instead of
-// as a map where keys are device IDs, because the JavaScript visualization
-// package D3 (https://d3js.org/) works better with arrays of data than maps.
+// MeasurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled
+// JSON array for use in the template. The JSON is an array with one element for each
+// device ID. It's constructed this way, instead of as a map where keys are device IDs,
+// because the JavaScript visualization package D3 (https://d3js.org/) works better with
+// arrays of data than maps.
 func MeasurementMapToJSON(measurements map[string][]StorableMeasurement) ([]byte, error) {
 	type dataForTemplate struct {
 		ID     string                    `json:"id"`

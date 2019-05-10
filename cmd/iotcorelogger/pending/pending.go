@@ -49,9 +49,9 @@ func PublishAll(client mqtt.Client, topic string, dir string) error {
 			filepath := path.Join(dir, file.Name())
 			if err := publish(client, topic, filepath); err != nil {
 				return err
-			} else {
-				os.Remove(filepath)
 			}
+
+			os.Remove(filepath)
 		}
 	}
 

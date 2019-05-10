@@ -1,3 +1,6 @@
+// Package pending allows measurements to be persisted to disk and then published later.
+// This is useful if the network connection goes down or if there are errors while
+// connecting or publishing to the MQTT server.
 package pending
 
 import (

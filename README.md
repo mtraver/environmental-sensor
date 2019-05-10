@@ -1,5 +1,6 @@
 # MCP9808 Temperature Logger
 
+[![GoDoc](https://godoc.org/github.com/mtraver/environmental-sensor?status.svg)](https://godoc.org/github.com/mtraver/environmental-sensor)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mtraver/environmental-sensor)](https://goreportcard.com/report/github.com/mtraver/environmental-sensor)
 
 Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)

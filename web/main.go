@@ -108,19 +108,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		switch formName := r.FormValue("form-name"); formName {
 		case "range":
 			var rangeErr error
-			startTime, rangeErr = time.Parse(time.RFC3339Nano,
-				r.FormValue("startdate-adjusted"))
+			startTime, rangeErr = time.Parse(time.RFC3339Nano, r.FormValue("startdate-adjusted"))
 			if rangeErr != nil {
-				http.Error(w, fmt.Sprintf("Bad start time: %v", rangeErr),
-					http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Bad start time: %v", rangeErr), http.StatusBadRequest)
 				return
 			}
 
-			endTime, rangeErr = time.Parse(time.RFC3339Nano,
-				r.FormValue("enddate-adjusted"))
+			endTime, rangeErr = time.Parse(time.RFC3339Nano, r.FormValue("enddate-adjusted"))
 			if rangeErr != nil {
-				http.Error(w, fmt.Sprintf("Bad end time: %v", rangeErr),
-					http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Bad end time: %v", rangeErr), http.StatusBadRequest)
 				return
 			}
 
@@ -135,8 +131,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if hoursAgo < 1 {
-				http.Error(w, fmt.Sprintf("Hours ago must be >= 1"),
-					http.StatusBadRequest)
+				http.Error(w, fmt.Sprintf("Hours ago must be >= 1"), http.StatusBadRequest)
 				return
 			}
 

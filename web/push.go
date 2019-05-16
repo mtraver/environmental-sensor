@@ -35,16 +35,14 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
 		lg.Criticalf("Could not decode body: %v\n", err)
-		http.Error(w, fmt.Sprintf("Could not decode body: %v", err),
-			http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	m := &measurement.Measurement{}
 	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
 		lg.Criticalf("Failed to unmarshal protobuf: %v\n", err)
-		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err),
-			http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err), http.StatusBadRequest)
 		return
 	}
 

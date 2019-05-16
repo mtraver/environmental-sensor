@@ -116,8 +116,7 @@ func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) refle
 	}
 
 	if !field.IsValid() {
-		panic(fmt.Sprintf("Cannot find struct field for proto field name %q, number/tag %d",
-			fd.GetName(), fd.GetNumber()))
+		panic(fmt.Sprintf("Cannot find struct field for proto field name %q, number/tag %d", fd.GetName(), fd.GetNumber()))
 	}
 
 	return field
@@ -152,8 +151,7 @@ func (m *Measurement) Validate() error {
 
 		regex := regexp.MustCompile(*regexExt.(*string))
 		if !regex.MatchString(field.String()) {
-			return fmt.Errorf("Field failed regex validation. Field: %q Value: %q Regex: %q",
-				f.GetName(), field.String(), regex)
+			return fmt.Errorf("Field failed regex validation. Field: %q Value: %q Regex: %q", f.GetName(), field.String(), regex)
 		}
 	}
 

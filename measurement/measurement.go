@@ -19,7 +19,7 @@ const keySep = "#"
 // Datastore.
 // IMPORTANT: Keep up to date with the generated Measurement type
 type StorableMeasurement struct {
-	DeviceId        string    `json:"device_id,omitempty" datastore:"device_id"`
+	DeviceID        string    `json:"device_id,omitempty" datastore:"device_id"`
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
 	Temp            float32   `json:"temp,omitempty" datastore:"temp"`
@@ -58,7 +58,7 @@ func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 	}
 
 	return StorableMeasurement{
-		DeviceId:        m.GetDeviceId(),
+		DeviceID:        m.GetDeviceId(),
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
 		Temp:            m.GetTemp(),
@@ -67,7 +67,7 @@ func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
 
 // DBKey returns a string key suitable for Datastore. It promotes Device ID and timestamp into the key.
 func (m *StorableMeasurement) DBKey() string {
-	return strings.Join([]string{m.DeviceId, m.Timestamp.Format(time.RFC3339)}, keySep)
+	return strings.Join([]string{m.DeviceID, m.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
 func (m StorableMeasurement) String() string {
@@ -76,7 +76,7 @@ func (m StorableMeasurement) String() string {
 		delay = fmt.Sprintf(" (%v upload delay)", m.UploadTimestamp.Sub(m.Timestamp))
 	}
 
-	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceId, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
+	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceID, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
 }
 
 // MeasurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled

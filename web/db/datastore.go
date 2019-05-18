@@ -70,7 +70,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 
 	// Each device has a cache entry for its latest value. Update it.
 	if err == nil {
-		cache.Set(ctx, cacheKeyLatest(sm.DeviceId), &sm)
+		cache.Set(ctx, cacheKeyLatest(sm.DeviceID), &sm)
 	}
 
 	return err
@@ -104,10 +104,10 @@ func (db *datastoreDB) executeQuery(ctx context.Context, q *datastore.Query) (ma
 				return make(map[string][]measurement.StorableMeasurement), err
 			}
 
-			if _, ok := results[m.DeviceId]; !ok {
-				results[m.DeviceId] = []measurement.StorableMeasurement{}
+			if _, ok := results[m.DeviceID]; !ok {
+				results[m.DeviceID] = []measurement.StorableMeasurement{}
 			}
-			results[m.DeviceId] = append(results[m.DeviceId], m)
+			results[m.DeviceID] = append(results[m.DeviceID], m)
 
 			processed++
 		}

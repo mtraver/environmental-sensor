@@ -36,7 +36,7 @@ func TestStorableMeasurementString(t *testing.T) {
 		{"empty", StorableMeasurement{}, " 0.000°C 0001-01-01T00:00:00Z"},
 		{"no_upload_timestamp",
 			StorableMeasurement{
-				DeviceId:  "foo",
+				DeviceID:  "foo",
 				Timestamp: testTimestamp,
 				Temp:      18.3748,
 			},
@@ -44,7 +44,7 @@ func TestStorableMeasurementString(t *testing.T) {
 		},
 		{"upload_timestamp",
 			StorableMeasurement{
-				DeviceId:        "foo",
+				DeviceID:        "foo",
 				Timestamp:       testTimestamp,
 				UploadTimestamp: testTimestamp2,
 				Temp:            18.3748,
@@ -80,7 +80,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 				Temp:      temp,
 			},
 			StorableMeasurement{
-				DeviceId:  deviceID,
+				DeviceID:  deviceID,
 				Timestamp: testTimestamp,
 				Temp:      temp,
 			},
@@ -94,7 +94,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 				Temp:            temp,
 			},
 			StorableMeasurement{
-				DeviceId:        deviceID,
+				DeviceID:        deviceID,
 				Timestamp:       testTimestamp,
 				UploadTimestamp: testTimestamp2,
 				Temp:            temp,
@@ -136,7 +136,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 
 func TestDBKey(t *testing.T) {
 	m := StorableMeasurement{
-		DeviceId:  "foo",
+		DeviceID:  "foo",
 		Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
 		Temp:      18.5,
 	}
@@ -159,34 +159,34 @@ func TestMeasurementMapToJSON(t *testing.T) {
 		{"many", map[string][]StorableMeasurement{
 			"foo": {
 				{
-					DeviceId:  "foo",
+					DeviceID:  "foo",
 					Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},
 				{
-					DeviceId:  "foo",
+					DeviceID:  "foo",
 					Timestamp: time.Date(2018, time.March, 26, 0, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},
 				{
-					DeviceId:  "foo",
+					DeviceID:  "foo",
 					Timestamp: time.Date(2018, time.March, 27, 0, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},
 			},
 			"bar": {
 				{
-					DeviceId:  "bar",
+					DeviceID:  "bar",
 					Timestamp: time.Date(2018, time.March, 25, 17, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},
 				{
-					DeviceId:  "bar",
+					DeviceID:  "bar",
 					Timestamp: time.Date(2018, time.March, 26, 17, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},
 				{
-					DeviceId:  "bar",
+					DeviceID:  "bar",
 					Timestamp: time.Date(2018, time.March, 27, 17, 0, 0, 0, time.UTC),
 					Temp:      18.5,
 				},

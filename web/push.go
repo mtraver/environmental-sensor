@@ -10,6 +10,7 @@ import (
 	"google.golang.org/appengine"
 
 	"github.com/mtraver/environmental-sensor/measurement"
+	mutil "github.com/mtraver/environmental-sensor/measurementutil"
 )
 
 // This is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.
@@ -46,7 +47,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := m.Validate(); err != nil {
+	if err := mutil.Validate(m); err != nil {
 		lg.Errorf("%v", err)
 
 		// Pub/Sub will only stop re-trying the message if it receives a status 200.

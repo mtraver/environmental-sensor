@@ -216,35 +216,3 @@ func TestMeasurementMapToJSON(t *testing.T) {
 		})
 	}
 }
-
-func getMeasurement(t *testing.T, deviceID string) Measurement {
-	t.Helper()
-	return Measurement{
-		DeviceId:  deviceID,
-		Timestamp: pbTimestamp,
-		Temp:      18.5,
-	}
-}
-
-func TestDeviceID(t *testing.T) {
-	cases := []struct {
-		name  string
-		id    string
-		valid bool
-	}{
-		{"valid", "foo+.%~_-0123", true},
-		{"empty", "", false},
-		{"short", "a", false},
-		{"non_alpha_short", "7abcd", false},
-		{"illegal_chars", "foo`!@#$^&*()={}[]<>,?/|\\':;", false},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			m := getMeasurement(t, c.id)
-			if valid := m.Validate() == nil; valid != c.valid {
-				t.Errorf("Measurement valid is %v, expected %v", valid, c.valid)
-			}
-		})
-	}
-}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -14,10 +15,19 @@ import (
 const (
 	datastoreKind = "measurement"
 
+	// Used for separating substrings in cache keys. The octothorpe is fine for this because
+	// device IDs and timestamps, the two things most likely to be used in keys, can't contain it.
+	keySep = "#"
+
 	// Datastore queries are limited to this many entities, and multiple queries
 	// are made to fetch all results.
 	queryLimit = 1000
 )
+
+// cacheKeyLatest returns the cache key of the latest measurement for the given device ID.
+func cacheKeyLatest(deviceID string) string {
+	return strings.Join([]string{deviceID, "latest"}, keySep)
+}
 
 type datastoreDB struct {
 	projectID string
@@ -60,7 +70,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 
 	// Each device has a cache entry for its latest value. Update it.
 	if err == nil {
-		cache.Set(ctx, measurement.CacheKeyLatest(sm.DeviceId), &sm)
+		cache.Set(ctx, cacheKeyLatest(sm.DeviceId), &sm)
 	}
 
 	return err
@@ -152,7 +162,7 @@ func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []st
 			continue
 		}
 
-		cacheKey := measurement.CacheKeyLatest(id)
+		cacheKey := cacheKeyLatest(id)
 
 		// Try the cache
 		var m measurement.StorableMeasurement

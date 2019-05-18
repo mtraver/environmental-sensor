@@ -148,14 +148,6 @@ func TestDBKey(t *testing.T) {
 	}
 }
 
-func TestCacheKeyLatest(t *testing.T) {
-	expected := "foo#latest"
-	key := CacheKeyLatest("foo")
-	if key != expected {
-		t.Errorf("Incorrect key. Expected %q, got %q", expected, key)
-	}
-}
-
 func TestMeasurementMapToJSON(t *testing.T) {
 	cases := []struct {
 		name         string

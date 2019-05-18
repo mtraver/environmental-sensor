@@ -10,9 +10,8 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
-// Used for separating substrings in database and cache keys. The octothorpe is
-// fine for this because device IDs and timestamps, the two things most likely
-// to be used in keys, can't contain it.
+// Used for separating substrings in database keys. The octothorpe is fine for this because
+// device IDs and timestamps, the two things most likely to be used in keys, can't contain it.
 const keySep = "#"
 
 // StorableMeasurement is equivalent to the generated Measurement type but it contains
@@ -78,11 +77,6 @@ func (m StorableMeasurement) String() string {
 	}
 
 	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceId, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
-}
-
-// CacheKeyLatest returns the cache key of the latest measurement for the given device ID.
-func CacheKeyLatest(deviceID string) string {
-	return strings.Join([]string{deviceID, "latest"}, keySep)
 }
 
 // MeasurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled

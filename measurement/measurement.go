@@ -1,9 +1,7 @@
 package measurement
 
 import (
-	"encoding/json"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -23,16 +21,6 @@ type StorableMeasurement struct {
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
 	Temp            float32   `json:"temp,omitempty" datastore:"temp"`
-}
-
-// serializableMeasurement is the same as StorableMeasurement except without fields that
-// the frontend doesn't need for plotting data.
-// IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
-type serializableMeasurement struct {
-	// This timestamp is an offset from the epoch in milliseconds
-	// (compare to Timestamp in StorableMeasurement).
-	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
-	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
@@ -77,37 +65,4 @@ func (m StorableMeasurement) String() string {
 	}
 
 	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceID, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
-}
-
-// MeasurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled
-// JSON array for use in the template. The JSON is an array with one element for each
-// device ID. It's constructed this way, instead of as a map where keys are device IDs,
-// because the JavaScript visualization package D3 (https://d3js.org/) works better with
-// arrays of data than maps.
-func MeasurementMapToJSON(measurements map[string][]StorableMeasurement) ([]byte, error) {
-	type dataForTemplate struct {
-		ID     string                    `json:"id"`
-		Values []serializableMeasurement `json:"values"`
-	}
-
-	// Sort the map's keys so that the resulting JSON always has them in the same
-	// order. This ensures that e.g. the color assigned to each line on a plot is
-	// the same for every page load.
-	keys := make([]string, len(measurements))
-	i := 0
-	for k := range measurements {
-		keys[i] = k
-		i++
-	}
-	sort.Strings(keys)
-
-	var data []dataForTemplate
-	for _, k := range keys {
-		vals := make([]serializableMeasurement, len(measurements[k]))
-		for i, m := range measurements[k] {
-			vals[i] = serializableMeasurement{m.Timestamp.Unix() * 1000, m.Temp}
-		}
-		data = append(data, dataForTemplate{k, vals})
-	}
-	return json.Marshal(data)
 }

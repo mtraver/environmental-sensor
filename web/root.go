@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -90,7 +92,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
 	} else {
-		jsonBytes, err = measurement.MeasurementMapToJSON(measurements)
+		jsonBytes, err = measurementMapToJSON(measurements)
 		if err != nil {
 			lg.Errorf("Error marshaling measurements to JSON: %v", err)
 		}
@@ -134,4 +136,47 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if err := templates.ExecuteTemplate(w, "index", data); err != nil {
 		lg.Errorf("Could not execute template: %v", err)
 	}
+}
+
+// serializableMeasurement is the same as StorableMeasurement except without fields that
+// the frontend doesn't need for plotting data.
+// IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
+type serializableMeasurement struct {
+	// This timestamp is an offset from the epoch in milliseconds
+	// (compare to Timestamp in StorableMeasurement).
+	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
+	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
+}
+
+// measurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled
+// JSON array for use in the template. The JSON is an array with one element for each
+// device ID. It's constructed this way, instead of as a map where keys are device IDs,
+// because the JavaScript visualization package D3 (https://d3js.org/) works better with
+// arrays of data than maps.
+func measurementMapToJSON(measurements map[string][]measurement.StorableMeasurement) ([]byte, error) {
+	type dataForTemplate struct {
+		ID     string                    `json:"id"`
+		Values []serializableMeasurement `json:"values"`
+	}
+
+	// Sort the map's keys so that the resulting JSON always has them in the same
+	// order. This ensures that e.g. the color assigned to each line on a plot is
+	// the same for every page load.
+	keys := make([]string, len(measurements))
+	i := 0
+	for k := range measurements {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+
+	var data []dataForTemplate
+	for _, k := range keys {
+		vals := make([]serializableMeasurement, len(measurements[k]))
+		for i, m := range measurements[k] {
+			vals[i] = serializableMeasurement{m.Timestamp.Unix() * 1000, m.Temp}
+		}
+		data = append(data, dataForTemplate{k, vals})
+	}
+	return json.Marshal(data)
 }

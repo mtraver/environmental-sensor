@@ -85,14 +85,16 @@ func (m StorableMeasurement) String() string {
 	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceId, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
 }
 
-// getField returns the field of the Measurement corresponding to the given
-// FieldDescriptorProto. This is a rather ugly operation as it's not supported
-// by the protobuf API; it has to be done via reflection. See these GitHub
-// issues, the first of which provided the code on which this method is based:
-//   https://github.com/golang/protobuf/issues/457 (What is the idiomatic way
-//     to get the corresponding struct field for a FieldDescriptorProto?)
-//   https://github.com/golang/protobuf/issues/364 (proto: make the Message
-//     interface behaviorally complete)
+// getField returns the field of the Measurement corresponding to the given FieldDescriptorProto.
+// This is a rather ugly operation since it's not supported by the protobuf API; it has to be done
+// via reflection. See the following GitHub issues, the first of which provided the code on which
+// this method is based:
+//
+//   "What is the idiomatic way to get the corresponding struct field for a FieldDescriptorProto?"
+//     https://github.com/golang/protobuf/issues/457
+//
+//   "proto: make the Message interface behaviorally complete"
+//     https://github.com/golang/protobuf/issues/364
 func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
 	messageVal := reflect.ValueOf(*m)
 	props := proto.GetProperties(reflect.TypeOf(m).Elem())
@@ -122,9 +124,9 @@ func (m *Measurement) getField(fd *protoc_descriptor.FieldDescriptorProto) refle
 	return field
 }
 
-// Validate validates each field of the Measurement against an optional regex provided in the
-// .proto file. It returns nil if all fields are valid and no other errors occurred along the way.
-// Example of how to provide a regex in a .proto file:
+// Validate validates each field of the Measurement against an optional regex provided in the .proto file.
+// It returns nil if all fields are valid and no other errors occurred along the way. Example of how to
+// provide a regex in a .proto file:
 //   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
 func (m *Measurement) Validate() error {
 	_, msgDesc := descriptor.ForMessage(m)

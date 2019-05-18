@@ -24,7 +24,11 @@ type pushRequest struct {
 	Subscription string
 }
 
-func pushHandler(w http.ResponseWriter, r *http.Request) {
+type PushHandler struct {
+	Database Database
+}
+
+func (h PushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
 	lg, err := gaelog.New(r)
@@ -60,7 +64,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := database.Save(ctx, m); err != nil {
+	if err := h.Database.Save(ctx, m); err != nil {
 		lg.Errorf("Failed to save measurement: %v\n", err)
 	}
 

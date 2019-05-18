@@ -13,6 +13,7 @@ import (
 type UploadzHandler struct {
 	// Display delayed uploads up to this many hours old.
 	DelayedUploadsDur time.Duration
+	Database          Database
 }
 
 func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,7 @@ func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-h.DelayedUploadsDur)
 
-	measurements, err := database.GetDelayedMeasurementsSince(ctx, startTime)
+	measurements, err := h.Database.GetDelayedMeasurementsSince(ctx, startTime)
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
 	}

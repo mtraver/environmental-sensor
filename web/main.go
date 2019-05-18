@@ -32,8 +32,6 @@ var (
 				return t.Format(time.RFC3339)
 			},
 		}).ParseGlob("web/templates/*"))
-
-	database Database
 )
 
 type Database interface {
@@ -52,26 +50,27 @@ func mustGetenv(varName string) string {
 	return val
 }
 
-func init() {
-	var err error
-	database, err = db.NewDatastoreDB(projectID)
+func main() {
+	database, err := db.NewDatastoreDB(projectID)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
-}
 
-func main() {
 	http.Handle("/", RootHandler{
 		ProjectID: projectID,
 		// This environment variable should be defined in app.yaml.
 		IoTCoreRegistry: mustGetenv("IOTCORE_REGISTRY"),
+		Database:        database,
 	})
 
 	http.Handle("/uploadz", UploadzHandler{
 		DelayedUploadsDur: 48 * time.Hour,
+		Database:          database,
 	})
 
-	http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
+	http.Handle("/_ah/push-handlers/telemetry", PushHandler{
+		Database: database,
+	})
 
 	appengine.Main()
 }

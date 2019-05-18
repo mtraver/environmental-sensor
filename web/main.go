@@ -18,8 +18,6 @@ import (
 const defaultDataDisplayAgeHours = 12
 
 var (
-	projectID = mustGetenv("GOOGLE_CLOUD_PROJECT")
-
 	// Parse and cache all templates at startup instead of loading on each request.
 	// The path to the templates is relative to go.mod, as that's how the path should
 	// be specified when deployed to App Engine.
@@ -51,6 +49,8 @@ func mustGetenv(varName string) string {
 }
 
 func main() {
+	projectID := mustGetenv("GOOGLE_CLOUD_PROJECT")
+
 	database, err := db.NewDatastoreDB(projectID)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)

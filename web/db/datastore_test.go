@@ -5,9 +5,9 @@ import (
 )
 
 func TestCacheKeyLatest(t *testing.T) {
-	expected := "foo#latest"
-	key := cacheKeyLatest("foo")
-	if key != expected {
-		t.Errorf("Incorrect key. Expected %q, got %q", expected, key)
+	want := "foo#latest"
+	got := cacheKeyLatest("foo")
+	if got != want {
+		t.Errorf("Want %q, got %q", want, got)
 	}
 }

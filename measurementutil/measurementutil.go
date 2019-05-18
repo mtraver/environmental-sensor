@@ -1,4 +1,4 @@
-// package measurementutil provides utility functions for working with the generated protobuf type Measurement.
+// Package measurementutil provides utility functions for working with the generated protobuf type Measurement.
 package measurementutil
 
 import (

@@ -14,7 +14,7 @@
     {{ if .Error }}
       <p>Error fetching data.</p>
     {{ else }}
-      <h2>Delayed Uploads (Past {{ .DelayedUploadsHours }} Hours)</h2>
+      <h2>Delayed Uploads (Past {{ .DelayedUploadsDur }})</h2>
       <p>Total: {{ .DelayedTotal }}</p>
       <ul>
         {{ range $deviceID, $measurements := .DelayedMeasurements }}

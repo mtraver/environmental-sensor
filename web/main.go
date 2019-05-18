@@ -66,7 +66,11 @@ func main() {
 		// This environment variable should be defined in app.yaml.
 		IoTCoreRegistry: mustGetenv("IOTCORE_REGISTRY"),
 	})
-	http.HandleFunc("/uploadz", uploadzHandler)
+
+	http.Handle("/uploadz", UploadzHandler{
+		DelayedUploadsDur: 48 * time.Hour,
+	})
+
 	http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
 
 	appengine.Main()

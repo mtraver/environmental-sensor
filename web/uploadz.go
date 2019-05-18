@@ -10,10 +10,12 @@ import (
 	"github.com/mtraver/environmental-sensor/measurement"
 )
 
-// uploadz will display delayed uploads up to this many hours old.
-const delayedUploadsHours = 48
+type UploadzHandler struct {
+	// Display delayed uploads up to this many hours old.
+	DelayedUploadsDur time.Duration
+}
 
-func uploadzHandler(w http.ResponseWriter, r *http.Request) {
+func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
 	lg, err := gaelog.New(r)
@@ -23,7 +25,7 @@ func uploadzHandler(w http.ResponseWriter, r *http.Request) {
 	defer lg.Close()
 
 	endTime := time.Now().UTC()
-	startTime := endTime.Add(-time.Duration(delayedUploadsHours) * time.Hour)
+	startTime := endTime.Add(-h.DelayedUploadsDur)
 
 	measurements, err := database.GetDelayedMeasurementsSince(ctx, startTime)
 	if err != nil {
@@ -36,12 +38,12 @@ func uploadzHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		DelayedUploadsHours int
+		DelayedUploadsDur   time.Duration
 		DelayedMeasurements map[string][]measurement.StorableMeasurement
 		DelayedTotal        int
 		Error               error
 	}{
-		DelayedUploadsHours: delayedUploadsHours,
+		DelayedUploadsDur:   h.DelayedUploadsDur,
 		DelayedMeasurements: measurements,
 		DelayedTotal:        total,
 		Error:               err,

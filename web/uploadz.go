@@ -12,7 +12,7 @@ import (
 )
 
 type UploadzHandler struct {
-	// Display delayed uploads up to this many hours old.
+	// Display delayed uploads up to this duration old.
 	DelayedUploadsDur time.Duration
 	Database          Database
 	Template          *template.Template

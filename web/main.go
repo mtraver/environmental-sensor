@@ -20,9 +20,6 @@ const defaultDataDisplayAgeHours = 12
 var (
 	projectID = mustGetenv("GOOGLE_CLOUD_PROJECT")
 
-	// This environment variable should be defined in app.yaml.
-	iotcoreRegistry = mustGetenv("IOTCORE_REGISTRY")
-
 	// Parse and cache all templates at startup instead of loading on each request.
 	// The path to the templates is relative to go.mod, as that's how the path should
 	// be specified when deployed to App Engine.
@@ -64,7 +61,11 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/", rootHandler)
+	http.Handle("/", RootHandler{
+		ProjectID: projectID,
+		// This environment variable should be defined in app.yaml.
+		IoTCoreRegistry: mustGetenv("IOTCORE_REGISTRY"),
+	})
 	http.HandleFunc("/uploadz", uploadzHandler)
 	http.HandleFunc("/_ah/push-handlers/telemetry", pushHandler)
 

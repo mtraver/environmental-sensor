@@ -15,7 +15,12 @@ import (
 	"google.golang.org/appengine"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+type RootHandler struct {
+	ProjectID       string
+	IoTCoreRegistry string
+}
+
+func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Ensure that we only serve the root.
 	// From https://golang.org/pkg/net/http/#ServeMux:
 	//   Note that since a pattern ending in a slash names a rooted subtree, the
@@ -100,7 +105,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the latest measurement for each device
 	var latest map[string]measurement.StorableMeasurement
-	ids, latestErr := device.GetDeviceIDs(ctx, projectID, iotcoreRegistry)
+	ids, latestErr := device.GetDeviceIDs(ctx, h.ProjectID, h.IoTCoreRegistry)
 	if latestErr != nil {
 		lg.Errorf("Error getting device IDs: %v", latestErr)
 	} else {

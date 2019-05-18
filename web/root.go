@@ -19,6 +19,7 @@ type RootHandler struct {
 	ProjectID       string
 	IoTCoreRegistry string
 	Database        Database
+	Template        *template.Template
 }
 
 func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +140,7 @@ func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		LatestError:      latestErr,
 	}
 
-	if err := templates.ExecuteTemplate(w, "index", data); err != nil {
+	if err := h.Template.ExecuteTemplate(w, "index", data); err != nil {
 		lg.Errorf("Could not execute template: %v", err)
 	}
 }

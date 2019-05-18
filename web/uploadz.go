@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ type UploadzHandler struct {
 	// Display delayed uploads up to this many hours old.
 	DelayedUploadsDur time.Duration
 	Database          Database
+	Template          *template.Template
 }
 
 func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +52,7 @@ func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Error:               err,
 	}
 
-	if err := templates.ExecuteTemplate(w, "uploadz", data); err != nil {
+	if err := h.Template.ExecuteTemplate(w, "uploadz", data); err != nil {
 		lg.Errorf("Could not execute template: %v", err)
 	}
 }

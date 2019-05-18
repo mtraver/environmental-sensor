@@ -16,10 +16,11 @@ import (
 )
 
 type RootHandler struct {
-	ProjectID       string
-	IoTCoreRegistry string
-	Database        Database
-	Template        *template.Template
+	ProjectID         string
+	IoTCoreRegistry   string
+	DefaultDisplayAge time.Duration
+	Database          Database
+	Template          *template.Template
 }
 
 func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -41,8 +42,7 @@ func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer lg.Close()
 
-	// By default display data up to defaultDataDisplayAgeHours hours old
-	hoursAgo := defaultDataDisplayAgeHours
+	hoursAgo := int(h.DefaultDisplayAge.Round(time.Hour).Hours())
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-time.Duration(hoursAgo) * time.Hour)
 

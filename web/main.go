@@ -14,9 +14,6 @@ import (
 	"github.com/mtraver/environmental-sensor/web/db"
 )
 
-// Data up to this many hours old will be plotted
-const defaultDataDisplayAgeHours = 12
-
 type Database interface {
 	Save(ctx context.Context, m *measurement.Measurement) error
 	GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
@@ -56,9 +53,10 @@ func main() {
 	http.Handle("/", RootHandler{
 		ProjectID: projectID,
 		// This environment variable should be defined in app.yaml.
-		IoTCoreRegistry: mustGetenv("IOTCORE_REGISTRY"),
-		Database:        database,
-		Template:        templates,
+		IoTCoreRegistry:   mustGetenv("IOTCORE_REGISTRY"),
+		DefaultDisplayAge: 12 * time.Hour,
+		Database:          database,
+		Template:          templates,
 	})
 
 	http.Handle("/uploadz", UploadzHandler{

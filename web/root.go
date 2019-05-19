@@ -95,7 +95,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get measurements and marshal to JSON for use in the template
-	measurements, err := h.Database.MeasurementsBetween(ctx, startTime, endTime)
+	measurements, err := h.Database.Between(ctx, startTime, endTime)
 	jsonBytes := []byte{}
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
@@ -112,7 +112,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if latestErr != nil {
 		lg.Errorf("Error getting device IDs: %v", latestErr)
 	} else {
-		latest, latestErr = h.Database.LatestMeasurements(ctx, ids)
+		latest, latestErr = h.Database.Latest(ctx, ids)
 
 		if latestErr != nil {
 			lg.Errorf("Error getting latest measurements: %v", latestErr)

@@ -15,7 +15,8 @@ import (
 	"google.golang.org/appengine"
 )
 
-type RootHandler struct {
+// rootHandler renders the page for the root URL, which includes a plot and latest measurements.
+type rootHandler struct {
 	ProjectID         string
 	IoTCoreRegistry   string
 	DefaultDisplayAge time.Duration
@@ -23,7 +24,7 @@ type RootHandler struct {
 	Template          *template.Template
 }
 
-func (h RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Ensure that we only serve the root.
 	// From https://golang.org/pkg/net/http/#ServeMux:
 	//   Note that since a pattern ending in a slash names a rooted subtree, the

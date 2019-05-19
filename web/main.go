@@ -50,7 +50,7 @@ func main() {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
 
-	http.Handle("/", RootHandler{
+	http.Handle("/", rootHandler{
 		ProjectID: projectID,
 		// This environment variable should be defined in app.yaml.
 		IoTCoreRegistry:   mustGetenv("IOTCORE_REGISTRY"),
@@ -59,13 +59,13 @@ func main() {
 		Template:          templates,
 	})
 
-	http.Handle("/uploadz", UploadzHandler{
+	http.Handle("/uploadz", uploadzHandler{
 		DelayedUploadsDur: 48 * time.Hour,
 		Database:          database,
 		Template:          templates,
 	})
 
-	http.Handle("/_ah/push-handlers/telemetry", PushHandler{
+	http.Handle("/_ah/push-handlers/telemetry", pushHandler{
 		Database: database,
 	})
 

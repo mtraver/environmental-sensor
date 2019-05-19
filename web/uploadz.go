@@ -11,14 +11,15 @@ import (
 	"github.com/mtraver/environmental-sensor/measurement"
 )
 
-type UploadzHandler struct {
+// uploadzHandler renders a page displaying data about delayed data uploads from devices.
+type uploadzHandler struct {
 	// Display delayed uploads up to this duration old.
 	DelayedUploadsDur time.Duration
 	Database          Database
 	Template          *template.Template
 }
 
-func (h UploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
 	lg, err := gaelog.New(r)

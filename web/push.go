@@ -24,11 +24,12 @@ type pushRequest struct {
 	Subscription string
 }
 
-type PushHandler struct {
+// pushHandler handles Pub/Sub push deliveries originating from Google Cloud IoT Core.
+type pushHandler struct {
 	Database Database
 }
 
-func (h PushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
 	lg, err := gaelog.New(r)

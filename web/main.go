@@ -14,6 +14,10 @@ import (
 	"github.com/mtraver/environmental-sensor/web/db"
 )
 
+const (
+	datastoreKind = "measurement"
+)
+
 type Database interface {
 	Save(ctx context.Context, m *measurement.Measurement) error
 	GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
@@ -45,7 +49,7 @@ func main() {
 			},
 		}).ParseGlob("web/templates/*"))
 
-	database, err := db.NewDatastoreDB(projectID)
+	database, err := db.NewDatastoreDB(projectID, datastoreKind)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}

@@ -13,8 +13,6 @@ import (
 )
 
 const (
-	datastoreKind = "measurement"
-
 	// Used for separating substrings in cache keys. The octothorpe is fine for this because
 	// device IDs and timestamps, the two things most likely to be used in keys, can't contain it.
 	keySep = "#"
@@ -31,10 +29,11 @@ func cacheKeyLatest(deviceID string) string {
 
 type datastoreDB struct {
 	projectID string
+	kind      string
 	client    *datastore.Client
 }
 
-func NewDatastoreDB(projectID string) (*datastoreDB, error) {
+func NewDatastoreDB(projectID string, kind string) (*datastoreDB, error) {
 	client, err := datastore.NewClient(context.Background(), projectID)
 	if err != nil {
 		return nil, err
@@ -42,6 +41,7 @@ func NewDatastoreDB(projectID string) (*datastoreDB, error) {
 
 	return &datastoreDB{
 		projectID: projectID,
+		kind:      kind,
 		client:    client,
 	}, nil
 }
@@ -55,7 +55,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) err
 		return err
 	}
 
-	key := datastore.NameKey(datastoreKind, sm.DBKey(), nil)
+	key := datastore.NameKey(db.kind, sm.DBKey(), nil)
 
 	// Only store the measurement if it doesn't exist
 	_, err = db.client.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
@@ -128,7 +128,7 @@ func (db *datastoreDB) executeQuery(ctx context.Context, q *datastore.Query) (ma
 func (db *datastoreDB) GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
-	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Order("timestamp")
+	q := datastore.NewQuery(db.kind).Filter("timestamp >=", startTime).Order("timestamp")
 	return db.executeQuery(ctx, q)
 }
 
@@ -136,7 +136,7 @@ func (db *datastoreDB) GetMeasurementsSince(ctx context.Context, startTime time.
 // to startTime. It returns a map of device ID (a string) to a StorableMeasurement slice, and an error.
 func (db *datastoreDB) GetDelayedMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// We don't need to filter by device ID here because building the map has the effect of sorting by device ID.
-	q := datastore.NewQuery(datastoreKind).Filter("upload_timestamp >=", startTime).Order("upload_timestamp")
+	q := datastore.NewQuery(db.kind).Filter("upload_timestamp >=", startTime).Order("upload_timestamp")
 	return db.executeQuery(ctx, q)
 }
 
@@ -146,7 +146,7 @@ func (db *datastoreDB) GetDelayedMeasurementsSince(ctx context.Context, startTim
 func (db *datastoreDB) GetMeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error) {
 	// Don't need to filter by device ID here because building the map
 	// has the effect of sorting by device ID.
-	q := datastore.NewQuery(datastoreKind).Filter("timestamp >=", startTime).Filter("timestamp <=", endTime).Order("timestamp")
+	q := datastore.NewQuery(db.kind).Filter("timestamp >=", startTime).Filter("timestamp <=", endTime).Order("timestamp")
 	return db.executeQuery(ctx, q)
 }
 
@@ -176,7 +176,7 @@ func (db *datastoreDB) GetLatestMeasurements(ctx context.Context, deviceIDs []st
 		}
 
 		// Try the Datastore
-		q := datastore.NewQuery(datastoreKind).Filter("device_id =", id).Order("-timestamp").Limit(1)
+		q := datastore.NewQuery(db.kind).Filter("device_id =", id).Order("-timestamp").Limit(1)
 		it := db.client.Run(ctx, q)
 		_, err = it.Next(&m)
 		if err == iterator.Done {

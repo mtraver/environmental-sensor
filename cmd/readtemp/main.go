@@ -17,7 +17,7 @@ import (
 	"periph.io/x/periph/experimental/devices/mcp9808"
 	"periph.io/x/periph/host"
 
-	measurementpb "github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 var (
@@ -45,13 +45,13 @@ func parseFlags() error {
 	return nil
 }
 
-func makeProto(temp physic.Temperature) (*measurementpb.Measurement, error) {
+func makeProto(temp physic.Temperature) (*mpb.Measurement, error) {
 	timepb, err := ptypes.TimestampProto(time.Now().UTC())
 	if err != nil {
 		return nil, err
 	}
 
-	return &measurementpb.Measurement{
+	return &mpb.Measurement{
 		DeviceId:  "none",
 		Timestamp: timepb,
 		Temp:      float32(temp.Celsius()),

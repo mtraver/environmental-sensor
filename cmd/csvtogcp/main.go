@@ -16,7 +16,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 const usageStr = `usage: %v csv_file project_id topic_id device_id
@@ -72,7 +72,7 @@ func mean(x []float32) float32 {
 	return total / float32(len(x))
 }
 
-func lineToProto(line []string, deviceID string) (*measurement.Measurement, error) {
+func lineToProto(line []string, deviceID string) (*mpb.Measurement, error) {
 	if len(line) < 2 {
 		return nil, errors.New("Line length must be at least 2 (timestamp and one measurement)")
 	}
@@ -92,7 +92,7 @@ func lineToProto(line []string, deviceID string) (*measurement.Measurement, erro
 		return nil, err
 	}
 
-	m := &measurement.Measurement{
+	m := &mpb.Measurement{
 		DeviceId:  deviceID,
 		Timestamp: timestampProto,
 		Temp:      mean(temps),

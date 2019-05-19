@@ -24,7 +24,7 @@ readtemp:
 #   --python_out=client_python/loggers
 .PHONY: proto
 proto:
-	protoc --go_out=measurement measurement.proto
+	protoc --go_out=measurementpb measurement.proto
 
 clean:
 	rm -rf $(OUT_DIR)

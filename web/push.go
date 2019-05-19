@@ -9,7 +9,7 @@ import (
 	"github.com/mtraver/gaelog"
 	"google.golang.org/appengine"
 
-	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mutil "github.com/mtraver/environmental-sensor/measurementutil"
 )
 
@@ -45,7 +45,7 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := &measurement.Measurement{}
+	m := &mpb.Measurement{}
 	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
 		lg.Criticalf("Failed to unmarshal protobuf: %v\n", err)
 		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err), http.StatusBadRequest)

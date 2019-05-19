@@ -1,6 +1,6 @@
 syntax = "proto3";
 package measurement;
-option go_package = "measurement";
+option go_package = "measurementpb";
 
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/timestamp.proto";

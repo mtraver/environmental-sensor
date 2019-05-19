@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/iterator"
 
 	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/cache"
 )
 
@@ -48,7 +49,7 @@ func NewDatastoreDB(projectID string, kind string) (*datastoreDB, error) {
 
 // Save saves the given Measurement to the database. If the Measurement already exists in the
 // database it makes no change to the database and returns nil as the error.
-func (db *datastoreDB) Save(ctx context.Context, m *measurement.Measurement) error {
+func (db *datastoreDB) Save(ctx context.Context, m *mpb.Measurement) error {
 	sm, err := measurement.NewStorableMeasurement(m)
 	if err != nil {
 		return err

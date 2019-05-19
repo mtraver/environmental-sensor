@@ -22,7 +22,7 @@ import (
 
 	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/pending"
 	"github.com/mtraver/environmental-sensor/iotcore"
-	measurementpb "github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 const (
@@ -207,7 +207,7 @@ func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
 	return mqtt.NewClient(mqttOptions), nil
 }
 
-func save(m *measurementpb.Measurement) {
+func save(m *mpb.Measurement) {
 	if err := pending.Save(m, pendingDir); err != nil {
 		log.Printf("Failed to save measurement: %v", err)
 	}
@@ -263,7 +263,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	m := &measurementpb.Measurement{
+	m := &mpb.Measurement{
 		DeviceId:  deviceConf.DeviceID,
 		Timestamp: timepb,
 		Temp:      mean(temps),

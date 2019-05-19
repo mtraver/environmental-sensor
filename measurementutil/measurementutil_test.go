@@ -7,7 +7,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 var (
@@ -24,9 +24,9 @@ func mustTimestampProto(t time.Time) *timestamp.Timestamp {
 	return pbts
 }
 
-func getMeasurement(t *testing.T, deviceID string) *measurement.Measurement {
+func getMeasurement(t *testing.T, deviceID string) *mpb.Measurement {
 	t.Helper()
-	return &measurement.Measurement{
+	return &mpb.Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,
 		Temp:      18.5,

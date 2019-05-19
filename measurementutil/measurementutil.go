@@ -10,14 +10,14 @@ import (
 	"github.com/golang/protobuf/proto"
 	protoc_descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 
-	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 // Validate validates each field of the Measurement against an optional regex provided in the .proto file.
 // It returns nil if all fields are valid and no other errors occurred along the way. Example of how to
 // provide a regex in a .proto file:
 //   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
-func Validate(m *measurement.Measurement) error {
+func Validate(m *mpb.Measurement) error {
 	_, msgDesc := descriptor.ForMessage(m)
 	for _, f := range msgDesc.GetField() {
 		options := f.GetOptions()
@@ -25,7 +25,7 @@ func Validate(m *measurement.Measurement) error {
 			continue
 		}
 
-		regexExt, err := proto.GetExtension(options, measurement.E_Regex)
+		regexExt, err := proto.GetExtension(options, mpb.E_Regex)
 		if err == proto.ErrMissingExtension {
 			// The field doesn't have the regex extension, so nothing to validate
 			continue
@@ -59,7 +59,7 @@ func Validate(m *measurement.Measurement) error {
 //
 //   "proto: make the Message interface behaviorally complete"
 //     https://github.com/golang/protobuf/issues/364
-func getField(m *measurement.Measurement, fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
+func getField(m *mpb.Measurement, fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
 	messageVal := reflect.ValueOf(*m)
 	props := proto.GetProperties(reflect.TypeOf(m).Elem())
 

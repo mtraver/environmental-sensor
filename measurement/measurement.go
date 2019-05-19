@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 // Used for separating substrings in database keys. The octothorpe is fine for this because
@@ -27,7 +29,7 @@ type StorableMeasurement struct {
 // which contains no protobuf-specific types, and therefore can be marshaled to JSON and
 // written to Datastore.
 // IMPORTANT: Keep up to date with the generated Measurement type
-func NewStorableMeasurement(m *Measurement) (StorableMeasurement, error) {
+func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 	timestamp, err := ptypes.Timestamp(m.GetTimestamp())
 	if err != nil {
 		return StorableMeasurement{}, err

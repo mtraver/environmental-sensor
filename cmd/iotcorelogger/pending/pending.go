@@ -17,13 +17,13 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	measurementpb "github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 const fileExt = ".json"
 
 // Save converts the given Measurement to JSON and saves it to disk.
-func Save(m *measurementpb.Measurement, dir string) error {
+func Save(m *mpb.Measurement, dir string) error {
 	marshaler := jsonpb.Marshaler{
 		Indent: "  ",
 	}
@@ -68,7 +68,7 @@ func publish(client mqtt.Client, topic string, filepath string) error {
 	}
 	defer f.Close()
 
-	m := measurementpb.Measurement{}
+	m := mpb.Measurement{}
 	if err := jsonpb.Unmarshal(f, &m); err != nil {
 		return err
 	}

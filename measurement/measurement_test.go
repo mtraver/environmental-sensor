@@ -8,6 +8,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 var (
@@ -69,12 +71,12 @@ func TestNewStorableMeasurement(t *testing.T) {
 
 	cases := []struct {
 		name  string
-		m     *Measurement
+		m     *mpb.Measurement
 		want  StorableMeasurement
 		valid bool
 	}{
 		{"valid_no_upload_timestamp",
-			&Measurement{
+			&mpb.Measurement{
 				DeviceId:  deviceID,
 				Timestamp: pbTimestamp,
 				Temp:      temp,
@@ -87,7 +89,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 			true,
 		},
 		{"valid_with_upload_timestamp",
-			&Measurement{
+			&mpb.Measurement{
 				DeviceId:        deviceID,
 				Timestamp:       pbTimestamp,
 				UploadTimestamp: pbTimestamp2,
@@ -102,7 +104,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 			true,
 		},
 		{"nil_timestamp",
-			&Measurement{
+			&mpb.Measurement{
 				DeviceId:  deviceID,
 				Timestamp: nil,
 				Temp:      temp,

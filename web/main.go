@@ -11,6 +11,7 @@ import (
 	"google.golang.org/appengine"
 
 	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
 )
 
@@ -19,7 +20,7 @@ const (
 )
 
 type Database interface {
-	Save(ctx context.Context, m *measurement.Measurement) error
+	Save(ctx context.Context, m *mpb.Measurement) error
 	Since(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	DelayedSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	Between(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)

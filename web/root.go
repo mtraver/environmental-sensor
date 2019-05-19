@@ -150,8 +150,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // the frontend doesn't need for plotting data.
 // IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
 type serializableMeasurement struct {
-	// This timestamp is an offset from the epoch in milliseconds
-	// (compare to Timestamp in StorableMeasurement).
+	// This timestamp is an offset from the epoch in milliseconds (compare to Timestamp in StorableMeasurement).
 	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
 	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
 }

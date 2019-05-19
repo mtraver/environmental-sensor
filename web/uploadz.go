@@ -31,7 +31,7 @@ func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-h.DelayedUploadsDur)
 
-	measurements, err := h.Database.GetDelayedMeasurementsSince(ctx, startTime)
+	measurements, err := h.Database.DelayedMeasurementsSince(ctx, startTime)
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
 	}

@@ -20,10 +20,10 @@ const (
 
 type Database interface {
 	Save(ctx context.Context, m *measurement.Measurement) error
-	GetMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
-	GetDelayedMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
-	GetMeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
-	GetLatestMeasurements(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
+	MeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	DelayedMeasurementsSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	MeasurementsBetween(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
+	LatestMeasurements(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
 }
 
 func mustGetenv(varName string) string {

@@ -12,8 +12,7 @@ import (
 
 var ErrCacheMiss = errors.New("cache: cache miss")
 
-// memcacheWriteFunc is the signature of functions in google.golang.org/appengine/memcache
-// that write to the cache
+// memcacheWriteFunc is the signature of functions in google.golang.org/appengine/memcache that write to the cache.
 type memcacheWriteFunc func(context.Context, *memcache.Item) error
 
 func Get(ctx context.Context, key string, m *measurement.StorableMeasurement) error {

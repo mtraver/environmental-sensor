@@ -14,6 +14,7 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
+// NewMQTTOptions creates a Paho MQTT ClientOptions that may be used to connect to the given MQTT bridge using TLS.
 func NewMQTTOptions(config DeviceConfig, bridge MQTTBridge, caCertsPath string) (*MQTT.ClientOptions, error) {
 	// Load CA certs
 	certpool := x509.NewCertPool()

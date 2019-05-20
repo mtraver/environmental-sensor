@@ -41,6 +41,7 @@ func NewMQTTOptions(config DeviceConfig, bridge MQTTBridge, caCertsPath string) 
 	return opts, nil
 }
 
+// DeviceIDFromCert gets the Common Name from an X.509 cert, which in this case is known to be the device ID.
 func DeviceIDFromCert(certPath string) (string, error) {
 	certBytes, err := ioutil.ReadFile(certPath)
 	if err != nil {
@@ -64,6 +65,7 @@ func DeviceIDFromCert(certPath string) (string, error) {
 	return cert.Subject.CommonName, nil
 }
 
+// DeviceConfig represents a Google Cloud IoT Core device.
 type DeviceConfig struct {
 	ProjectID   string
 	RegistryID  string
@@ -72,19 +74,25 @@ type DeviceConfig struct {
 	Region      string
 }
 
+// ClientID returns the fully-qualified Google Cloud IoT Core device ID.
 func (c *DeviceConfig) ClientID() string {
 	return fmt.Sprintf("projects/%v/locations/%v/registries/%v/devices/%v",
 		c.ProjectID, c.Region, c.RegistryID, c.DeviceID)
 }
 
+// ConfigTopic returns the MQTT topic to which the device can subscribe to get configuration updates.
 func (c *DeviceConfig) ConfigTopic() string {
 	return fmt.Sprintf("/devices/%v/config", c.DeviceID)
 }
 
+// TelemetryTopic returns the MQTT topic to which the device should publish telemetry events.
 func (c *DeviceConfig) TelemetryTopic() string {
 	return fmt.Sprintf("/devices/%v/events", c.DeviceID)
 }
 
+// StateTopic returns the MQTT topic to which the device should publish state information.
+// This is optionally configured in the device registry. For more information see
+// https://cloud.google.com/iot/docs/how-tos/config/getting-state.
 func (c *DeviceConfig) StateTopic() string {
 	return fmt.Sprintf("/devices/%v/state", c.DeviceID)
 }
@@ -107,6 +115,9 @@ func (c *DeviceConfig) privateKey() (*ecdsa.PrivateKey, error) {
 	return jwt.ParseECPrivateKeyFromPEM(keyBytes)
 }
 
+// VerifyJWT checks the validity of the given JWT, including its signature and expiration. It returns true
+// with a nil error if the JWT is valid. Both false and a non-nil error (regardless of the accompanying
+// boolean value) indicate an invalid JWT.
 func (c *DeviceConfig) VerifyJWT(jwtStr string) (bool, error) {
 	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing algorithm.
@@ -124,6 +135,7 @@ func (c *DeviceConfig) VerifyJWT(jwtStr string) (bool, error) {
 	return token.Valid, err
 }
 
+// NewJWT creates a new JWT signed with the device's key and expiring in the given amount of time.
 func (c *DeviceConfig) NewJWT(exp time.Duration) (string, error) {
 	key, err := c.privateKey()
 	if err != nil {
@@ -140,11 +152,13 @@ func (c *DeviceConfig) NewJWT(exp time.Duration) (string, error) {
 	return token.SignedString(key)
 }
 
+// MQTTBridge represents an MQTT server.
 type MQTTBridge struct {
 	Host string
 	Port int
 }
 
+// URL returns the URL to the MQTT server.
 func (b *MQTTBridge) URL() string {
 	return fmt.Sprintf("ssl://%v:%v", b.Host, b.Port)
 }

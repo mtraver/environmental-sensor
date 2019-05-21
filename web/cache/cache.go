@@ -2,12 +2,12 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/appengine/memcache"
 
-	"github.com/mtraver/environmental-sensor/measurement"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 var ErrCacheMiss = errors.New("cache: cache miss")
@@ -15,12 +15,12 @@ var ErrCacheMiss = errors.New("cache: cache miss")
 // memcacheWriteFunc is the signature of functions in google.golang.org/appengine/memcache that write to the cache.
 type memcacheWriteFunc func(context.Context, *memcache.Item) error
 
-func Get(ctx context.Context, key string, m *measurement.StorableMeasurement) error {
+func Get(ctx context.Context, key string, m *mpb.Measurement) error {
 	item, err := memcache.Get(ctx, key)
 
 	switch err {
 	case nil:
-		return json.Unmarshal(item.Value, m)
+		return proto.Unmarshal(item.Value, m)
 	case memcache.ErrCacheMiss:
 		return ErrCacheMiss
 	default:
@@ -28,8 +28,8 @@ func Get(ctx context.Context, key string, m *measurement.StorableMeasurement) er
 	}
 }
 
-func doWrite(ctx context.Context, key string, m *measurement.StorableMeasurement, f memcacheWriteFunc) error {
-	data, err := json.Marshal(m)
+func doWrite(ctx context.Context, key string, m *mpb.Measurement, f memcacheWriteFunc) error {
+	data, err := proto.Marshal(m)
 	if err != nil {
 		return err
 	}
@@ -42,10 +42,10 @@ func doWrite(ctx context.Context, key string, m *measurement.StorableMeasurement
 	return f(ctx, item)
 }
 
-func Add(ctx context.Context, key string, m *measurement.StorableMeasurement) error {
+func Add(ctx context.Context, key string, m *mpb.Measurement) error {
 	return doWrite(ctx, key, m, memcache.Add)
 }
 
-func Set(ctx context.Context, key string, m *measurement.StorableMeasurement) error {
+func Set(ctx context.Context, key string, m *mpb.Measurement) error {
 	return doWrite(ctx, key, m, memcache.Set)
 }

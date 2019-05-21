@@ -70,7 +70,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *mpb.Measurement) error {
 
 	// Each device has a cache entry for its latest value. Update it.
 	if err == nil {
-		cache.Set(ctx, cacheKeyLatest(sm.DeviceID), &sm)
+		cache.Set(ctx, cacheKeyLatest(m.DeviceId), m)
 	}
 
 	return err
@@ -162,20 +162,25 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 		cacheKey := cacheKeyLatest(id)
 
 		// Try the cache
-		var m measurement.StorableMeasurement
+		var m mpb.Measurement
+		var sm measurement.StorableMeasurement
 		err := cache.Get(ctx, cacheKey, &m)
 		if err != nil && err != cache.ErrCacheMiss {
 			return latest, err
 		} else if err == nil {
-			// Cache hit
-			latest[id] = m
+			// Cache hit. Convert to a StorableMeasurement for return.
+			sm, err = measurement.NewStorableMeasurement(&m)
+			if err != nil {
+				return latest, err
+			}
+			latest[id] = sm
 			continue
 		}
 
 		// Try the Datastore
 		q := datastore.NewQuery(db.kind).Filter("device_id =", id).Order("-timestamp").Limit(1)
 		it := db.client.Run(ctx, q)
-		_, err = it.Next(&m)
+		_, err = it.Next(&sm)
 		if err == iterator.Done {
 			// Nothing found in the Datastore
 			continue
@@ -183,7 +188,13 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 			return latest, err
 		}
 
-		latest[id] = m
+		latest[id] = sm
+
+		// Convert to an mpb.Measurement for caching.
+		m, err = measurement.NewMeasurement(&sm)
+		if err != nil {
+			return latest, err
+		}
 		cache.Add(ctx, cacheKey, &m)
 	}
 

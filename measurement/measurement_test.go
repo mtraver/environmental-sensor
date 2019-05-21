@@ -18,6 +18,53 @@ var (
 
 	testTimestamp2 = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
 	pbTimestamp2   = mustTimestampProto(testTimestamp2)
+
+	// These cases are used to test conversion in both directions between the generated
+	// Measurement type and StorableMeasurement.
+	conversionCases = []struct {
+		name  string
+		m     mpb.Measurement
+		sm    StorableMeasurement
+		valid bool
+	}{
+		{"valid_no_upload_timestamp",
+			mpb.Measurement{
+				DeviceId:  "foo",
+				Timestamp: pbTimestamp,
+				Temp:      18.5,
+			},
+			StorableMeasurement{
+				DeviceID:  "foo",
+				Timestamp: testTimestamp,
+				Temp:      18.5,
+			},
+			true,
+		},
+		{"valid_with_upload_timestamp",
+			mpb.Measurement{
+				DeviceId:        "foo",
+				Timestamp:       pbTimestamp,
+				UploadTimestamp: pbTimestamp2,
+				Temp:            18.5,
+			},
+			StorableMeasurement{
+				DeviceID:        "foo",
+				Timestamp:       testTimestamp,
+				UploadTimestamp: testTimestamp2,
+				Temp:            18.5,
+			},
+			true,
+		},
+		{"nil_timestamp",
+			mpb.Measurement{
+				DeviceId:  "foo",
+				Timestamp: nil,
+				Temp:      18.5,
+			},
+			StorableMeasurement{},
+			false,
+		},
+	}
 )
 
 func mustTimestampProto(t time.Time) *timestamp.Timestamp {
@@ -32,7 +79,7 @@ func mustTimestampProto(t time.Time) *timestamp.Timestamp {
 func TestStorableMeasurementString(t *testing.T) {
 	cases := []struct {
 		name string
-		m    StorableMeasurement
+		sm   StorableMeasurement
 		want string
 	}{
 		{"empty", StorableMeasurement{}, " 0.000°C 0001-01-01T00:00:00Z"},
@@ -57,7 +104,7 @@ func TestStorableMeasurementString(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got := fmt.Sprintf("%v", c.m)
+			got := fmt.Sprintf("%v", c.sm)
 			if got != c.want {
 				t.Errorf("Got %q, want %q", got, c.want)
 			}
@@ -66,57 +113,9 @@ func TestStorableMeasurementString(t *testing.T) {
 }
 
 func TestNewStorableMeasurement(t *testing.T) {
-	deviceID := "foo"
-	var temp float32 = 18.5
-
-	cases := []struct {
-		name  string
-		m     *mpb.Measurement
-		want  StorableMeasurement
-		valid bool
-	}{
-		{"valid_no_upload_timestamp",
-			&mpb.Measurement{
-				DeviceId:  deviceID,
-				Timestamp: pbTimestamp,
-				Temp:      temp,
-			},
-			StorableMeasurement{
-				DeviceID:  deviceID,
-				Timestamp: testTimestamp,
-				Temp:      temp,
-			},
-			true,
-		},
-		{"valid_with_upload_timestamp",
-			&mpb.Measurement{
-				DeviceId:        deviceID,
-				Timestamp:       pbTimestamp,
-				UploadTimestamp: pbTimestamp2,
-				Temp:            temp,
-			},
-			StorableMeasurement{
-				DeviceID:        deviceID,
-				Timestamp:       testTimestamp,
-				UploadTimestamp: testTimestamp2,
-				Temp:            temp,
-			},
-			true,
-		},
-		{"nil_timestamp",
-			&mpb.Measurement{
-				DeviceId:  deviceID,
-				Timestamp: nil,
-				Temp:      temp,
-			},
-			StorableMeasurement{},
-			false,
-		},
-	}
-
-	for _, c := range cases {
+	for _, c := range conversionCases {
 		t.Run(c.name, func(t *testing.T) {
-			got, err := NewStorableMeasurement(c.m)
+			got, err := NewStorableMeasurement(&c.m)
 			if err != nil && c.valid {
 				t.Errorf("Unexpected error: %v", err)
 				return
@@ -129,8 +128,31 @@ func TestNewStorableMeasurement(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(got, c.want) {
-				t.Errorf("Got %v, want %v", got, c.want)
+			if !reflect.DeepEqual(got, c.sm) {
+				t.Errorf("Got %v, want %v", got, c.sm)
+			}
+		})
+	}
+}
+
+func TestNewMeasurement(t *testing.T) {
+	for _, c := range conversionCases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := NewMeasurement(&c.sm)
+			if err != nil && c.valid {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			} else if err == nil && !c.valid {
+				t.Errorf("Expected error, got no error")
+				return
+			} else if err != nil && !c.valid {
+				// For this case the test has passed. We don't enforce any contract on the first
+				// return value of NewMeasurement when the error is non-nil.
+				return
+			}
+
+			if !reflect.DeepEqual(got, c.m) {
+				t.Errorf("Got %v, want %v", got, c.m)
 			}
 		})
 	}

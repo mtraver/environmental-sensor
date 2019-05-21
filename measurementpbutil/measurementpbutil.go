@@ -1,5 +1,5 @@
-// Package measurementutil provides utility functions for working with the generated protobuf type Measurement.
-package measurementutil
+// Package measurementpbutil provides utility functions for working with the generated protobuf type Measurement.
+package measurementpbutil
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package measurementutil
+package measurementpbutil
 
 import (
 	"testing"

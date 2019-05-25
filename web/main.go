@@ -50,7 +50,7 @@ func main() {
 			},
 		}).ParseGlob("web/templates/*"))
 
-	database, err := db.NewDatastoreDB(projectID, datastoreKind)
+	database, err := db.NewDatastoreDB(projectID, datastoreKind, true)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}

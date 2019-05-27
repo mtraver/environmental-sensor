@@ -15,13 +15,13 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mtraver/iotcore"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
 	"periph.io/x/periph/host"
 
 	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/pending"
-	"github.com/mtraver/environmental-sensor/iotcore"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
@@ -159,7 +159,7 @@ func certPath(keyPath string) string {
 	return keyPath[:len(keyPath)-len(ext)] + certExtension
 }
 
-func existingJWT(conf iotcore.DeviceConfig) (string, error) {
+func existingJWT(device iotcore.Device) (string, error) {
 	f, err := os.Open(jwtPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -177,22 +177,22 @@ func existingJWT(conf iotcore.DeviceConfig) (string, error) {
 	}
 
 	jwt := string(b)
-	if ok, err := conf.VerifyJWT(jwt); !ok {
+	if ok, err := device.VerifyJWT(jwt); !ok {
 		return "", err
 	}
 
 	return jwt, nil
 }
 
-func newClient(conf iotcore.DeviceConfig) (mqtt.Client, error) {
-	mqttOptions, err := iotcore.NewMQTTOptions(conf, bridge, caCerts)
+func newClient(device iotcore.Device) (mqtt.Client, error) {
+	mqttOptions, err := iotcore.NewMQTTOptions(device, bridge, caCerts)
 	if err != nil {
 		return nil, err
 	}
 
-	jwt, err := existingJWT(conf)
+	jwt, err := existingJWT(device)
 	if err != nil {
-		jwt, err = conf.NewJWT(60 * time.Minute)
+		jwt, err = device.NewJWT(60 * time.Minute)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +224,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	deviceConf := iotcore.DeviceConfig{
+	device := iotcore.Device{
 		ProjectID:   projectID,
 		RegistryID:  registryID,
 		DeviceID:    deviceID,
@@ -232,7 +232,7 @@ func main() {
 		Region:      region,
 	}
 
-	client, err := newClient(deviceConf)
+	client, err := newClient(device)
 	if err != nil {
 		log.Fatalf("Failed to make MQTT client: %v", err)
 	}
@@ -264,7 +264,7 @@ func main() {
 		log.Fatal(err)
 	}
 	m := &mpb.Measurement{
-		DeviceId:  deviceConf.DeviceID,
+		DeviceId:  device.DeviceID,
 		Timestamp: timepb,
 		Temp:      mean(temps),
 	}
@@ -289,9 +289,9 @@ func main() {
 	}
 
 	// We don't currently do anything with configs from the server.
-	// client.Subscribe(deviceConf.ConfigTopic(), 1, configHandler)
+	// client.Subscribe(device.ConfigTopic(), 1, configHandler)
 
-	token = client.Publish(deviceConf.TelemetryTopic(), 1, false, pbBytes)
+	token = client.Publish(device.TelemetryTopic(), 1, false, pbBytes)
 	if ok := token.WaitTimeout(waitDur); !ok {
 		// Timed out. Save the Measurement to retry later.
 		log.Printf("Publish timed out after %v", waitDur)
@@ -302,7 +302,7 @@ func main() {
 		save(m)
 	} else {
 		// Publish succeeded, so attempt to publish any pending measurements.
-		if err := pending.PublishAll(client, deviceConf.TelemetryTopic(), pendingDir); err != nil {
+		if err := pending.PublishAll(client, device.TelemetryTopic(), pendingDir); err != nil {
 			log.Printf("Failed to publish all pending measurements: %v", err)
 		}
 	}

@@ -77,8 +77,7 @@ type DeviceConfig struct {
 
 // ClientID returns the fully-qualified Google Cloud IoT Core device ID.
 func (c *DeviceConfig) ClientID() string {
-	return fmt.Sprintf("projects/%v/locations/%v/registries/%v/devices/%v",
-		c.ProjectID, c.Region, c.RegistryID, c.DeviceID)
+	return fmt.Sprintf("projects/%v/locations/%v/registries/%v/devices/%v", c.ProjectID, c.Region, c.RegistryID, c.DeviceID)
 }
 
 // ConfigTopic returns the MQTT topic to which the device can subscribe to get configuration updates.

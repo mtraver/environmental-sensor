@@ -38,18 +38,10 @@ var (
 	region      string
 	privKeyPath string
 
-	broker iotcore.MQTTBroker
-
 	caCerts string
 
 	numSamples     int
 	sampleInterval int
-
-	// The allowed ports for connecting to the IoT Core MQTT broker
-	allowedPorts = map[int]bool{
-		8883: true,
-		443:  true,
-	}
 
 	// This directory is where we'll store anything the program needs to persist, like JWTs and
 	// measurements that are pending upload. This is joined with the user's home directory in init.
@@ -78,9 +70,6 @@ func init() {
 	flag.StringVar(&caCerts, "cacerts", "",
 		"Path to a set of trustworthy CA certs.\n"+
 			"Download Google's from https://pki.google.com/roots.pem.")
-
-	flag.StringVar(&broker.Host, "mqtthost", defaultHost, "MQTT host")
-	flag.IntVar(&broker.Port, "mqttport", 8883, "MQTT port")
 
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
@@ -124,14 +113,6 @@ func parseFlags() error {
 
 	if caCerts == "" {
 		return fmt.Errorf("cacerts flag must be given")
-	}
-
-	if broker.Host == "" {
-		return fmt.Errorf("mqtthost flag must be given")
-	}
-
-	if _, ok := allowedPorts[broker.Port]; !ok {
-		return fmt.Errorf("mqttport must be one of %v", allowedPorts)
 	}
 
 	if numSamples <= 0 {
@@ -185,7 +166,7 @@ func existingJWT(device iotcore.Device) (string, error) {
 }
 
 func newClient(device iotcore.Device) (mqtt.Client, error) {
-	mqttOptions, err := iotcore.NewMQTTOptions(device, broker, caCerts)
+	mqttOptions, err := iotcore.NewMQTTOptions(device, iotcore.DefaultBroker, caCerts)
 	if err != nil {
 		return nil, err
 	}

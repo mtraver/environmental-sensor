@@ -2,7 +2,6 @@ module github.com/mtraver/environmental-sensor
 
 require (
 	cloud.google.com/go v0.38.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/golang/protobuf v1.3.1
 	github.com/mitchellh/go-homedir v1.1.0

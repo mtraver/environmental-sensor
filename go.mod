@@ -6,8 +6,9 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/gaelog v0.0.0-20190510055027-06435d587dd6
-	github.com/mtraver/iotcore v0.0.0-20190527222112-08046732a45f
+	github.com/mtraver/iotcore v0.0.0-20190527230902-b0e491b7d6de
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
+	golang.org/x/sys v0.0.0-20190527104216-9cd6430ef91e // indirect
 	google.golang.org/api v0.5.0
 	google.golang.org/appengine v1.5.0
 	periph.io/x/periph v0.0.0-20190414220951-e529d25a1b86

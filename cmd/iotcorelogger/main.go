@@ -67,9 +67,7 @@ func init() {
 	flag.StringVar(&registryID, "registry", "", "Google Cloud IoT Core registry ID")
 	flag.StringVar(&region, "region", defaultRegion, "Google Cloud Platform region")
 	flag.StringVar(&privKeyPath, "key", "", "path to device's private key")
-	flag.StringVar(&caCerts, "cacerts", "",
-		"Path to a set of trustworthy CA certs.\n"+
-			"Download Google's from https://pki.google.com/roots.pem.")
+	flag.StringVar(&caCerts, "cacerts", "", "Path to a set of trustworthy CA certs.\nDownload Google's from https://pki.google.com/roots.pem.")
 
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")

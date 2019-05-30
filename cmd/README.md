@@ -59,10 +59,6 @@ Raspberry Pi 3 B<sup>1</sup>).
           number of seconds to wait between samples (default 1)
       -key string
           path to device's private key
-      -mqtthost string
-          MQTT host (default "mqtt.googleapis.com")
-      -mqttport int
-          MQTT port (default 8883)
       -numsamples int
           number of samples to take (default 3)
       -project string

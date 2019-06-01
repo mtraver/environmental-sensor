@@ -5,13 +5,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	homedir "github.com/mitchellh/go-homedir"
@@ -138,54 +136,6 @@ func certPath(keyPath string) string {
 	return keyPath[:len(keyPath)-len(ext)] + certExtension
 }
 
-func existingJWT(device iotcore.Device) (string, error) {
-	f, err := os.Open(jwtPath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return "", err
-		}
-
-		// There is no existing JWT.
-		return "", fmt.Errorf("%s does not exist", jwtPath)
-	}
-	defer f.Close()
-
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return "", err
-	}
-
-	jwt := string(b)
-	if ok, err := device.VerifyJWT(jwt); !ok {
-		return "", err
-	}
-
-	return jwt, nil
-}
-
-func newClient(device iotcore.Device) (mqtt.Client, error) {
-	mqttOptions, err := iotcore.NewMQTTOptions(device, iotcore.DefaultBroker, caCerts)
-	if err != nil {
-		return nil, err
-	}
-
-	jwt, err := existingJWT(device)
-	if err != nil {
-		jwt, err = device.NewJWT(60 * time.Minute)
-		if err != nil {
-			return nil, err
-		}
-
-		// Persist the JWT.
-		if err := ioutil.WriteFile(jwtPath, []byte(jwt), 0600); err != nil {
-			log.Printf("Failed to save JWT to %s: %v", jwtPath, err)
-		}
-	}
-	mqttOptions.SetPassword(jwt)
-
-	return mqtt.NewClient(mqttOptions), nil
-}
-
 func save(m *mpb.Measurement) {
 	if err := pending.Save(m, pendingDir); err != nil {
 		log.Printf("Failed to save measurement: %v", err)
@@ -211,7 +161,13 @@ func main() {
 		Region:      region,
 	}
 
-	client, err := newClient(device)
+	certsFile, err := os.Open(caCerts)
+	if err != nil {
+		log.Fatalf("Failed to open certs file: %v", err)
+	}
+	defer certsFile.Close()
+
+	client, err := device.NewClient(iotcore.DefaultBroker, certsFile, iotcore.PersistentlyCacheJWT(60*time.Minute, jwtPath))
 	if err != nil {
 		log.Fatalf("Failed to make MQTT client: %v", err)
 	}

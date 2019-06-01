@@ -10,8 +10,17 @@ Send temperature to [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
 which can then be saved and plotted using the Google App Engine app in the
 [web](web) directory:
 
-    ./iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
-      -key device_key.pem -cacerts roots.pem
+    make
+
+    # Example device.json:
+    # {
+    #   "project_id": "my-gcp-project",
+    #   "registry_id": "my-iot-core-registry",
+    #   "device_id": "my-device",
+    #   "priv_key_path": "my-device.pem",
+    #   "region": "us-central1"
+    # }
+    ./out/iotcorelogger -device device.json -cacerts roots.pem
 
 Set up a cron job, use it in a daemon, the world's your oyster...as long as the
 world is temperature values read from the MCP9808.

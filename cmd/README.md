@@ -12,8 +12,16 @@ From the root of this repository,
     make
 
     # Log temp to Google Cloud IoT Core
-    ./out/iotcorelogger -project my-gcp-project -registry my-iot-core-registry \
-      -key device_key.pem -cacerts roots.pem
+    #
+    # Example device.json:
+    # {
+    #   "project_id": "my-gcp-project",
+    #   "registry_id": "my-iot-core-registry",
+    #   "device_id": "my-device",
+    #   "priv_key_path": "my-device.pem",
+    #   "region": "us-central1"
+    # }
+    ./out/iotcorelogger -device device.json -cacerts roots.pem
 
     # Print temp to stdout
     ./out/readtemp
@@ -51,7 +59,7 @@ Raspberry Pi 3 B<sup>1</sup>).
 
 ## Full usage
 
-    Usage of ./iotcorelogger:
+    Usage of iotcorelogger:
       -cacerts string
           Path to a set of trustworthy CA certs.
           Download Google's from https://pki.google.com/roots.pem.

@@ -3,8 +3,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -31,12 +33,8 @@ const (
 )
 
 var (
-	projectID   string
-	registryID  string
-	region      string
-	privKeyPath string
-
-	caCerts string
+	deviceFilePath string
+	caCerts        string
 
 	numSamples     int
 	sampleInterval int
@@ -61,12 +59,8 @@ var (
 // }
 
 func init() {
-	flag.StringVar(&projectID, "project", "", "Google Cloud Platform project ID")
-	flag.StringVar(&registryID, "registry", "", "Google Cloud IoT Core registry ID")
-	flag.StringVar(&region, "region", defaultRegion, "Google Cloud Platform region")
-	flag.StringVar(&privKeyPath, "key", "", "path to device's private key")
+	flag.StringVar(&deviceFilePath, "device", "", "path to a file containing a JSON-encoded Device struct (see github.com/mtraver/iotcore)")
 	flag.StringVar(&caCerts, "cacerts", "", "Path to a set of trustworthy CA certs.\nDownload Google's from https://pki.google.com/roots.pem.")
-
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
 
@@ -91,20 +85,8 @@ func init() {
 func parseFlags() error {
 	flag.Parse()
 
-	if projectID == "" {
-		return fmt.Errorf("project flag must be given")
-	}
-
-	if registryID == "" {
-		return fmt.Errorf("registry flag must be given")
-	}
-
-	if region == "" {
-		return fmt.Errorf("region flag must be given")
-	}
-
-	if privKeyPath == "" {
-		return fmt.Errorf("key flag must be given")
+	if deviceFilePath == "" {
+		return fmt.Errorf("device flag must be given")
 	}
 
 	if caCerts == "" {
@@ -142,23 +124,29 @@ func save(m *mpb.Measurement) {
 	}
 }
 
+func parseDeviceFile(filepath string) (iotcore.Device, error) {
+	b, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return iotcore.Device{}, err
+	}
+
+	var device iotcore.Device
+	if err := json.Unmarshal(b, &device); err != nil {
+		return iotcore.Device{}, err
+	}
+
+	return device, nil
+}
+
 func main() {
 	if err := parseFlags(); err != nil {
 		fmt.Printf("argument error: %v\n", err)
 		os.Exit(2)
 	}
 
-	deviceID, err := iotcore.DeviceIDFromCert(certPath(privKeyPath))
+	device, err := parseDeviceFile(deviceFilePath)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	device := iotcore.Device{
-		ProjectID:   projectID,
-		RegistryID:  registryID,
-		DeviceID:    deviceID,
-		PrivKeyPath: privKeyPath,
-		Region:      region,
+		log.Fatalf("Failed to parse device file: %v", err)
 	}
 
 	certsFile, err := os.Open(caCerts)

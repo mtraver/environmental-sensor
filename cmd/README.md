@@ -55,18 +55,12 @@ Raspberry Pi 3 B<sup>1</sup>).
       -cacerts string
           Path to a set of trustworthy CA certs.
           Download Google's from https://pki.google.com/roots.pem.
+      -device string
+          path to a file containing a JSON-encoded Device struct (see github.com/mtraver/iotcore)
       -interval int
           number of seconds to wait between samples (default 1)
-      -key string
-          path to device's private key
       -numsamples int
           number of samples to take (default 3)
-      -project string
-          Google Cloud Platform project ID
-      -region string
-          Google Cloud Platform region (default "us-central1")
-      -registry string
-          Google Cloud IoT Core registry ID
 
 ## Footnotes
 <sup>1</sup> "How can this be!? The Raspberry Pi 3 B uses the BCM2837, a 64-bit

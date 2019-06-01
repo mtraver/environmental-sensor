@@ -25,13 +25,6 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
-const (
-	defaultRegion = "us-central1"
-	defaultHost   = "mqtt.googleapis.com"
-
-	certExtension = ".x509"
-)
-
 var (
 	deviceFilePath string
 	caCerts        string
@@ -111,11 +104,6 @@ func mean(s []physic.Temperature) float32 {
 	}
 
 	return float32(sum / float64(len(s)))
-}
-
-func certPath(keyPath string) string {
-	ext := path.Ext(keyPath)
-	return keyPath[:len(keyPath)-len(ext)] + certExtension
 }
 
 func save(m *mpb.Measurement) {

@@ -55,26 +55,26 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		switch formName := r.FormValue("form-name"); formName {
 		case "range":
-			var rangeErr error
-			startTime, rangeErr = time.Parse(time.RFC3339Nano, r.FormValue("startdate-adjusted"))
-			if rangeErr != nil {
-				http.Error(w, fmt.Sprintf("Bad start time: %v", rangeErr), http.StatusBadRequest)
+			var err error
+			startTime, err = time.Parse(time.RFC3339Nano, r.FormValue("startdate-adjusted"))
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Bad start time: %v", err), http.StatusBadRequest)
 				return
 			}
 
-			endTime, rangeErr = time.Parse(time.RFC3339Nano, r.FormValue("enddate-adjusted"))
-			if rangeErr != nil {
-				http.Error(w, fmt.Sprintf("Bad end time: %v", rangeErr), http.StatusBadRequest)
+			endTime, err = time.Parse(time.RFC3339Nano, r.FormValue("enddate-adjusted"))
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Bad end time: %v", err), http.StatusBadRequest)
 				return
 			}
 
 			fillRangeForm = true
 			fillHoursAgoForm = false
 		case "hoursago":
-			var hoursAgoErr error
-			hoursAgo, hoursAgoErr = strconv.Atoi(r.FormValue("hoursago"))
-			if hoursAgoErr != nil {
-				http.Error(w, fmt.Sprintf("%v", hoursAgoErr), http.StatusBadRequest)
+			var err error
+			hoursAgo, err = strconv.Atoi(r.FormValue("hoursago"))
+			if err != nil {
+				http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
 				return
 			}
 

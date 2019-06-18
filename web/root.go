@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"math"
 	"net/http"
 	"sort"
 	"strconv"
@@ -43,6 +44,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer lg.Close()
 
+	var daysAgo float64
 	hoursAgo := int(h.DefaultDisplayAge.Round(time.Hour).Hours())
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-time.Duration(hoursAgo) * time.Hour)
@@ -50,6 +52,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// These control which HTML forms are auto-filled when the page loads, to
 	// reflect the data that is being displayed
 	fillRangeForm := false
+	fillDaysAgoForm := false
 	fillHoursAgoForm := true
 
 	if r.Method == "POST" {
@@ -69,6 +72,26 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fillRangeForm = true
+			fillDaysAgoForm = false
+			fillHoursAgoForm = false
+		case "daysago":
+			var err error
+			daysAgo, err = strconv.ParseFloat(r.FormValue("daysago"), 64)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("%v", err), http.StatusBadRequest)
+				return
+			}
+
+			if daysAgo <= 0 {
+				http.Error(w, fmt.Sprintf("Days ago must be > 0"), http.StatusBadRequest)
+				return
+			}
+
+			endTime = time.Now().UTC()
+			startTime = endTime.Add(-time.Duration(math.Round(daysAgo*24)) * time.Hour)
+
+			fillRangeForm = false
+			fillDaysAgoForm = true
 			fillHoursAgoForm = false
 		case "hoursago":
 			var err error
@@ -87,6 +110,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			startTime = endTime.Add(-time.Duration(hoursAgo) * time.Hour)
 
 			fillRangeForm = false
+			fillDaysAgoForm = false
 			fillHoursAgoForm = true
 		default:
 			http.Error(w, fmt.Sprintf("Unknown form name"), http.StatusBadRequest)
@@ -124,8 +148,10 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Error            error
 		StartTime        time.Time
 		EndTime          time.Time
+		DaysAgo          float64
 		HoursAgo         int
 		FillRangeForm    bool
+		FillDaysAgoForm  bool
 		FillHoursAgoForm bool
 		Latest           map[string]measurement.StorableMeasurement
 		LatestError      error
@@ -134,8 +160,10 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Error:            err,
 		StartTime:        startTime,
 		EndTime:          endTime,
+		DaysAgo:          daysAgo,
 		HoursAgo:         hoursAgo,
 		FillRangeForm:    fillRangeForm,
+		FillDaysAgoForm:  fillDaysAgoForm,
 		FillHoursAgoForm: fillHoursAgoForm,
 		Latest:           latest,
 		LatestError:      latestErr,

@@ -63,7 +63,7 @@
         </div>
 
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <p>Hours ago</p>
             <form id="hoursago-form" class="needs-validation"
               action="/" method="post" novalidate>
@@ -77,6 +77,30 @@
                     min="1" step="1" required>
                   <div id="hoursago-feedback" class="invalid-feedback">
                     Must be a positive integer
+                  </div>
+                </div>
+
+                <div class="col-md mb-3">
+                  <button type="submit" class="btn btn-sm">Go!</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="col-md-3">
+            <p>Days ago</p>
+            <form id="daysago-form" class="needs-validation"
+              action="/" method="post" novalidate>
+              <input type="hidden" name="form-name" value="daysago">
+
+              <div class="form-row">
+                <div class="col-md mb-3">
+                  <label for="daysago" class="sr-only">Days Ago</label>
+                  <input type="number" step="any" id="daysago" name="daysago"
+                    class="form-control form-control-sm"
+                    min="0.0000000000000001" step="1" required>
+                  <div id="daysago-feedback" class="invalid-feedback">
+                    Must be a positive number
                   </div>
                 </div>
 
@@ -239,6 +263,12 @@
           $("#range-form").trigger("reset");
         {{ end }}
 
+        {{ if .FillDaysAgoForm }}
+          $("#daysago").val({{ .DaysAgo }});
+        {{ else }}
+          $("#daysago-form").trigger("reset");
+        {{ end }}
+
         {{ if .FillHoursAgoForm }}
           $("#hoursago").val({{ .HoursAgo }});
         {{ else }}
@@ -275,6 +305,14 @@
         // No custom constraints here, but it's required in order to use
         // Bootstrap's error styling instead of the browser default
         $("#hoursago-form").submit(function(event) {
+          if (this.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+
+          this.classList.add('was-validated');
+        });
+        $("#daysago-form").submit(function(event) {
           if (this.checkValidity() === false) {
             event.preventDefault();
             event.stopPropagation();

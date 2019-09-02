@@ -3,6 +3,7 @@ package measurement;
 option go_package = "measurementpb";
 
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 extend google.protobuf.FieldOptions {
@@ -18,4 +19,17 @@ message Measurement {
   // immediately after it is taken, e.g. if the network goes down and
   // measurements are stored locally before upload is attempted again later.
   google.protobuf.Timestamp upload_timestamp = 4;
+}
+
+service MeasurementService {
+  rpc GetDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
+  rpc GetLatest(GetLatestRequest) returns (Measurement) {}
+}
+
+message GetDevicesResponse {
+  repeated string device_id = 1;
+}
+
+message GetLatestRequest {
+  string device_id = 1;
 }

@@ -10,5 +10,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.6.0
 	google.golang.org/appengine v1.6.1
+	google.golang.org/grpc v1.21.1
 	periph.io/x/periph v0.0.0-20190414220951-e529d25a1b86
 )

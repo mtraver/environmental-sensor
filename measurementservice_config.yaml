@@ -1,0 +1,18 @@
+# This file configures Cloud Endpoints to serve the gRPC service MeasurementService.
+
+# The configuration schema is defined by
+# https://github.com/googleapis/googleapis/blob/master/google/api/service.proto
+type: google.api.Service
+config_version: 3
+
+name: measurement.endpoints.PROJECT_ID.cloud.goog
+
+# API title to appear in Cloud Console.
+title: Measurement gRPC API
+apis:
+- name: measurement.MeasurementService
+
+usage:
+  rules:
+  - selector: "*"
+    allow_unregistered_calls: false

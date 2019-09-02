@@ -5,13 +5,38 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"time"
 
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	protoc_descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/golang/protobuf/ptypes"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
+
+func String(m mpb.Measurement) string {
+	var timestamp time.Time
+	if m.GetTimestamp() != nil {
+		var err error
+		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
+		if err != nil {
+			return fmt.Sprintf("error: %v", err)
+		}
+	}
+
+	delay := ""
+	if m.GetUploadTimestamp() != nil {
+		uploadts, err := ptypes.Timestamp(m.GetUploadTimestamp())
+		if err != nil {
+			return fmt.Sprintf("error: %v", err)
+		}
+
+		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
+	}
+
+	return fmt.Sprintf("%s %.3f°C %s%s", m.GetDeviceId(), m.Temp, timestamp.Format(time.RFC3339), delay)
+}
 
 // Validate validates each field of the Measurement against an optional regex provided in the .proto file.
 // It returns nil if all fields are valid and no other errors occurred along the way. Example of how to

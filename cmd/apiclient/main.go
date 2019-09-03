@@ -83,9 +83,11 @@ func main() {
 	}
 	fmt.Printf("%v\n", devices)
 
-	m, err := latest(ctx, client, "room")
-	if err != nil {
-		log.Fatalf("Failed to GetLatest: %v", err)
+	for _, d := range devices.DeviceId {
+		m, err := latest(ctx, client, d)
+		if err != nil {
+			log.Fatalf("Failed to GetLatest for %q: %v", d, err)
+		}
+		fmt.Printf("%v\n", m)
 	}
-	fmt.Printf("%v\n", m)
 }

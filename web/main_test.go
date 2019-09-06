@@ -50,7 +50,7 @@ func TestMeasurementMapToJSON(t *testing.T) {
 					Temp:      18.5,
 				},
 			},
-		}, `[{"id":"bar","values":[{"timestamp":1521997200000,"temp":18.5},{"timestamp":1522083600000,"temp":18.5},{"timestamp":1522170000000,"temp":18.5}]},{"id":"foo","values":[{"timestamp":1521936000000,"temp":18.5},{"timestamp":1522022400000,"temp":18.5},{"timestamp":1522108800000,"temp":18.5}]}]`},
+		}, `[{"id":"bar","values":[{"ts":1521997200000,"t":18.5},{"ts":1522083600000,"t":18.5},{"ts":1522170000000,"t":18.5}]},{"id":"foo","values":[{"ts":1521936000000,"t":18.5},{"ts":1522022400000,"t":18.5},{"ts":1522108800000,"t":18.5}]}]`},
 	}
 
 	for _, c := range cases {

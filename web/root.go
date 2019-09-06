@@ -175,12 +175,13 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // serializableMeasurement is the same as StorableMeasurement except without fields that
-// the frontend doesn't need for plotting data.
+// the frontend doesn't need for plotting data. The JSON keys are also as short as possible,
+// as that reduces the size of the JSON object served to the user.
 // IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
 type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in milliseconds (compare to Timestamp in StorableMeasurement).
-	Timestamp int64   `json:"timestamp,omitempty" datastore:"timestamp"`
-	Temp      float32 `json:"temp,omitempty" datastore:"temp"`
+	Timestamp int64   `json:"ts,omitempty" datastore:"timestamp"`
+	Temp      float32 `json:"t,omitempty" datastore:"temp"`
 }
 
 // measurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled

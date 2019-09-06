@@ -1,8 +1,8 @@
 function multiExtent(data, startTimestamp, endTimestamp) {
   // Get the extent of the values for each device
   var extents = data.map(d => d3.extent(
-    d.values.filter(e => e.timestamp > startTimestamp && e.timestamp < endTimestamp),
-    e => e.temp));
+    d.values.filter(e => e.ts > startTimestamp && e.ts < endTimestamp),
+    e => e.t));
 
   // Flatten the array of extents, and then get the overall extent
   return d3.extent(extents.reduce((acc, val) => acc.concat(val), []), e => e);
@@ -44,13 +44,13 @@ function makePlot(selector, data, startDate, endDate) {
 
   var line = d3.line()
       .curve(d3.curveBasis)
-      .x(function(d) { return x(d.timestamp); })
-      .y(function(d) { return y(d.temp); });
+      .x(function(d) { return x(d.ts); })
+      .y(function(d) { return y(d.t); });
 
   var line2 = d3.line()
       .curve(d3.curveBasis)
-      .x(function(d) { return x2(d.timestamp); })
-      .y(function(d) { return y2(d.temp); });
+      .x(function(d) { return x2(d.ts); })
+      .y(function(d) { return y2(d.t); });
 
   x.domain([startDate, endDate]);
   x2.domain(x.domain());
@@ -60,12 +60,12 @@ function makePlot(selector, data, startDate, endDate) {
     y.domain([
       d3.min(data, function(c) {
         return d3.min(c.values, function(d) {
-          return d.temp;
+          return d.t;
         });
       }),
       d3.max(data, function(c) {
         return d3.max(c.values, function(d) {
-          return d.temp;
+          return d.t;
         });
       })
     ]);

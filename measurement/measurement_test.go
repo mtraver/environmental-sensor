@@ -2,13 +2,12 @@ package measurement
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-
+	"github.com/kylelemons/godebug/pretty"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
@@ -128,8 +127,8 @@ func TestNewStorableMeasurement(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(got, c.sm) {
-				t.Errorf("Got %v, want %v", got, c.sm)
+			if diff := pretty.Compare(got, c.sm); diff != "" {
+				t.Errorf("Unexpected result (-got +want):\n%s", diff)
 			}
 		})
 	}
@@ -151,8 +150,8 @@ func TestNewMeasurement(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(got, c.m) {
-				t.Errorf("Got %v, want %v", got, c.m)
+			if diff := pretty.Compare(got, c.m); diff != "" {
+				t.Errorf("Unexpected result (-got +want):\n%s", diff)
 			}
 		})
 	}

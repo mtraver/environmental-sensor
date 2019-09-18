@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/mtraver/environmental-sensor/measurement"
@@ -118,30 +119,54 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var wg sync.WaitGroup
+
 	// Get measurements and marshal to JSON for use in the template
 	measurements, err := h.Database.Between(ctx, startTime, endTime)
 	jsonBytes := []byte{}
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
 	} else {
-		jsonBytes, err = measurementMapToJSON(measurements)
-		if err != nil {
-			lg.Errorf("Error marshaling measurements to JSON: %v", err)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			start := time.Now()
+
+			jsonBytes, err = measurementMapToJSON(measurements)
+			if err != nil {
+				lg.Errorf("Error marshaling measurements to JSON: %v", err)
+			}
+
+			elapsed := time.Since(start)
+			lg.Infof("Done marshaling measurements to JSON; took %v", elapsed)
+		}()
 	}
 
 	// Get the latest measurement for each device
 	var latest map[string]measurement.StorableMeasurement
-	ids, latestErr := device.GetDeviceIDs(ctx, h.ProjectID, h.IoTCoreRegistry)
-	if latestErr != nil {
-		lg.Errorf("Error getting device IDs: %v", latestErr)
-	} else {
-		latest, latestErr = h.Database.Latest(ctx, ids)
+	var latestErr error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		start := time.Now()
 
+		ids, err := device.GetDeviceIDs(ctx, h.ProjectID, h.IoTCoreRegistry)
+		if err != nil {
+			latestErr = err
+			lg.Errorf("Error getting device IDs: %v", err)
+			return
+		}
+
+		latest, latestErr = h.Database.Latest(ctx, ids)
 		if latestErr != nil {
 			lg.Errorf("Error getting latest measurements: %v", latestErr)
 		}
-	}
+
+		elapsed := time.Since(start)
+		lg.Infof("Done getting latest measurements; took %v", elapsed)
+	}()
+
+	wg.Wait()
 
 	data := struct {
 		Measurements     template.JS

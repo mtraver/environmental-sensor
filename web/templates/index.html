@@ -34,7 +34,6 @@
             <strong>Current temperature</strong>
           </div>
         </div>
-
         <div class="row">
           <div class="col-md-6">
             {{ if .LatestError }}
@@ -46,7 +45,7 @@
                     {{ $id }}
                     <div>
                       <small class="timeago" data-timestamp="{{ RFC3339 $m.Timestamp }}"></small>
-                      <span class="badge badge-primary badge-pill">{{ printf "%.1f" $m.Temp }} &#8451;</span>
+                      <span class="badge badge-primary badge-pill">{{ printf "%.2f" $m.Temp }} &#8451;</span>
                     </div>
                   </li>
                 {{ end }}
@@ -58,7 +57,38 @@
         <div class="row">
           <div class="col-md-11">
             <hr>
-            <strong>Change displayed data</strong>
+            <strong>Stats!</strong>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col">Device</th>
+                  <th scope="col">Range</th>
+                  <th scope="col">&sigma;</th>
+                  <th scope="col">x&#772;</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{ range $id, $s := .Stats }}
+                  <tr>
+                    <th scope="row">{{ $id }}</th>
+                    <td>[{{ printf "%.2f" $s.Min }}, {{ printf "%.2f" $s.Max }}]</td>
+                    <td>{{ printf "%.2f" $s.StdDev }} &#8451;</td>
+                    <td>{{ printf "%.2f" $s.Mean }} &#8451;</td>
+                  </tr>
+                {{ end }}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-11">
+            <hr>
+            <strong>Change data range</strong>
           </div>
         </div>
 

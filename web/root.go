@@ -124,6 +124,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get measurements and marshal to JSON for use in the template
 	measurements, err := h.Database.Between(ctx, startTime, endTime)
 	jsonBytes := []byte{}
+	var stats map[string]Stats
 	if err != nil {
 		lg.Errorf("Error fetching data: %v", err)
 	} else {
@@ -139,6 +140,17 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			elapsed := time.Since(start)
 			lg.Infof("Done marshaling measurements to JSON; took %v", elapsed)
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			start := time.Now()
+
+			stats = summaryStats(measurements)
+
+			elapsed := time.Since(start)
+			lg.Infof("Done computing stats; took %v", elapsed)
 		}()
 	}
 
@@ -170,6 +182,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		Measurements     template.JS
+		Stats            map[string]Stats
 		Error            error
 		StartTime        time.Time
 		EndTime          time.Time
@@ -182,6 +195,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		LatestError      error
 	}{
 		Measurements:     template.JS(jsonBytes),
+		Stats:            stats,
 		Error:            err,
 		StartTime:        startTime,
 		EndTime:          endTime,

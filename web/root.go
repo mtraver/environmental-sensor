@@ -122,7 +122,11 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 
 	// Get measurements and marshal to JSON for use in the template
+	start := time.Now()
 	measurements, err := h.Database.Between(ctx, startTime, endTime)
+	elapsed := time.Since(start)
+	lg.Infof("Done getting measurements; took %v", elapsed)
+
 	jsonBytes := []byte{}
 	var stats map[string]Stats
 	if err != nil {

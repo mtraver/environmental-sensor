@@ -8,9 +8,6 @@ env_variables:
   IOTCORE_REGISTRY: 'TODO'
 
 handlers:
-- url: /favicon\.ico
-  static_files: web/static/images/favicon.ico
-  upload: web/static/images/favicon\.ico
 - url: /static
   static_dir: web/static
   secure: always

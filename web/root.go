@@ -39,12 +39,6 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctx := appengine.NewContext(r)
 
-	lg, err := gaelog.New(r)
-	if err != nil {
-		lg.Errorf("%v", err)
-	}
-	defer lg.Close()
-
 	var daysAgo float64
 	hoursAgo := int(h.DefaultDisplayAge.Round(time.Hour).Hours())
 	endTime := time.Now().UTC()
@@ -125,12 +119,12 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	measurements, err := h.Database.Between(ctx, startTime, endTime)
 	elapsed := time.Since(start)
-	lg.Infof("Done getting measurements; took %v", elapsed)
+	gaelog.Infof(ctx, "Done getting measurements; took %v", elapsed)
 
 	jsonBytes := []byte{}
 	var stats map[string]Stats
 	if err != nil {
-		lg.Errorf("Error fetching data: %v", err)
+		gaelog.Errorf(ctx, "Error fetching data: %v", err)
 	} else {
 		wg.Add(1)
 		go func() {
@@ -139,11 +133,11 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			jsonBytes, err = measurementMapToJSON(measurements)
 			if err != nil {
-				lg.Errorf("Error marshaling measurements to JSON: %v", err)
+				gaelog.Errorf(ctx, "Error marshaling measurements to JSON: %v", err)
 			}
 
 			elapsed := time.Since(start)
-			lg.Infof("Done marshaling measurements to JSON; took %v", elapsed)
+			gaelog.Infof(ctx, "Done marshaling measurements to JSON; took %v", elapsed)
 		}()
 
 		wg.Add(1)
@@ -154,7 +148,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			stats = summaryStats(measurements)
 
 			elapsed := time.Since(start)
-			lg.Infof("Done computing stats; took %v", elapsed)
+			gaelog.Infof(ctx, "Done computing stats; took %v", elapsed)
 		}()
 	}
 
@@ -169,17 +163,17 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ids, err := device.GetDeviceIDs(ctx, h.ProjectID, h.IoTCoreRegistry)
 		if err != nil {
 			latestErr = err
-			lg.Errorf("Error getting device IDs: %v", err)
+			gaelog.Errorf(ctx, "Error getting device IDs: %v", err)
 			return
 		}
 
 		latest, latestErr = h.Database.Latest(ctx, ids)
 		if latestErr != nil {
-			lg.Errorf("Error getting latest measurements: %v", latestErr)
+			gaelog.Errorf(ctx, "Error getting latest measurements: %v", latestErr)
 		}
 
 		elapsed := time.Since(start)
-		lg.Infof("Done getting latest measurements; took %v", elapsed)
+		gaelog.Infof(ctx, "Done getting latest measurements; took %v", elapsed)
 	}()
 
 	wg.Wait()
@@ -213,7 +207,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Template.ExecuteTemplate(w, "index", data); err != nil {
-		lg.Errorf("Could not execute template: %v", err)
+		gaelog.Errorf(ctx, "Could not execute template: %v", err)
 	}
 }
 

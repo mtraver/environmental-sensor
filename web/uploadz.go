@@ -22,18 +22,12 @@ type uploadzHandler struct {
 func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	lg, err := gaelog.New(r)
-	if err != nil {
-		lg.Errorf("%v", err)
-	}
-	defer lg.Close()
-
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-h.DelayedUploadsDur)
 
 	measurements, err := h.Database.DelayedSince(ctx, startTime)
 	if err != nil {
-		lg.Errorf("Error fetching data: %v", err)
+		gaelog.Errorf(ctx, "Error fetching data: %v", err)
 	}
 
 	total := 0
@@ -54,6 +48,6 @@ func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Template.ExecuteTemplate(w, "uploadz", data); err != nil {
-		lg.Errorf("Could not execute template: %v", err)
+		gaelog.Errorf(ctx, "Could not execute template: %v", err)
 	}
 }

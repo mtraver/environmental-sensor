@@ -32,28 +32,22 @@ type pushHandler struct {
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	lg, err := gaelog.New(r)
-	if err != nil {
-		lg.Errorf("%v", err)
-	}
-	defer lg.Close()
-
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
-		lg.Criticalf("Could not decode body: %v\n", err)
+		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	m := &mpb.Measurement{}
 	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
-		lg.Criticalf("Failed to unmarshal protobuf: %v\n", err)
+		gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
 		http.Error(w, fmt.Sprintf("Failed to unmarshal protobuf: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	if err := mpbutil.Validate(m); err != nil {
-		lg.Errorf("%v", err)
+		gaelog.Errorf(ctx, "%v", err)
 
 		// Pub/Sub will only stop re-trying the message if it receives a status 200.
 		// The docs say that any of 200, 201, 202, 204, or 102 will have this effect
@@ -66,7 +60,7 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Database.Save(ctx, m); err != nil {
-		lg.Errorf("Failed to save measurement: %v\n", err)
+		gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
 	}
 
 	w.WriteHeader(http.StatusOK)

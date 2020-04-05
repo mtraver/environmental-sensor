@@ -13,6 +13,7 @@ import (
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
+	"github.com/mtraver/gaelog"
 )
 
 const (
@@ -55,7 +56,9 @@ func main() {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
 
-	http.Handle("/", rootHandler{
+	mux := http.NewServeMux()
+
+	mux.Handle("/", rootHandler{
 		ProjectID: projectID,
 		// This environment variable should be defined in app.yaml.
 		IoTCoreRegistry:   mustGetenv("IOTCORE_REGISTRY"),
@@ -64,15 +67,16 @@ func main() {
 		Template:          templates,
 	})
 
-	http.Handle("/uploadz", uploadzHandler{
+	mux.Handle("/uploadz", uploadzHandler{
 		DelayedUploadsDur: 48 * time.Hour,
 		Database:          database,
 		Template:          templates,
 	})
 
-	http.Handle("/_ah/push-handlers/telemetry", pushHandler{
+	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{
 		Database: database,
 	})
 
+	http.Handle("/", gaelog.Wrap(mux))
 	appengine.Main()
 }

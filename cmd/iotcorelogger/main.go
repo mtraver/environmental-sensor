@@ -3,26 +3,32 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/mtraver/iotcore"
+	cron "github.com/robfig/cron/v3"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
 	"periph.io/x/periph/host"
 
-	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/pending"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+)
+
+const (
+	port = 8080
 )
 
 var (
@@ -32,30 +38,27 @@ var (
 	numSamples     int
 	sampleInterval int
 
+	cronSpec string
+
 	// This directory is where we'll store anything the program needs to persist, like JWTs and
 	// measurements that are pending upload. This is joined with the user's home directory in init.
 	dotDir = ".iotcorelogger"
 
 	// The directory in which to store measurements that failed to publish, e.g. because
-	// the network went down. Publication will be retried later. This is joined with the
-	// user's home directory in init.
-	pendingDir = path.Join(dotDir, "pending")
+	// the network went down. It's used to configure an mqtt.NewFileStore. This is joined
+	// with the user's home directory in init.
+	mqttStoreDir = path.Join(dotDir, "mqtt_store")
 
 	// This is joined with the user's home directory in init.
 	jwtPath = path.Join(dotDir, "iotcorelogger.jwt")
 )
-
-// We don't currently do anything with configs from the server
-// func configHandler(client mqtt.Client, msg mqtt.Message) {
-// 	log.Printf("config handler: topic: %v\n", msg.Topic())
-// 	log.Printf("config handler: tayload: %v\n", msg.Payload())
-// }
 
 func init() {
 	flag.StringVar(&deviceFilePath, "device", "", "path to a file containing a JSON-encoded Device struct (see github.com/mtraver/iotcore)")
 	flag.StringVar(&caCerts, "cacerts", "", "Path to a set of trustworthy CA certs.\nDownload Google's from https://pki.google.com/roots.pem.")
 	flag.IntVar(&numSamples, "numsamples", 3, "number of samples to take")
 	flag.IntVar(&sampleInterval, "interval", 1, "number of seconds to wait between samples")
+	flag.StringVar(&cronSpec, "cronspec", "", "cron spec that specifies when to take and publish measurements")
 
 	// Update directory and file paths by joining them to the user's home directory.
 	home, err := homedir.Dir()
@@ -63,11 +66,11 @@ func init() {
 		log.Fatalf("Failed to get home dir: %v", err)
 	}
 	dotDir = path.Join(home, dotDir)
-	pendingDir = path.Join(home, pendingDir)
+	mqttStoreDir = path.Join(home, mqttStoreDir)
 	jwtPath = path.Join(home, jwtPath)
 
 	// Make all directories required by the program.
-	dirs := []string{dotDir, pendingDir}
+	dirs := []string{dotDir, mqttStoreDir}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0700); err != nil {
 			log.Fatalf("Failed to make dir %s: %v", dir, err)
@@ -94,6 +97,10 @@ func parseFlags() error {
 		return fmt.Errorf("interval must be > 0")
 	}
 
+	if cronSpec == "" {
+		return fmt.Errorf("cronspec flag must be given")
+	}
+
 	return nil
 }
 
@@ -106,24 +113,43 @@ func mean(s []physic.Temperature) float32 {
 	return float32(sum / float64(len(s)))
 }
 
-func save(m *mpb.Measurement) {
-	if err := pending.Save(m, pendingDir); err != nil {
-		log.Printf("Failed to save measurement: %v", err)
+func takeMeasurement(sensor *mcp9808.Dev, device iotcore.Device) (*mpb.Measurement, error) {
+	// Read the temp and construct a protobuf.
+	temps, err := readTempMulti(sensor, numSamples, time.Duration(sampleInterval)*time.Second)
+	if err != nil {
+		return nil, err
 	}
+	timepb, err := ptypes.TimestampProto(time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	m := &mpb.Measurement{
+		DeviceId:  device.DeviceID,
+		Timestamp: timepb,
+		Temp:      mean(temps),
+	}
+
+	return m, nil
 }
 
-func parseDeviceFile(filepath string) (iotcore.Device, error) {
-	b, err := ioutil.ReadFile(filepath)
+func publishMeasurement(client mqtt.Client, device iotcore.Device, m *mpb.Measurement) error {
+	// Marshal to bytes for publication.
+	pbBytes, err := proto.Marshal(m)
 	if err != nil {
-		return iotcore.Device{}, err
+		return err
 	}
 
-	var device iotcore.Device
-	if err := json.Unmarshal(b, &device); err != nil {
-		return iotcore.Device{}, err
+	waitDur := 10 * time.Second
+	token := client.Publish(device.TelemetryTopic(), 1, false, pbBytes)
+	if ok := token.WaitTimeout(waitDur); !ok {
+		// Timed out.
+		return fmt.Errorf("publish timed out after %v", waitDur)
+	} else if token.Error() != nil {
+		// Finished before timeout but failed to publish.
+		return fmt.Errorf("failed to publish: %v", token.Error())
 	}
 
-	return device, nil
+	return nil
 }
 
 func main() {
@@ -137,16 +163,21 @@ func main() {
 		log.Fatalf("Failed to parse device file: %v", err)
 	}
 
-	certsFile, err := os.Open(caCerts)
+	client, err := mqttConnect(device)
 	if err != nil {
-		log.Fatalf("Failed to open certs file: %v", err)
+		log.Fatal(err)
 	}
-	defer certsFile.Close()
 
-	client, err := device.NewClient(iotcore.DefaultBroker, certsFile, iotcore.PersistentlyCacheJWT(60*time.Minute, jwtPath))
-	if err != nil {
-		log.Fatalf("Failed to make MQTT client: %v", err)
-	}
+	// If the program is killed, disconnect from the MQTT server.
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Cleaning up...")
+		client.Disconnect(250)
+		time.Sleep(500 * time.Millisecond)
+		os.Exit(1)
+	}()
 
 	// Initialize periph.
 	if _, err := host.Init(); err != nil {
@@ -165,60 +196,27 @@ func main() {
 		log.Fatalf("Failed to initialize MCP9808: %v", err)
 	}
 
-	// Read the temp, construct a protobuf, and marshal it to bytes.
-	temps, err := readTempMulti(sensor, numSamples, time.Duration(sampleInterval)*time.Second)
-	if err != nil {
-		log.Fatal(err)
-	}
-	timepb, err := ptypes.TimestampProto(time.Now().UTC())
-	if err != nil {
-		log.Fatal(err)
-	}
-	m := &mpb.Measurement{
-		DeviceId:  device.DeviceID,
-		Timestamp: timepb,
-		Temp:      mean(temps),
-	}
-	pbBytes, err := proto.Marshal(m)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Attempt to connect using the MQTT client. If it fails, save the Measurement for later publication.
-	waitDur := 10 * time.Second
-	token := client.Connect()
-	if ok := token.WaitTimeout(waitDur); !ok {
-		// Timed out. Save the Measurement to retry later.
-		save(m)
-
-		log.Fatalf("MQTT connection attempt timed out after %v", waitDur)
-	} else if token.Error() != nil {
-		// Finished before the timeout but failed to connect. Save the Measurement to retry later.
-		save(m)
-
-		log.Fatalf("Failed to connect to MQTT server: %v", token.Error())
-	}
-
-	// We don't currently do anything with configs from the server.
-	// client.Subscribe(device.ConfigTopic(), 1, configHandler)
-
-	token = client.Publish(device.TelemetryTopic(), 1, false, pbBytes)
-	if ok := token.WaitTimeout(waitDur); !ok {
-		// Timed out. Save the Measurement to retry later.
-		log.Printf("Publish timed out after %v", waitDur)
-		save(m)
-	} else if token.Error() != nil {
-		// Finished before timeout but failed to publish. Save the Measurement to retry later.
-		log.Printf("Failed to publish: %v", token.Error())
-		save(m)
-	} else {
-		// Publish succeeded, so attempt to publish any pending measurements.
-		if err := pending.PublishAll(client, device.TelemetryTopic(), pendingDir); err != nil {
-			log.Printf("Failed to publish all pending measurements: %v", err)
+	// Schedule the measurement publication routine.
+	cr := cron.New()
+	log.Printf("Starting cron scheduler with spec %q", cronSpec)
+	cr.AddFunc(cronSpec, func() {
+		m, err := takeMeasurement(sensor, device)
+		if err != nil {
+			log.Printf("Failed to take measurement: %v", err)
+			return
 		}
+
+		if err := publishMeasurement(client, device, m); err != nil {
+			log.Printf("Failed to publish measurement: %v", err)
+		}
+	})
+	cr.Start()
+
+	// Start up a web server that provides basic info about the device.
+	http.Handle("/", indexHandler{
+		device: device,
+	})
+	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil); err != nil {
+		log.Fatal(err)
 	}
-
-	client.Disconnect(250)
-
-	time.Sleep(500 * time.Millisecond)
 }

@@ -1,0 +1,16 @@
+# /lib/systemd/system/iotcorelogger.service
+# sudo systemctl enable iotcorelogger.service
+[Unit]
+Description=iotcorelogger
+ConditionPathExists=/home/pi/iotcorelogger
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=2
+User=pi
+Group=pi
+ExecStart=/home/pi/iotcorelogger -device /home/pi/iotcore_credentials/device.json -cacerts /home/pi/roots.pem -cronspec '*/2 * * * *'
+
+[Install]
+WantedBy=multi-user.target

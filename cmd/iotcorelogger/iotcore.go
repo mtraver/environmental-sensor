@@ -6,11 +6,21 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/mtraver/iotcore"
 )
+
+const (
+	certExtension = ".x509"
+)
+
+func certPath(keyPath string) string {
+	ext := path.Ext(keyPath)
+	return keyPath[:len(keyPath)-len(ext)] + certExtension
+}
 
 func parseDeviceFile(filepath string) (iotcore.Device, error) {
 	b, err := ioutil.ReadFile(filepath)
@@ -21,6 +31,14 @@ func parseDeviceFile(filepath string) (iotcore.Device, error) {
 	var device iotcore.Device
 	if err := json.Unmarshal(b, &device); err != nil {
 		return iotcore.Device{}, err
+	}
+
+	if device.DeviceID == "" {
+		deviceID, err := iotcore.DeviceIDFromCert(certPath(device.PrivKeyPath))
+		if err != nil {
+			return iotcore.Device{}, err
+		}
+		device.DeviceID = deviceID
 	}
 
 	return device, nil

@@ -4,10 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -18,9 +16,9 @@ var (
 	pbTimestamp2   = mustTimestampProto(testTimestamp2)
 )
 
-func mustTimestampProto(t time.Time) *timestamp.Timestamp {
-	pbts, err := ptypes.TimestampProto(t)
-	if err != nil {
+func mustTimestampProto(t time.Time) *tspb.Timestamp {
+	pbts := tspb.New(t)
+	if err := pbts.CheckValid(); err != nil {
 		panic(err)
 	}
 
@@ -52,8 +50,9 @@ func TestValidate(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			m := getMeasurement(t, c.id)
-			if valid := Validate(m) == nil; valid != c.valid {
-				t.Errorf("Measurement valid is %v, expected %v", valid, c.valid)
+			err := Validate(m)
+			if valid := err == nil; valid != c.valid {
+				t.Errorf("got valid = %t, want %t (err = %v)", valid, c.valid, err)
 			}
 		})
 	}

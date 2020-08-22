@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/kylelemons/godebug/pretty"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -66,9 +65,9 @@ var (
 	}
 )
 
-func mustTimestampProto(t time.Time) *timestamp.Timestamp {
-	pbts, err := ptypes.TimestampProto(t)
-	if err != nil {
+func mustTimestampProto(t time.Time) *tspb.Timestamp {
+	pbts := tspb.New(t)
+	if err := pbts.CheckValid(); err != nil {
 		panic(err)
 	}
 

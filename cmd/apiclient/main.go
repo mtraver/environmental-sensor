@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
@@ -24,7 +24,7 @@ var (
 func devices(ctx context.Context, client mpb.MeasurementServiceClient) (*mpb.GetDevicesResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	return client.GetDevices(ctx, &empty.Empty{})
+	return client.GetDevices(ctx, &emptypb.Empty{})
 }
 
 func latest(ctx context.Context, client mpb.MeasurementServiceClient, deviceID string) (*mpb.Measurement, error) {

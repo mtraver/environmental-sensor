@@ -3,34 +3,23 @@ package measurementpbutil
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 	"time"
 
-	"github.com/golang/protobuf/descriptor"
-	"github.com/golang/protobuf/proto"
-	protoc_descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"github.com/golang/protobuf/ptypes"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func String(m mpb.Measurement) string {
 	var timestamp time.Time
 	if m.GetTimestamp() != nil {
-		var err error
-		timestamp, err = ptypes.Timestamp(m.GetTimestamp())
-		if err != nil {
-			return fmt.Sprintf("error: %v", err)
-		}
+		timestamp = m.GetTimestamp().AsTime()
 	}
 
 	delay := ""
 	if m.GetUploadTimestamp() != nil {
-		uploadts, err := ptypes.Timestamp(m.GetUploadTimestamp())
-		if err != nil {
-			return fmt.Sprintf("error: %v", err)
-		}
+		uploadts := m.GetUploadTimestamp().AsTime()
 
 		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
 	}
@@ -43,72 +32,47 @@ func String(m mpb.Measurement) string {
 // provide a regex in a .proto file:
 //   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
 func Validate(m *mpb.Measurement) error {
-	_, msgDesc := descriptor.ForMessage(m)
-	for _, f := range msgDesc.GetField() {
-		options := f.GetOptions()
-		if options == nil {
-			continue
-		}
-
-		regexExt, err := proto.GetExtension(options, mpb.E_Regex)
-		if err == proto.ErrMissingExtension {
-			// The field doesn't have the regex extension, so nothing to validate
-			continue
-		} else if err != nil {
-			return err
-		}
-
-		// A field validated with a regex must be a string, but reflect.Value's
-		// String method doesn't panic if the value isn't a string, so check it.
-		field := getField(m, f)
-		if field.Kind() != reflect.String {
-			panic(fmt.Sprintf("Field is not a string: %q", f.GetName()))
-		}
-
-		regex := regexp.MustCompile(*regexExt.(*string))
-		if !regex.MatchString(field.String()) {
-			return fmt.Errorf("Field failed regex validation. Field: %q Value: %q Regex: %q", f.GetName(), field.String(), regex)
-		}
+	// First validate any required fields because protoreflect.Message.Range only
+	// iterates over "populated" fields. From the documentation on Range:
+	//
+	//   "Range iterates over every populated field in an undefined order,
+	//   calling f for each field descriptor and value encountered."
+	//
+	// But for proto3 what does "populated" even mean? There's no longer any notion
+	// of required fields, and the zero value of a field may be a perfectly valid
+	// value. Why should the fact that the field contains the zero value mean that
+	// the caller doesn't get to operate on it?
+	//
+	// In this case the regex could fail the empty string if it so chose, but we don't
+	// get to do that because a field containing the empty string isn't "populated".
+	if m.GetDeviceId() == "" {
+		return fmt.Errorf("measurementpbutil: field \"device_id\" is required")
 	}
 
-	return nil
-}
-
-// getField returns the field of the Measurement corresponding to the given FieldDescriptorProto.
-// This is a rather ugly operation since it's not supported by the protobuf API; it has to be done
-// via reflection. See the following GitHub issues, the first of which provided the code on which
-// this method is based:
-//
-//   "What is the idiomatic way to get the corresponding struct field for a FieldDescriptorProto?"
-//     https://github.com/golang/protobuf/issues/457
-//
-//   "proto: make the Message interface behaviorally complete"
-//     https://github.com/golang/protobuf/issues/364
-func getField(m *mpb.Measurement, fd *protoc_descriptor.FieldDescriptorProto) reflect.Value {
-	messageVal := reflect.ValueOf(*m)
-	props := proto.GetProperties(reflect.TypeOf(m).Elem())
-
-	var field reflect.Value
-	for _, p := range props.Prop {
-		if int32(p.Tag) == fd.GetNumber() {
-			field = messageVal.FieldByName(p.Name)
-			break
+	var retErr error
+	r := m.ProtoReflect()
+	r.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		options := fd.Options()
+		if !proto.HasExtension(options, mpb.E_Regex) {
+			// The field doesn't have the regex extension, so nothing to validate.
+			return true
 		}
-	}
 
-	if !field.IsValid() {
-		// Must be a oneof if not found in the regular fields above
-		for _, oneof := range props.OneofTypes {
-			if int32(oneof.Prop.Tag) == fd.GetNumber() {
-				field = messageVal.Field(oneof.Field).Elem().FieldByName(oneof.Prop.Name)
-				break
-			}
+		// A field validated with a regex must be a string.
+		if fd.Kind() != protoreflect.StringKind {
+			panic(fmt.Sprintf("measurementpbutil: field is not a string: %q", fd.Name()))
 		}
-	}
 
-	if !field.IsValid() {
-		panic(fmt.Sprintf("Cannot find struct field for proto field name %q, number/tag %d", fd.GetName(), fd.GetNumber()))
-	}
+		// We know the value of this extension to be a string.
+		ext := proto.GetExtension(options, mpb.E_Regex)
+		re := regexp.MustCompile(ext.(string))
 
-	return field
+		if !re.MatchString(v.String()) {
+			retErr = fmt.Errorf("measurementpbutil: field failed regex validation. Field: %q Value: %q Regex: %q", fd.Name(), v.String(), re)
+		}
+
+		return true
+	})
+
+	return retErr
 }

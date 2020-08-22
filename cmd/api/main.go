@@ -10,13 +10,12 @@ import (
 	"os"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/golang/protobuf/ptypes/empty"
-	"google.golang.org/grpc"
-
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/environmental-sensor/web/device"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -32,12 +31,13 @@ type Database interface {
 }
 
 type apiServer struct {
+	mpb.UnimplementedMeasurementServiceServer
 	projectID  string
 	registryID string
 	database   Database
 }
 
-func (s *apiServer) GetDevices(ctx context.Context, in *empty.Empty) (*mpb.GetDevicesResponse, error) {
+func (s *apiServer) GetDevices(ctx context.Context, in *emptypb.Empty) (*mpb.GetDevicesResponse, error) {
 	devices, err := device.GetDevices(ctx, s.projectID, s.registryID)
 	if err != nil {
 		return nil, err

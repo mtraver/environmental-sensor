@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/appengine/memcache"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"google.golang.org/appengine/memcache"
+	"google.golang.org/protobuf/proto"
 )
 
 var ErrCacheMiss = errors.New("cache: cache miss")

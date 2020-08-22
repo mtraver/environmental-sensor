@@ -10,14 +10,13 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
+	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"google.golang.org/protobuf/proto"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
 	"periph.io/x/periph/host"
-
-	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
 
 var (
@@ -46,8 +45,8 @@ func parseFlags() error {
 }
 
 func makeProto(temp physic.Temperature) (*mpb.Measurement, error) {
-	timepb, err := ptypes.TimestampProto(time.Now().UTC())
-	if err != nil {
+	timepb := tspb.New(time.Now().UTC())
+	if err := timepb.CheckValid(); err != nil {
 		return nil, err
 	}
 

@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/mtraver/gaelog"
-	"google.golang.org/appengine"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
+	"github.com/mtraver/gaelog"
+	"google.golang.org/appengine"
+	"google.golang.org/protobuf/proto"
 )
 
 // This is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.

@@ -13,10 +13,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"google.golang.org/protobuf/proto"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const usageStr = `usage: %v csv_file project_id topic_id device_id
@@ -82,8 +81,8 @@ func lineToProto(line []string, deviceID string) (*mpb.Measurement, error) {
 	if err != nil {
 		return nil, err
 	}
-	timestampProto, err := ptypes.TimestampProto(timestamp)
-	if err != nil {
+	timestampProto := tspb.New(timestamp)
+	if err := timestampProto.CheckValid(); err != nil {
 		return nil, err
 	}
 

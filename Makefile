@@ -32,7 +32,15 @@ apiclient:
 #   --python_out=client_python/loggers
 .PHONY: proto
 proto:
-	protoc --include_imports --include_source_info --descriptor_set_out=measurementpb/measurement.pb.descriptor --go_out=plugins=grpc:measurementpb measurement.proto
+	# Get protoc from https://github.com/protocolbuffers/protobuf/releases
+	# Install the Go and Go gRPC plugins like this:
+	#   go install google.golang.org/protobuf/cmd/protoc-gen-go
+	#   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	protoc --include_imports --include_source_info \
+	  --descriptor_set_out=measurementpb/measurement.pb.descriptor \
+	  --go_out=module=github.com/mtraver/environmental-sensor:. \
+	  --go-grpc_out=module=github.com/mtraver/environmental-sensor:. \
+	  measurement.proto
 
 clean:
 	rm -rf $(OUT_DIR)

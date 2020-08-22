@@ -5,10 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	tspb "github.com/golang/protobuf/ptypes/timestamp"
-
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Used for separating substrings in database keys. The octothorpe is fine for this because
@@ -36,21 +34,24 @@ type StorableMeasurement struct {
 func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 	// This will return an error if the timestamp is nil, which is good, because
 	// we want to enforce non-nil timestamps.
-	timestamp, err := ptypes.Timestamp(m.GetTimestamp())
-	if err != nil {
+	if m.GetTimestamp() == nil {
+		return StorableMeasurement{}, fmt.Errorf("measurement: nil timestamp")
+	}
+	if err := m.GetTimestamp().CheckValid(); err != nil {
 		return StorableMeasurement{}, err
 	}
+	timestamp := m.GetTimestamp().AsTime()
 
-	// The generated protobuf code uses a pointer to ptypes' timestamp.Timestamp, but in
-	// StorableMeasurement we use golang's time.Time. If the protobuf field is nil then
-	// use the zero value of time.Time. cloud.google.com/go/datastore calls IsZero() on
-	// time.Time values so omitempty does work.
+	// The generated protobuf code uses a pointer to tspb.Timestamp, but in StorableMeasurement
+	// we use golang's time.Time. If the protobuf field is nil then use the zero value of time.Time.
+	// cloud.google.com/go/datastore calls IsZero() on time.Time values so omitempty does work.
 	var uploadTimestamp time.Time
 	pbUploadTimestamp := m.GetUploadTimestamp()
 	if pbUploadTimestamp != nil {
-		if uploadTimestamp, err = ptypes.Timestamp(pbUploadTimestamp); err != nil {
+		if err := pbUploadTimestamp.CheckValid(); err != nil {
 			return StorableMeasurement{}, err
 		}
+		uploadTimestamp = pbUploadTimestamp.AsTime()
 	}
 
 	return StorableMeasurement{
@@ -70,18 +71,13 @@ func NewMeasurement(m *StorableMeasurement) (mpb.Measurement, error) {
 		return mpb.Measurement{}, ErrZeroTimestamp
 	}
 
-	timestamp, err := ptypes.TimestampProto(m.Timestamp)
-	if err != nil {
-		return mpb.Measurement{}, err
-	}
+	timestamp := tspb.New(m.Timestamp)
 
 	// The upload timestamp may be the zero timestamp. If it is, then the upload timestamp
 	// should be nil in the generated Measurement type.
 	var uploadTimestamp *tspb.Timestamp
 	if !m.UploadTimestamp.IsZero() {
-		if uploadTimestamp, err = ptypes.TimestampProto(m.UploadTimestamp); err != nil {
-			return mpb.Measurement{}, err
-		}
+		uploadTimestamp = tspb.New(m.UploadTimestamp)
 	}
 
 	return mpb.Measurement{

@@ -25,10 +25,10 @@ type StorableMeasurement struct {
 	DeviceID        string    `json:"device_id,omitempty" datastore:"device_id"`
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
-	Temp            *float32  `json:"temp,omitempty" datastore:"temp"`
-	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25"`
-	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10"`
-	RH              *float32  `json:"rh,omitempty" datastore:"rh"`
+	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty"`
+	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty"`
+	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty"`
+	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty"`
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,

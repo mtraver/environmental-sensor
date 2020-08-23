@@ -217,11 +217,11 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
 type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in milliseconds (compare to Timestamp in StorableMeasurement).
-	Timestamp int64    `json:"ts,omitempty" datastore:"timestamp"`
-	Temp      *float32 `json:"t,omitempty" datastore:"temp"`
-	PM25      *float32 `json:"p25,omitempty" datastore:"pm25"`
-	PM10      *float32 `json:"p10,omitempty" datastore:"pm10"`
-	RH        *float32 `json:"h,omitempty" datastore:"rh"`
+	Timestamp int64    `json:"ts,omitempty"`
+	Temp      *float32 `json:"t,omitempty"`
+	PM25      *float32 `json:"p25,omitempty"`
+	PM10      *float32 `json:"p10,omitempty"`
+	RH        *float32 `json:"h,omitempty"`
 }
 
 // measurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled

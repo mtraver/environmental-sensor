@@ -7,12 +7,12 @@ import (
 func Mean(measurements []StorableMeasurement) float32 {
 	var sum float64
 	var count int
-	for _, m := range measurements {
-		if m.Temp == nil {
+	for _, sm := range measurements {
+		if sm.Temp == nil {
 			continue
 		}
 
-		sum += float64(*m.Temp)
+		sum += float64(*sm.Temp)
 		count++
 	}
 
@@ -24,12 +24,12 @@ func StdDev(measurements []StorableMeasurement) float32 {
 
 	var sum float64
 	var count int
-	for _, m := range measurements {
-		if m.Temp == nil {
+	for _, sm := range measurements {
+		if sm.Temp == nil {
 			continue
 		}
 
-		sum += math.Pow(float64(*m.Temp-avg), 2)
+		sum += math.Pow(float64(*sm.Temp-avg), 2)
 		count++
 	}
 
@@ -38,13 +38,13 @@ func StdDev(measurements []StorableMeasurement) float32 {
 
 func Min(measurements []StorableMeasurement) float32 {
 	var x float32 = math.MaxFloat32
-	for _, m := range measurements {
-		if m.Temp == nil {
+	for _, sm := range measurements {
+		if sm.Temp == nil {
 			continue
 		}
 
-		if *m.Temp < x {
-			x = *m.Temp
+		if *sm.Temp < x {
+			x = *sm.Temp
 		}
 	}
 
@@ -53,13 +53,13 @@ func Min(measurements []StorableMeasurement) float32 {
 
 func Max(measurements []StorableMeasurement) float32 {
 	var x float32 = -math.MaxFloat32
-	for _, m := range measurements {
-		if m.Temp == nil {
+	for _, sm := range measurements {
+		if sm.Temp == nil {
 			continue
 		}
 
-		if *m.Temp > x {
-			x = *m.Temp
+		if *sm.Temp > x {
+			x = *sm.Temp
 		}
 	}
 

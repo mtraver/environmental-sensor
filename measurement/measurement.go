@@ -26,6 +26,9 @@ type StorableMeasurement struct {
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
 	Temp            *float32  `json:"temp,omitempty" datastore:"temp"`
+	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25"`
+	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10"`
+	RH              *float32  `json:"rh,omitempty" datastore:"rh"`
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
@@ -57,8 +60,26 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 
 	var temp *float32
 	if m.GetTemp() != nil {
-		t := m.GetTemp().GetValue()
-		temp = &t
+		v := m.GetTemp().GetValue()
+		temp = &v
+	}
+
+	var pm25 *float32
+	if m.GetPm25() != nil {
+		v := m.GetPm25().GetValue()
+		pm25 = &v
+	}
+
+	var pm10 *float32
+	if m.GetPm10() != nil {
+		v := m.GetPm10().GetValue()
+		pm10 = &v
+	}
+
+	var rh *float32
+	if m.GetRh() != nil {
+		v := m.GetRh().GetValue()
+		rh = &v
 	}
 
 	return StorableMeasurement{
@@ -66,6 +87,9 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
 		Temp:            temp,
+		PM25:            pm25,
+		PM10:            pm10,
+		RH:              rh,
 	}, nil
 }
 
@@ -92,11 +116,29 @@ func NewMeasurement(sm *StorableMeasurement) (mpb.Measurement, error) {
 		temp = wpb.Float(*sm.Temp)
 	}
 
+	var pm25 *wpb.FloatValue
+	if sm.PM25 != nil {
+		pm25 = wpb.Float(*sm.PM25)
+	}
+
+	var pm10 *wpb.FloatValue
+	if sm.PM10 != nil {
+		pm10 = wpb.Float(*sm.PM10)
+	}
+
+	var rh *wpb.FloatValue
+	if sm.RH != nil {
+		rh = wpb.Float(*sm.RH)
+	}
+
 	return mpb.Measurement{
 		DeviceId:        sm.DeviceID,
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
 		Temp:            temp,
+		Pm25:            pm25,
+		Pm10:            pm10,
+		Rh:              rh,
 	}, nil
 }
 

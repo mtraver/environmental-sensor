@@ -219,6 +219,9 @@ type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in milliseconds (compare to Timestamp in StorableMeasurement).
 	Timestamp int64    `json:"ts,omitempty" datastore:"timestamp"`
 	Temp      *float32 `json:"t,omitempty" datastore:"temp"`
+	PM25      *float32 `json:"p25,omitempty" datastore:"pm25"`
+	PM10      *float32 `json:"p10,omitempty" datastore:"pm10"`
+	RH        *float32 `json:"h,omitempty" datastore:"rh"`
 }
 
 // measurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled
@@ -246,8 +249,15 @@ func measurementMapToJSON(measurements map[string][]measurement.StorableMeasurem
 	var data []dataForTemplate
 	for _, k := range keys {
 		vals := make([]serializableMeasurement, len(measurements[k]))
-		for i, m := range measurements[k] {
-			vals[i] = serializableMeasurement{m.Timestamp.Unix() * 1000, m.Temp}
+		for i, sm := range measurements[k] {
+			// IMPORTANT: Keep up to date with serializableMeasurement.
+			vals[i] = serializableMeasurement{
+				Timestamp: sm.Timestamp.Unix() * 1000,
+				Temp:      sm.Temp,
+				PM25:      sm.PM25,
+				PM10:      sm.PM10,
+				RH:        sm.RH,
+			}
 		}
 		data = append(data, dataForTemplate{k, vals})
 	}

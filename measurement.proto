@@ -15,6 +15,9 @@ message Measurement {
   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
   google.protobuf.Timestamp timestamp = 2;
   google.protobuf.FloatValue temp = 3;
+  google.protobuf.FloatValue pm25 = 5;
+  google.protobuf.FloatValue pm10 = 6;
+  google.protobuf.FloatValue rh = 7;
 
   // This field should only be set when the measurement is not uploaded
   // immediately after it is taken, e.g. if the network goes down and

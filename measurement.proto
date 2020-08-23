@@ -5,6 +5,7 @@ option go_package = "github.com/mtraver/environmental-sensor/measurementpb";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 extend google.protobuf.FieldOptions {
   string regex = 50000;
@@ -13,7 +14,7 @@ extend google.protobuf.FieldOptions {
 message Measurement {
   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
   google.protobuf.Timestamp timestamp = 2;
-  float temp = 3;
+  google.protobuf.FloatValue temp = 3;
 
   // This field should only be set when the measurement is not uploaded
   // immediately after it is taken, e.g. if the network goes down and

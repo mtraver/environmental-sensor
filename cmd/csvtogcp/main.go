@@ -16,6 +16,7 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const usageStr = `usage: %v csv_file project_id topic_id device_id
@@ -94,7 +95,7 @@ func lineToProto(line []string, deviceID string) (*mpb.Measurement, error) {
 	m := &mpb.Measurement{
 		DeviceId:  deviceID,
 		Timestamp: timestampProto,
-		Temp:      mean(temps),
+		Temp:      wpb.Float(mean(temps)),
 	}
 
 	return m, nil

@@ -106,7 +106,7 @@ func TestLineToProtoValid(t *testing.T) {
 		t.Errorf("Device ID Expected to be %q, got %q", deviceID, m.GetDeviceId())
 	}
 
-	if !floatsEqual(m.GetTemp(), 18.366667) {
+	if !floatsEqual(m.GetTemp().GetValue(), 18.366667) {
 		t.Errorf("Expected 18.366667, got %v", m.GetTemp())
 	}
 }

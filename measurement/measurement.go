@@ -7,6 +7,7 @@ import (
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // Used for separating substrings in database keys. The octothorpe is fine for this because
@@ -24,7 +25,7 @@ type StorableMeasurement struct {
 	DeviceID        string    `json:"device_id,omitempty" datastore:"device_id"`
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
-	Temp            float32   `json:"temp,omitempty" datastore:"temp"`
+	Temp            *float32  `json:"temp,omitempty" datastore:"temp"`
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
@@ -54,11 +55,17 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 		uploadTimestamp = pbUploadTimestamp.AsTime()
 	}
 
+	var temp *float32
+	if m.GetTemp() != nil {
+		t := m.GetTemp().GetValue()
+		temp = &t
+	}
+
 	return StorableMeasurement{
 		DeviceID:        m.GetDeviceId(),
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
-		Temp:            m.GetTemp(),
+		Temp:            temp,
 	}, nil
 }
 
@@ -80,11 +87,16 @@ func NewMeasurement(m *StorableMeasurement) (mpb.Measurement, error) {
 		uploadTimestamp = tspb.New(m.UploadTimestamp)
 	}
 
+	var temp *wpb.FloatValue
+	if m.Temp != nil {
+		temp = wpb.Float(*m.Temp)
+	}
+
 	return mpb.Measurement{
 		DeviceId:        m.DeviceID,
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
-		Temp:            m.Temp,
+		Temp:            temp,
 	}, nil
 }
 
@@ -99,5 +111,9 @@ func (m StorableMeasurement) String() string {
 		delay = fmt.Sprintf(" (%v upload delay)", m.UploadTimestamp.Sub(m.Timestamp))
 	}
 
-	return fmt.Sprintf("%s %.3f°C %s%s", m.DeviceID, m.Temp, m.Timestamp.Format(time.RFC3339), delay)
+	tStr := "[unknown]"
+	if m.Temp != nil {
+		tStr = fmt.Sprintf("%.3f°C", *m.Temp)
+	}
+	return fmt.Sprintf("%s %s %s%s", m.DeviceID, tStr, m.Timestamp.Format(time.RFC3339), delay)
 }

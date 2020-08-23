@@ -6,6 +6,7 @@ import (
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var (
@@ -30,7 +31,7 @@ func getMeasurement(t *testing.T, deviceID string) *mpb.Measurement {
 	return &mpb.Measurement{
 		DeviceId:  deviceID,
 		Timestamp: pbTimestamp,
-		Temp:      18.5,
+		Temp:      wpb.Float(18.5),
 	}
 }
 
@@ -64,12 +65,12 @@ func TestString(t *testing.T) {
 		m    mpb.Measurement
 		want string
 	}{
-		{"empty", mpb.Measurement{}, " 0.000°C 0001-01-01T00:00:00Z"},
+		{"empty", mpb.Measurement{}, " [unknown] 0001-01-01T00:00:00Z"},
 		{"no_upload_timestamp",
 			mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: pbTimestamp,
-				Temp:      18.3748,
+				Temp:      wpb.Float(18.3748),
 			},
 			"foo 18.375°C 2018-03-25T00:00:00Z",
 		},
@@ -78,7 +79,7 @@ func TestString(t *testing.T) {
 				DeviceId:        "foo",
 				Timestamp:       pbTimestamp,
 				UploadTimestamp: pbTimestamp2,
-				Temp:            18.3748,
+				Temp:            wpb.Float(18.3748),
 			},
 			"foo 18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
 		},

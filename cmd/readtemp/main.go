@@ -13,6 +13,7 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
@@ -53,7 +54,7 @@ func makeProto(temp physic.Temperature) (*mpb.Measurement, error) {
 	return &mpb.Measurement{
 		DeviceId:  "none",
 		Timestamp: timepb,
-		Temp:      float32(temp.Celsius()),
+		Temp:      wpb.Float(float32(temp.Celsius())),
 	}, nil
 }
 

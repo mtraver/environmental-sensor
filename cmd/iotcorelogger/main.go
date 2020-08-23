@@ -20,6 +20,7 @@ import (
 	cron "github.com/robfig/cron/v3"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/conn/physic"
 	"periph.io/x/periph/experimental/devices/mcp9808"
@@ -125,7 +126,7 @@ func takeMeasurement(sensor *mcp9808.Dev, device iotcore.Device) (*mpb.Measureme
 	m := &mpb.Measurement{
 		DeviceId:  device.DeviceID,
 		Timestamp: timepb,
-		Temp:      mean(temps),
+		Temp:      wpb.Float(mean(temps)),
 	}
 
 	return m, nil

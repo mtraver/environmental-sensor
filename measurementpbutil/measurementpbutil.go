@@ -24,7 +24,11 @@ func String(m mpb.Measurement) string {
 		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
 	}
 
-	return fmt.Sprintf("%s %.3f°C %s%s", m.GetDeviceId(), m.Temp, timestamp.Format(time.RFC3339), delay)
+	tStr := "[unknown]"
+	if m.GetTemp() != nil {
+		tStr = fmt.Sprintf("%.3f°C", m.GetTemp().GetValue())
+	}
+	return fmt.Sprintf("%s %s %s%s", m.GetDeviceId(), tStr, timestamp.Format(time.RFC3339), delay)
 }
 
 // Validate validates each field of the Measurement against an optional regex provided in the .proto file.

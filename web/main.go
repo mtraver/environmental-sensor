@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -48,6 +49,12 @@ func main() {
 			},
 			"RFC3339": func(t time.Time) string {
 				return t.Format(time.RFC3339)
+			},
+			"PrintfPtr": func(format string, f *float32) string {
+				if f == nil {
+					return "null"
+				}
+				return fmt.Sprintf(format, *f)
 			},
 		}).ParseGlob("web/templates/*"))
 

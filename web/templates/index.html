@@ -45,7 +45,7 @@
                     {{ $id }}
                     <div>
                       <small class="timeago" data-timestamp="{{ RFC3339 $m.Timestamp }}"></small>
-                      <span class="badge badge-primary badge-pill">{{ printf "%.2f" $m.Temp }} &#8451;</span>
+                      <span class="badge badge-primary badge-pill">{{ PrintfPtr "%.2f" $m.Temp }} &#8451;</span>
                     </div>
                   </li>
                 {{ end }}

@@ -90,8 +90,8 @@ func (db *datastoreDB) executeQuery(ctx context.Context, q *datastore.Query) (ma
 
 		it := db.client.Run(ctx, derivedQuery)
 		for {
-			var m measurement.StorableMeasurement
-			_, err := it.Next(&m)
+			var sm measurement.StorableMeasurement
+			_, err := it.Next(&sm)
 			if err == iterator.Done {
 				cursor, err := it.Cursor()
 				if err != nil {
@@ -106,10 +106,10 @@ func (db *datastoreDB) executeQuery(ctx context.Context, q *datastore.Query) (ma
 				return make(map[string][]measurement.StorableMeasurement), err
 			}
 
-			if _, ok := results[m.DeviceID]; !ok {
-				results[m.DeviceID] = []measurement.StorableMeasurement{}
+			if _, ok := results[sm.DeviceID]; !ok {
+				results[sm.DeviceID] = []measurement.StorableMeasurement{}
 			}
-			results[m.DeviceID] = append(results[m.DeviceID], m)
+			results[sm.DeviceID] = append(results[sm.DeviceID], sm)
 
 			processed++
 		}

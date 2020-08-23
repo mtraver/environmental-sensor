@@ -72,28 +72,28 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 // NewMeasurement converts a StorableMeasurement into the generated Measurement type,
 // converting time.Time values into the protobuf-specific timestamp type.
 // IMPORTANT: Keep up to date with the generated Measurement type
-func NewMeasurement(m *StorableMeasurement) (mpb.Measurement, error) {
+func NewMeasurement(sm *StorableMeasurement) (mpb.Measurement, error) {
 	// Enforce a non-zero timestamp.
-	if m.Timestamp.IsZero() {
+	if sm.Timestamp.IsZero() {
 		return mpb.Measurement{}, ErrZeroTimestamp
 	}
 
-	timestamp := tspb.New(m.Timestamp)
+	timestamp := tspb.New(sm.Timestamp)
 
 	// The upload timestamp may be the zero timestamp. If it is, then the upload timestamp
 	// should be nil in the generated Measurement type.
 	var uploadTimestamp *tspb.Timestamp
-	if !m.UploadTimestamp.IsZero() {
-		uploadTimestamp = tspb.New(m.UploadTimestamp)
+	if !sm.UploadTimestamp.IsZero() {
+		uploadTimestamp = tspb.New(sm.UploadTimestamp)
 	}
 
 	var temp *wpb.FloatValue
-	if m.Temp != nil {
-		temp = wpb.Float(*m.Temp)
+	if sm.Temp != nil {
+		temp = wpb.Float(*sm.Temp)
 	}
 
 	return mpb.Measurement{
-		DeviceId:        m.DeviceID,
+		DeviceId:        sm.DeviceID,
 		Timestamp:       timestamp,
 		UploadTimestamp: uploadTimestamp,
 		Temp:            temp,
@@ -101,19 +101,19 @@ func NewMeasurement(m *StorableMeasurement) (mpb.Measurement, error) {
 }
 
 // DBKey returns a string key suitable for Datastore. It promotes Device ID and timestamp into the key.
-func (m *StorableMeasurement) DBKey() string {
-	return strings.Join([]string{m.DeviceID, m.Timestamp.Format(time.RFC3339)}, keySep)
+func (sm *StorableMeasurement) DBKey() string {
+	return strings.Join([]string{sm.DeviceID, sm.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
-func (m StorableMeasurement) String() string {
+func (sm StorableMeasurement) String() string {
 	delay := ""
-	if !m.UploadTimestamp.IsZero() {
-		delay = fmt.Sprintf(" (%v upload delay)", m.UploadTimestamp.Sub(m.Timestamp))
+	if !sm.UploadTimestamp.IsZero() {
+		delay = fmt.Sprintf(" (%v upload delay)", sm.UploadTimestamp.Sub(sm.Timestamp))
 	}
 
 	tStr := "[unknown]"
-	if m.Temp != nil {
-		tStr = fmt.Sprintf("%.3f°C", *m.Temp)
+	if sm.Temp != nil {
+		tStr = fmt.Sprintf("%.3f°C", *sm.Temp)
 	}
-	return fmt.Sprintf("%s %s %s%s", m.DeviceID, tStr, m.Timestamp.Format(time.RFC3339), delay)
+	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, tStr, sm.Timestamp.Format(time.RFC3339), delay)
 }

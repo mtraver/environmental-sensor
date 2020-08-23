@@ -162,15 +162,14 @@ func TestNewMeasurement(t *testing.T) {
 }
 
 func TestDBKey(t *testing.T) {
-	m := StorableMeasurement{
+	sm := StorableMeasurement{
 		DeviceID:  "foo",
 		Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
 		Temp:      floatPtr(18.5),
 	}
 
-	expected := "foo#2018-03-25T00:00:00Z"
-	key := m.DBKey()
-	if key != expected {
-		t.Errorf("Incorrect DB key. Expected %q, got %q", expected, key)
+	want := "foo#2018-03-25T00:00:00Z"
+	if got := sm.DBKey(); got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 }

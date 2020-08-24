@@ -2,6 +2,8 @@ package measurement
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -25,10 +27,10 @@ type StorableMeasurement struct {
 	DeviceID        string    `json:"device_id,omitempty" datastore:"device_id"`
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
-	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty"`
-	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty"`
-	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty"`
-	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty"`
+	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
+	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m^3"`
+	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m^3"`
+	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
@@ -153,9 +155,30 @@ func (sm StorableMeasurement) String() string {
 		delay = fmt.Sprintf(" (%v upload delay)", sm.UploadTimestamp.Sub(sm.Timestamp))
 	}
 
-	tStr := "[unknown]"
-	if sm.Temp != nil {
-		tStr = fmt.Sprintf("%.3f°C", *sm.Temp)
+	strs := []string{}
+	v := reflect.ValueOf(sm)
+	for i := 0; i < v.NumField(); i++ {
+		// The metric tag must be present. It marks a field as a measurement.
+		metric := v.Type().Field(i).Tag.Get("metric")
+		if metric == "" {
+			continue
+		}
+
+		// The field must be a float32 pointer.
+		f, ok := v.Field(i).Interface().(*float32)
+		if !ok || f == nil {
+			continue
+		}
+
+		// There may be no unit tag, which is fine.
+		unit := v.Type().Field(i).Tag.Get("unit")
+		strs = append(strs, fmt.Sprintf("%s=%.3f%s", metric, *f, unit))
 	}
-	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, tStr, sm.Timestamp.Format(time.RFC3339), delay)
+	sort.Strings(strs)
+
+	if len(strs) == 0 {
+		strs = append(strs, "[no measurements]")
+	}
+
+	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, strings.Join(strs, ", "), sm.Timestamp.Format(time.RFC3339), delay)
 }

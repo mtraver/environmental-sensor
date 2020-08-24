@@ -91,14 +91,14 @@ func TestStorableMeasurementString(t *testing.T) {
 		sm   StorableMeasurement
 		want string
 	}{
-		{"empty", StorableMeasurement{}, " [unknown] 0001-01-01T00:00:00Z"},
+		{"empty", StorableMeasurement{}, " [no measurements] 0001-01-01T00:00:00Z"},
 		{"no_upload_timestamp",
 			StorableMeasurement{
 				DeviceID:  "foo",
 				Timestamp: testTimestamp,
 				Temp:      floatPtr(18.3748),
 			},
-			"foo 18.375°C 2018-03-25T00:00:00Z",
+			"foo temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 		{"upload_timestamp",
 			StorableMeasurement{
@@ -107,7 +107,18 @@ func TestStorableMeasurementString(t *testing.T) {
 				UploadTimestamp: testTimestamp2,
 				Temp:            floatPtr(18.3748),
 			},
-			"foo 18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
+			"foo temp=18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
+		},
+		{"multiple_measurements_set",
+			StorableMeasurement{
+				DeviceID:  "foo",
+				Timestamp: testTimestamp,
+				Temp:      floatPtr(18.3748),
+				PM25:      floatPtr(12.0),
+				PM10:      floatPtr(20.0),
+				RH:        floatPtr(57.0),
+			},
+			"foo PM10=20.000μg/m^3, PM2.5=12.000μg/m^3, RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 	}
 

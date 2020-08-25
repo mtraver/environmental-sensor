@@ -149,6 +149,31 @@ func (sm *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{sm.DeviceID, sm.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
+// ValueMap returns a map from metric name (as defined in struct tags) to values.
+// Nil fields are not included.
+func (sm StorableMeasurement) ValueMap() map[string]float32 {
+	m := make(map[string]float32)
+
+	v := reflect.ValueOf(sm)
+	for i := 0; i < v.NumField(); i++ {
+		// The metric tag must be present. It marks a field as a measurement.
+		metric := v.Type().Field(i).Tag.Get("metric")
+		if metric == "" {
+			continue
+		}
+
+		// The field must be a float32 pointer.
+		f, ok := v.Field(i).Interface().(*float32)
+		if !ok || f == nil {
+			continue
+		}
+
+		m[metric] = *f
+	}
+
+	return m
+}
+
 func (sm StorableMeasurement) String() string {
 	delay := ""
 	if !sm.UploadTimestamp.IsZero() {

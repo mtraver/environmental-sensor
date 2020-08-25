@@ -14,11 +14,12 @@ type Stats struct {
 func summaryStats(measurements map[string][]measurement.StorableMeasurement) map[string]Stats {
 	stats := make(map[string]Stats)
 	for deviceID, m := range measurements {
+		// TODO(mtraver) Make this generic.
 		stats[deviceID] = Stats{
-			Min:    measurement.Min(m),
-			Max:    measurement.Max(m),
-			Mean:   measurement.Mean(m),
-			StdDev: measurement.StdDev(m),
+			Min:    measurement.Min(m)["temp"],
+			Max:    measurement.Max(m)["temp"],
+			Mean:   measurement.Mean(m)["temp"],
+			StdDev: measurement.StdDev(m)["temp"],
 		}
 	}
 

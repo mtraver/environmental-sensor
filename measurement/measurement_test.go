@@ -5,7 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kylelemons/godebug/pretty"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -148,7 +149,7 @@ func TestNewStorableMeasurement(t *testing.T) {
 				return
 			}
 
-			if diff := pretty.Compare(got, c.sm); diff != "" {
+			if diff := cmp.Diff(got, c.sm); diff != "" {
 				t.Errorf("Unexpected result (-got +want):\n%s", diff)
 			}
 		})
@@ -171,7 +172,7 @@ func TestNewMeasurement(t *testing.T) {
 				return
 			}
 
-			if diff := pretty.Compare(got, c.m); diff != "" {
+			if diff := cmp.Diff(got, c.m, cmpopts.IgnoreUnexported(mpb.Measurement{}, tspb.Timestamp{}, wpb.FloatValue{})); diff != "" {
 				t.Errorf("Unexpected result (-got +want):\n%s", diff)
 			}
 		})

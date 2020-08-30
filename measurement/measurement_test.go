@@ -119,7 +119,7 @@ func TestStorableMeasurementString(t *testing.T) {
 				PM10:      floatPtr(20.0),
 				RH:        floatPtr(57.0),
 			},
-			"foo PM10=20.000μg/m^3, PM2.5=12.000μg/m^3, RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
+			"foo PM10=20.000μg/m³, PM2.5=12.000μg/m³, RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 	}
 

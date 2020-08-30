@@ -28,8 +28,8 @@ type StorableMeasurement struct {
 	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
 	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
-	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m^3"`
-	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m^3"`
+	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
+	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
 	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
 }
 

@@ -21,8 +21,8 @@ message Measurement {
   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
   google.protobuf.Timestamp timestamp = 2;
   google.protobuf.FloatValue temp = 3 [(measurement_options).metric = "temp", (measurement_options).unit = "°C"];
-  google.protobuf.FloatValue pm25 = 5 [(measurement_options).metric = "PM2.5", (measurement_options).unit = "μg/m^3"];
-  google.protobuf.FloatValue pm10 = 6 [(measurement_options).metric = "PM10", (measurement_options).unit = "μg/m^3"];
+  google.protobuf.FloatValue pm25 = 5 [(measurement_options).metric = "PM2.5", (measurement_options).unit = "μg/m³"];
+  google.protobuf.FloatValue pm10 = 6 [(measurement_options).metric = "PM10", (measurement_options).unit = "μg/m³"];
   google.protobuf.FloatValue rh = 7 [(measurement_options).metric = "RH", (measurement_options).unit = "%"];
 
   // This field should only be set when the measurement is not uploaded

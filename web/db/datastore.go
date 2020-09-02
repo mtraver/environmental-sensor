@@ -10,7 +10,7 @@ import (
 
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	"github.com/mtraver/environmental-sensor/web/cache"
+	cachepkg "github.com/mtraver/environmental-sensor/web/cache"
 )
 
 const (
@@ -23,6 +23,12 @@ const (
 	queryLimit = 1000
 )
 
+type cache interface {
+	Get(ctx context.Context, key string, m *mpb.Measurement) error
+	Add(ctx context.Context, key string, m *mpb.Measurement) error
+	Set(ctx context.Context, key string, m *mpb.Measurement) error
+}
+
 // cacheKeyLatest returns the cache key of the latest measurement for the given device ID.
 func cacheKeyLatest(deviceID string) string {
 	return strings.Join([]string{deviceID, "latest"}, keySep)
@@ -32,10 +38,10 @@ type datastoreDB struct {
 	projectID   string
 	kind        string
 	client      *datastore.Client
-	useMemcache bool
+	latestCache cache
 }
 
-func NewDatastoreDB(projectID string, kind string, useMemcache bool) (*datastoreDB, error) {
+func NewDatastoreDB(projectID string, kind string, c cache) (*datastoreDB, error) {
 	client, err := datastore.NewClient(context.Background(), projectID)
 	if err != nil {
 		return nil, err
@@ -45,7 +51,7 @@ func NewDatastoreDB(projectID string, kind string, useMemcache bool) (*datastore
 		projectID:   projectID,
 		kind:        kind,
 		client:      client,
-		useMemcache: useMemcache,
+		latestCache: c,
 	}, nil
 }
 
@@ -71,8 +77,8 @@ func (db *datastoreDB) Save(ctx context.Context, m *mpb.Measurement) error {
 	})
 
 	// Each device has a cache entry for its latest value. Update it.
-	if db.useMemcache && err == nil {
-		cache.Set(ctx, cacheKeyLatest(m.DeviceId), m)
+	if db.latestCache != nil && err == nil {
+		db.latestCache.Set(ctx, cacheKeyLatest(m.DeviceId), m)
 	}
 
 	return err
@@ -166,8 +172,8 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 		// Try the cache
 		var m mpb.Measurement
 		var sm measurement.StorableMeasurement
-		if db.useMemcache {
-			if err := cache.Get(ctx, cacheKey, &m); err != nil && err != cache.ErrCacheMiss {
+		if db.latestCache != nil {
+			if err := db.latestCache.Get(ctx, cacheKey, &m); err != nil && err != cachepkg.ErrCacheMiss {
 				return latest, err
 			} else if err == nil {
 				// Cache hit. Convert to a StorableMeasurement for return.
@@ -198,8 +204,8 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 		if err != nil {
 			return latest, err
 		}
-		if db.useMemcache {
-			cache.Add(ctx, cacheKey, &m)
+		if db.latestCache != nil {
+			db.latestCache.Add(ctx, cacheKey, &m)
 		}
 	}
 

@@ -11,10 +11,12 @@ import (
 
 var ErrCacheMiss = errors.New("cache: cache miss")
 
+type Memcache struct{}
+
 // memcacheWriteFunc is the signature of functions in google.golang.org/appengine/memcache that write to the cache.
 type memcacheWriteFunc func(context.Context, *memcache.Item) error
 
-func Get(ctx context.Context, key string, m *mpb.Measurement) error {
+func (mc Memcache) Get(ctx context.Context, key string, m *mpb.Measurement) error {
 	item, err := memcache.Get(ctx, key)
 
 	switch err {
@@ -27,7 +29,7 @@ func Get(ctx context.Context, key string, m *mpb.Measurement) error {
 	}
 }
 
-func doWrite(ctx context.Context, key string, m *mpb.Measurement, f memcacheWriteFunc) error {
+func (mc Memcache) doWrite(ctx context.Context, key string, m *mpb.Measurement, f memcacheWriteFunc) error {
 	data, err := proto.Marshal(m)
 	if err != nil {
 		return err
@@ -41,10 +43,10 @@ func doWrite(ctx context.Context, key string, m *mpb.Measurement, f memcacheWrit
 	return f(ctx, item)
 }
 
-func Add(ctx context.Context, key string, m *mpb.Measurement) error {
-	return doWrite(ctx, key, m, memcache.Add)
+func (mc Memcache) Add(ctx context.Context, key string, m *mpb.Measurement) error {
+	return mc.doWrite(ctx, key, m, memcache.Add)
 }
 
-func Set(ctx context.Context, key string, m *mpb.Measurement) error {
-	return doWrite(ctx, key, m, memcache.Set)
+func (mc Memcache) Set(ctx context.Context, key string, m *mpb.Measurement) error {
+	return mc.doWrite(ctx, key, m, memcache.Set)
 }

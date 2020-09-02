@@ -108,7 +108,7 @@ func main() {
 		}
 	}
 
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, false)
+	database, err := db.NewDatastoreDB(projectID, datastoreKind, nil)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}

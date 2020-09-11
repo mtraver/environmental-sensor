@@ -13,16 +13,10 @@ import (
 	"syscall"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	homedir "github.com/mitchellh/go-homedir"
-	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
-	"github.com/mtraver/iotcore"
 	cron "github.com/robfig/cron/v3"
-	"google.golang.org/protobuf/proto"
-	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/host"
 )
@@ -97,26 +91,6 @@ func parseFlags() error {
 	return nil
 }
 
-func publishMeasurement(client mqtt.Client, device iotcore.Device, m *mpb.Measurement) error {
-	// Marshal to bytes for publication.
-	pbBytes, err := proto.Marshal(m)
-	if err != nil {
-		return err
-	}
-
-	waitDur := 10 * time.Second
-	token := client.Publish(device.TelemetryTopic(), 1, false, pbBytes)
-	if ok := token.WaitTimeout(waitDur); !ok {
-		// Timed out.
-		return fmt.Errorf("publish timed out after %v", waitDur)
-	} else if token.Error() != nil {
-		// Finished before timeout but failed to publish.
-		return fmt.Errorf("failed to publish: %v", token.Error())
-	}
-
-	return nil
-}
-
 func main() {
 	if err := parseFlags(); err != nil {
 		fmt.Printf("argument error: %v\n", err)
@@ -173,42 +147,10 @@ func main() {
 	// Schedule the measurement publication routine.
 	cr := cron.New()
 	log.Printf("Starting cron scheduler with spec %q", cronSpec)
-	cr.AddFunc(cronSpec, func() {
-		// Create a Measurement that we'll pass along to each sensor.
-		timepb := tspb.New(time.Now().UTC())
-		if err := timepb.CheckValid(); err != nil {
-			log.Printf("Invalid timestamp: %v", err)
-			return
-		}
-		m := mpb.Measurement{
-			DeviceId:  device.DeviceID,
-			Timestamp: timepb,
-		}
-
-		count := 0
-		for _, name := range sensors {
-			s, err := sensor.Get(name)
-			if err != nil {
-				log.Printf("Error getting sensor %q: %v", name, err)
-				continue
-			}
-			if err := s.Sense(&m); err != nil {
-				log.Printf("Failed to take measurement from %q: %v", name, err)
-				continue
-			}
-			count++
-		}
-
-		if count <= 0 {
-			log.Print("Took no measurements, will not publish")
-			return
-		}
-
-		if dryrun {
-			log.Print(mpbutil.String(m))
-		} else if err := publishMeasurement(client, device, &m); err != nil {
-			log.Printf("Failed to publish measurement: %v", err)
-		}
+	cr.AddJob(cronSpec, SenseJob{
+		Sensors: sensors,
+		Client:  client,
+		Device:  device,
 	})
 	cr.Start()
 

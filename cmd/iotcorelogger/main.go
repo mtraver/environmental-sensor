@@ -188,7 +188,9 @@ func main() {
 			log.Fatalf("All jobs must set operation, got %v", configpb.Job_Operation_name[int32(jpb.Operation)])
 		case configpb.Job_SETUP:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
-			cr.AddJob(jpb.Cronspec, SetupJob{})
+			cr.AddJob(jpb.Cronspec, SetupJob{
+				Sensors: jpb.Sensors,
+			})
 		case configpb.Job_SENSE:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
 			cr.AddJob(jpb.Cronspec, SenseJob{
@@ -198,7 +200,9 @@ func main() {
 			})
 		case configpb.Job_SHUTDOWN:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
-			cr.AddJob(jpb.Cronspec, ShutdownJob{})
+			cr.AddJob(jpb.Cronspec, ShutdownJob{
+				Sensors: jpb.Sensors,
+			})
 		default:
 			log.Fatalf("Unknown job type %v", jpb.Operation)
 		}

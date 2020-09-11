@@ -15,6 +15,7 @@ import (
 )
 
 type SetupJob struct {
+	Sensors []string
 }
 
 func (j SetupJob) Run() {
@@ -86,6 +87,7 @@ func (j SenseJob) publish(m *mpb.Measurement) error {
 }
 
 type ShutdownJob struct {
+	Sensors []string
 }
 
 func (j ShutdownJob) Run() {

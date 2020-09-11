@@ -2,14 +2,11 @@ package cache
 
 import (
 	"context"
-	"errors"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"google.golang.org/appengine/memcache"
 	"google.golang.org/protobuf/proto"
 )
-
-var ErrCacheMiss = errors.New("cache: cache miss")
 
 type Memcache struct{}
 

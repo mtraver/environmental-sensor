@@ -8,7 +8,6 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/gaelog"
-	"google.golang.org/appengine"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -29,7 +28,7 @@ type pushHandler struct {
 }
 
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	ctx := newContext(r)
 
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {

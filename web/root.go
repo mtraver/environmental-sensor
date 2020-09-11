@@ -14,7 +14,6 @@ import (
 	"github.com/mtraver/environmental-sensor/measurement"
 	"github.com/mtraver/environmental-sensor/web/device"
 	"github.com/mtraver/gaelog"
-	"google.golang.org/appengine"
 )
 
 // rootHandler renders the page for the root URL, which includes a plot and latest measurements.
@@ -37,7 +36,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := appengine.NewContext(r)
+	ctx := newContext(r)
 
 	var daysAgo float64
 	hoursAgo := int(h.DefaultDisplayAge.Round(time.Hour).Hours())

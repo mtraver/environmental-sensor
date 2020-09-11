@@ -23,12 +23,6 @@ const (
 	queryLimit = 1000
 )
 
-type cache interface {
-	Get(ctx context.Context, key string, m *mpb.Measurement) error
-	Add(ctx context.Context, key string, m *mpb.Measurement) error
-	Set(ctx context.Context, key string, m *mpb.Measurement) error
-}
-
 // cacheKeyLatest returns the cache key of the latest measurement for the given device ID.
 func cacheKeyLatest(deviceID string) string {
 	return strings.Join([]string{deviceID, "latest"}, keySep)
@@ -38,10 +32,10 @@ type datastoreDB struct {
 	projectID   string
 	kind        string
 	client      *datastore.Client
-	latestCache cache
+	latestCache cachepkg.Cache
 }
 
-func NewDatastoreDB(projectID string, kind string, c cache) (*datastoreDB, error) {
+func NewDatastoreDB(projectID string, kind string, c cachepkg.Cache) (*datastoreDB, error) {
 	client, err := datastore.NewClient(context.Background(), projectID)
 	if err != nil {
 		return nil, err

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/mtraver/gaelog"
-	"google.golang.org/appengine"
 
 	"github.com/mtraver/environmental-sensor/measurement"
 )
@@ -20,7 +19,7 @@ type uploadzHandler struct {
 }
 
 func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	ctx := newContext(r)
 
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-h.DelayedUploadsDur)

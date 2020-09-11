@@ -9,11 +9,8 @@ import (
 	"os"
 	"time"
 
-	"google.golang.org/appengine"
-
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	"github.com/mtraver/environmental-sensor/web/cache"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/gaelog"
 )
@@ -59,7 +56,7 @@ func main() {
 			},
 		}).ParseGlob("web/templates/*"))
 
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, cache.Memcache{})
+	database, err := db.NewDatastoreDB(projectID, datastoreKind, newCache())
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
@@ -85,6 +82,5 @@ func main() {
 		Database: database,
 	})
 
-	http.Handle("/", gaelog.Wrap(mux))
-	appengine.Main()
+	serve(gaelog.Wrap(mux))
 }

@@ -32,10 +32,6 @@ var (
 )
 
 var (
-	// sensors is the set of sensors supported by this device.
-	// TODO this should come from config.
-	sensors = []string{"mcp9808"}
-
 	// This directory is where we'll store anything the program needs to persist, like JWTs and
 	// measurements that are pending upload. This is joined with the user's home directory in init.
 	dotDir = ".iotcorelogger"
@@ -171,7 +167,7 @@ func main() {
 	defer bus.Close()
 
 	// Register sensors.
-	for _, name := range sensors {
+	for _, name := range config.SupportedSensors {
 		switch name {
 		case "mcp9808":
 			s, err := mcp9808.New(bus)
@@ -196,7 +192,7 @@ func main() {
 		case configpb.Job_SENSE:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
 			cr.AddJob(jpb.Cronspec, SenseJob{
-				Sensors: sensors,
+				Sensors: jpb.Sensors,
 				Client:  client,
 				Device:  device,
 			})

@@ -17,6 +17,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
+	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	"github.com/mtraver/iotcore"
 	cron "github.com/robfig/cron/v3"
@@ -36,6 +37,10 @@ var (
 )
 
 var (
+	// sensors is the set of sensors supported by this device.
+	// TODO this should come from config.
+	sensors = []string{"mcp9808"}
+
 	// This directory is where we'll store anything the program needs to persist, like JWTs and
 	// measurements that are pending upload. This is joined with the user's home directory in init.
 	dotDir = ".iotcorelogger"
@@ -151,9 +156,18 @@ func main() {
 	}
 	defer bus.Close()
 
-	tempSensor, err := mcp9808.New(bus)
-	if err != nil {
-		log.Fatalf("Failed to initialize MCP9808: %v", err)
+	// Register sensors.
+	for _, name := range sensors {
+		switch name {
+		case "mcp9808":
+			s, err := mcp9808.New(bus)
+			if err != nil {
+				log.Fatalf("Failed to initialize MCP9808: %v", err)
+			}
+			sensor.Register("mcp9808", s)
+		default:
+			log.Fatalf("Unknown sensor %q", name)
+		}
 	}
 
 	// Schedule the measurement publication routine.
@@ -171,8 +185,22 @@ func main() {
 			Timestamp: timepb,
 		}
 
-		if err := tempSensor.Sense(&m); err != nil {
-			log.Printf("Failed to take measurement: %v", err)
+		count := 0
+		for _, name := range sensors {
+			s, err := sensor.Get(name)
+			if err != nil {
+				log.Printf("Error getting sensor %q: %v", name, err)
+				continue
+			}
+			if err := s.Sense(&m); err != nil {
+				log.Printf("Failed to take measurement from %q: %v", name, err)
+				continue
+			}
+			count++
+		}
+
+		if count <= 0 {
+			log.Print("Took no measurements, will not publish")
 			return
 		}
 

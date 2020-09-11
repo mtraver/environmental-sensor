@@ -14,10 +14,10 @@ import (
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type InitJob struct {
+type SetupJob struct {
 }
 
-func (j InitJob) Run() {
+func (j SetupJob) Run() {
 
 }
 

@@ -1,0 +1,34 @@
+syntax = "proto3";
+package config;
+option go_package = "github.com/mtraver/environmental-sensor/configpb";
+
+// Config configures the iotcorelogger program.
+message Config {
+  // Path to a file containing a JSON-encoded Device struct.
+  // See github.com/mtraver/iotcore.
+  string device_file_path = 1;
+
+  // Path to a set of trustworthy CA certs.
+  // Download Google's from https://pki.google.com/roots.pem.
+  string ca_certs_path = 2;
+
+  repeated string supported_sensors = 3;
+
+  repeated Job jobs = 4;
+}
+
+message Job {
+  // Cron spec that specifies when this job should run.
+  string cronspec = 1;
+
+  enum Operation {
+    INVALID = 0;
+    SETUP = 1;
+    SENSE = 2;
+    SHUTDOWN = 3;
+  }
+  Operation operation = 2;
+
+  // Sensors are processed in the order given.
+  repeated string sensors = 3;
+}

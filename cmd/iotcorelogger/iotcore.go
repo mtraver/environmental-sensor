@@ -97,8 +97,8 @@ func onConnectionLost(device iotcore.Device, opts *mqtt.ClientOptions) error {
 	return nil
 }
 
-func mqttConnect(device iotcore.Device) (mqtt.Client, error) {
-	certsFile, err := os.Open(caCerts)
+func mqttConnect(device iotcore.Device, caCertsPath string) (mqtt.Client, error) {
+	certsFile, err := os.Open(caCertsPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open certs file: %v", err)
 	}

@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -14,18 +15,18 @@ import (
 	"time"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	cron "github.com/robfig/cron/v3"
+	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/periph/conn/i2c/i2creg"
 	"periph.io/x/periph/host"
 )
 
 // Flags.
 var (
-	deviceFilePath string
-	caCerts        string
-	cronSpec       string
+	configFilePath string
 	port           int
 	dryrun         bool
 )
@@ -49,9 +50,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&deviceFilePath, "device", "", "path to a file containing a JSON-encoded Device struct (see github.com/mtraver/iotcore)")
-	flag.StringVar(&caCerts, "cacerts", "", "Path to a set of trustworthy CA certs.\nDownload Google's from https://pki.google.com/roots.pem.")
-	flag.StringVar(&cronSpec, "cronspec", "", "cron spec that specifies when to take and publish measurements")
+	flag.StringVar(&configFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
 	flag.IntVar(&port, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&dryrun, "dryrun", false, "set to true to print rather than publish measurements")
 
@@ -76,16 +75,42 @@ func init() {
 func parseFlags() error {
 	flag.Parse()
 
-	if deviceFilePath == "" {
-		return fmt.Errorf("device flag must be given")
+	if configFilePath == "" {
+		return fmt.Errorf("config flag must be given")
 	}
 
-	if caCerts == "" {
-		return fmt.Errorf("cacerts flag must be given")
+	return nil
+}
+
+func validateConfig(c configpb.Config) error {
+	if c.DeviceFilePath == "" {
+		return fmt.Errorf("device_file_path must be set")
 	}
 
-	if cronSpec == "" {
-		return fmt.Errorf("cronspec flag must be given")
+	if c.CaCertsPath == "" {
+		return fmt.Errorf("ca_certs_path must be set")
+	}
+
+	if len(c.SupportedSensors) == 0 {
+		return fmt.Errorf("supported_sensors must contain at least one sensor")
+	}
+
+	if len(c.Jobs) == 0 {
+		return fmt.Errorf("at least one job must be given")
+	}
+
+	for _, jpb := range c.Jobs {
+		if jpb.Cronspec == "" {
+			return fmt.Errorf("all jobs must set cronspec")
+		}
+
+		if jpb.Operation == configpb.Job_INVALID {
+			return fmt.Errorf("all jobs must set operation")
+		}
+
+		if len(jpb.Sensors) == 0 {
+			return fmt.Errorf("all jobs must have at least one sensor")
+		}
 	}
 
 	return nil
@@ -97,12 +122,27 @@ func main() {
 		os.Exit(2)
 	}
 
-	device, err := parseDeviceFile(deviceFilePath)
+	// Parse and validate config file.
+	b, err := ioutil.ReadFile(configFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var config configpb.Config
+	if err := protojson.Unmarshal(b, &config); err != nil {
+		log.Fatal(err)
+	}
+	if err := validateConfig(config); err != nil {
+		log.Fatalf("Invalid config: %v", err)
+	}
+
+	// Parse device file.
+	device, err := parseDeviceFile(config.DeviceFilePath)
 	if err != nil {
 		log.Fatalf("Failed to parse device file: %v", err)
 	}
 
-	client, err := mqttConnect(device)
+	// Connect to IoT Core over MQTT.
+	client, err := mqttConnect(device, config.CaCertsPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -144,14 +184,29 @@ func main() {
 		}
 	}
 
-	// Schedule the measurement publication routine.
+	// Schedule jobs defined in the config.
 	cr := cron.New()
-	log.Printf("Starting cron scheduler with spec %q", cronSpec)
-	cr.AddJob(cronSpec, SenseJob{
-		Sensors: sensors,
-		Client:  client,
-		Device:  device,
-	})
+	for _, jpb := range config.Jobs {
+		switch jpb.Operation {
+		case configpb.Job_INVALID:
+			log.Fatalf("All jobs must set operation, got %v", configpb.Job_Operation_name[int32(jpb.Operation)])
+		case configpb.Job_SETUP:
+			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
+			cr.AddJob(jpb.Cronspec, SetupJob{})
+		case configpb.Job_SENSE:
+			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
+			cr.AddJob(jpb.Cronspec, SenseJob{
+				Sensors: sensors,
+				Client:  client,
+				Device:  device,
+			})
+		case configpb.Job_SHUTDOWN:
+			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
+			cr.AddJob(jpb.Cronspec, ShutdownJob{})
+		default:
+			log.Fatalf("Unknown job type %v", jpb.Operation)
+		}
+	}
 	cr.Start()
 
 	// Start up a web server that provides basic info about the device.

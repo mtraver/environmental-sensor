@@ -10,7 +10,7 @@ Restart=always
 RestartSec=2
 User=pi
 Group=pi
-ExecStart=/home/pi/iotcorelogger -device /home/pi/iotcore_credentials/device.json -cacerts /home/pi/roots.pem -cronspec '*/2 * * * *'
+ExecStart=/home/pi/iotcorelogger -config /home/pi/iotcore_credentials/config.pb.json
 
 [Install]
 WantedBy=multi-user.target

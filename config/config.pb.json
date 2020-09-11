@@ -1,0 +1,13 @@
+{
+  "device_file_path": "/home/pi/iotcore_credentials/device.json",
+  "ca_certs_path": "/home/pi/roots.pem",
+  "supported_sensors": ["mcp9808"],
+
+  "jobs": [
+    {
+      "cronspec": "*/2 * * * *",
+      "operation": "SENSE",
+      "sensors": ["mcp9808"]
+    }
+  ]
+}

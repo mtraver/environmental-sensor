@@ -42,5 +42,8 @@ proto:
 	  --go-grpc_out=module=github.com/mtraver/environmental-sensor:. \
 	  measurement.proto
 
+	protoc --go_out=module=github.com/mtraver/environmental-sensor:. \
+	  configpb/config.proto
+
 clean:
 	rm -rf $(OUT_DIR)

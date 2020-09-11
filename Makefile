@@ -1,6 +1,6 @@
 BUILD := go build
-BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 $(BUILD)
-BUILD_ARMV7 := GOOS=linux GOARCH=arm GOARM=7 $(BUILD)
+BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -ldflags="-s -w"
+BUILD_ARMV7 := GOOS=linux GOARCH=arm GOARM=7 $(BUILD) -ldflags="-s -w"
 
 OUT_DIR := out
 

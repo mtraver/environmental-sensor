@@ -18,6 +18,7 @@ import (
 	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
+	"github.com/mtraver/environmental-sensor/sensor/sds011"
 	cron "github.com/robfig/cron/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/periph/conn/i2c/i2creg"
@@ -175,6 +176,12 @@ func main() {
 				log.Fatalf("Failed to initialize MCP9808: %v", err)
 			}
 			sensor.Register("mcp9808", s)
+		case "sds011":
+			s, err := sds011.New("/dev/ttyUSB0")
+			if err != nil {
+				log.Fatalf("Failed to initialize SDS011: %v", err)
+			}
+			sensor.Register("sds011", s)
 		default:
 			log.Fatalf("Unknown sensor %q", name)
 		}

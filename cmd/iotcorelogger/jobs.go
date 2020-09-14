@@ -36,6 +36,7 @@ type SenseJob struct {
 	Sensors []string
 	Client  mqtt.Client
 	Device  iotcore.Device
+	Dryrun  bool
 }
 
 func (j SenseJob) Run() {
@@ -69,7 +70,7 @@ func (j SenseJob) Run() {
 		return
 	}
 
-	if dryrun {
+	if j.Dryrun {
 		log.Print(mpbutil.String(m))
 	} else if err := j.publish(&m); err != nil {
 		log.Printf("Failed to publish measurement: %v", err)

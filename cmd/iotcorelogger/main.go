@@ -207,6 +207,7 @@ func main() {
 				Sensors: jpb.Sensors,
 				Client:  client,
 				Device:  device,
+				Dryrun:  dryrun,
 			})
 		case configpb.Job_SHUTDOWN:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)

@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
@@ -139,22 +140,26 @@ func main() {
 		log.Fatalf("Failed to parse device file: %v", err)
 	}
 
-	// Connect to IoT Core over MQTT.
-	client, err := mqttConnect(device, config.CaCertsPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Connect to IoT Core over MQTT. Make a dummy client if we're not actually
+	// going to connect.
+	client := mqtt.NewClient(mqtt.NewClientOptions())
+	if !dryrun {
+		client, err = mqttConnect(device, config.CaCertsPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// If the program is killed, disconnect from the MQTT server.
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Println("Cleaning up...")
-		client.Disconnect(250)
-		time.Sleep(500 * time.Millisecond)
-		os.Exit(1)
-	}()
+		// If the program is killed, disconnect from the MQTT server.
+		c := make(chan os.Signal, 2)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			log.Println("Cleaning up...")
+			client.Disconnect(250)
+			time.Sleep(500 * time.Millisecond)
+			os.Exit(1)
+		}()
+	}
 
 	// Initialize periph.
 	if _, err := host.Init(); err != nil {

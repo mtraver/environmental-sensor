@@ -19,7 +19,17 @@ type SetupJob struct {
 }
 
 func (j SetupJob) Run() {
-
+	for _, name := range j.Sensors {
+		s, err := sensor.Get(name)
+		if err != nil {
+			log.Printf("Error getting sensor %q: %v", name, err)
+			continue
+		}
+		if err := s.Init(); err != nil {
+			log.Printf("Failed to init %q: %v", name, err)
+			continue
+		}
+	}
 }
 
 type SenseJob struct {
@@ -91,5 +101,15 @@ type ShutdownJob struct {
 }
 
 func (j ShutdownJob) Run() {
-
+	for _, name := range j.Sensors {
+		s, err := sensor.Get(name)
+		if err != nil {
+			log.Printf("Error getting sensor %q: %v", name, err)
+			continue
+		}
+		if err := s.Shutdown(); err != nil {
+			log.Printf("Failed to shut down %q: %v", name, err)
+			continue
+		}
+	}
 }

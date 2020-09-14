@@ -26,6 +26,6 @@ svg {
   height: 100%;
 }
 
-ul#current-temp-list small {
+small.timeago {
   color: gray;
 }

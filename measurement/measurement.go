@@ -157,18 +157,45 @@ func (sm StorableMeasurement) ValueMap() map[string]float32 {
 	v := reflect.ValueOf(sm)
 	for i := 0; i < v.NumField(); i++ {
 		// The metric tag must be present. It marks a field as a measurement.
-		metric := v.Type().Field(i).Tag.Get("metric")
+		metric := getMetric(v, i)
 		if metric == "" {
 			continue
 		}
 
 		// The field must be a float32 pointer.
-		f, ok := v.Field(i).Interface().(*float32)
+		f, ok := getValue(v, i)
 		if !ok || f == nil {
 			continue
 		}
 
 		m[metric] = *f
+	}
+
+	return m
+}
+
+// StringValueMap returns a map from metric name (as defined in struct tags) to
+// string-formatted values including the unit. Nil fields are not included.
+func (sm StorableMeasurement) StringValueMap() map[string]string {
+	m := make(map[string]string)
+
+	v := reflect.ValueOf(sm)
+	for i := 0; i < v.NumField(); i++ {
+		// The metric tag must be present. It marks a field as a measurement.
+		metric := getMetric(v, i)
+		if metric == "" {
+			continue
+		}
+
+		// The field must be a float32 pointer.
+		f, ok := getValue(v, i)
+		if !ok || f == nil {
+			continue
+		}
+
+		// There may be no unit tag, which is fine.
+		unit := getUnit(v, i)
+		m[metric] = fmt.Sprintf("%.3f%s", *f, unit)
 	}
 
 	return m
@@ -184,19 +211,19 @@ func (sm StorableMeasurement) String() string {
 	v := reflect.ValueOf(sm)
 	for i := 0; i < v.NumField(); i++ {
 		// The metric tag must be present. It marks a field as a measurement.
-		metric := v.Type().Field(i).Tag.Get("metric")
+		metric := getMetric(v, i)
 		if metric == "" {
 			continue
 		}
 
 		// The field must be a float32 pointer.
-		f, ok := v.Field(i).Interface().(*float32)
+		f, ok := getValue(v, i)
 		if !ok || f == nil {
 			continue
 		}
 
 		// There may be no unit tag, which is fine.
-		unit := v.Type().Field(i).Tag.Get("unit")
+		unit := getUnit(v, i)
 		strs = append(strs, fmt.Sprintf("%s=%.3f%s", metric, *f, unit))
 	}
 	sort.Strings(strs)
@@ -206,4 +233,17 @@ func (sm StorableMeasurement) String() string {
 	}
 
 	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, strings.Join(strs, ", "), sm.Timestamp.Format(time.RFC3339), delay)
+}
+
+func getMetric(v reflect.Value, i int) string {
+	return v.Type().Field(i).Tag.Get("metric")
+}
+
+func getUnit(v reflect.Value, i int) string {
+	return v.Type().Field(i).Tag.Get("unit")
+}
+
+func getValue(v reflect.Value, i int) (*float32, bool) {
+	f, ok := v.Field(i).Interface().(*float32)
+	return f, ok
 }

@@ -177,6 +177,23 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	wg.Wait()
 
+	// Get the full set of metrics included in the latest measurements so that the
+	// latest measurements table can be constructed with only the necessary columns.
+	latestMetrics := []string{}
+	if latestErr == nil {
+		mm := make(map[string]bool)
+		for _, sm := range latest {
+			for metric, _ := range sm.ValueMap() {
+				mm[metric] = true
+			}
+		}
+
+		for metric, _ := range mm {
+			latestMetrics = append(latestMetrics, metric)
+		}
+		sort.Strings(latestMetrics)
+	}
+
 	data := struct {
 		Measurements     template.JS
 		Stats            map[string]Stats
@@ -189,6 +206,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FillDaysAgoForm  bool
 		FillHoursAgoForm bool
 		Latest           map[string]measurement.StorableMeasurement
+		LatestMetrics    []string
 		LatestError      error
 	}{
 		Measurements:     template.JS(jsonBytes),
@@ -202,6 +220,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FillDaysAgoForm:  fillDaysAgoForm,
 		FillHoursAgoForm: fillHoursAgoForm,
 		Latest:           latest,
+		LatestMetrics:    latestMetrics,
 		LatestError:      latestErr,
 	}
 

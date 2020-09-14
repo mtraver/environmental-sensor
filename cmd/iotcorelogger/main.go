@@ -17,6 +17,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
+	"github.com/mtraver/environmental-sensor/sensor/dummy"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
 	cron "github.com/robfig/cron/v3"
@@ -182,6 +183,8 @@ func main() {
 				log.Fatalf("Failed to initialize SDS011: %v", err)
 			}
 			sensor.Register("sds011", s)
+		case "dummy":
+			sensor.Register("dummy", dummy.Dummy{})
 		default:
 			log.Fatalf("Unknown sensor %q", name)
 		}

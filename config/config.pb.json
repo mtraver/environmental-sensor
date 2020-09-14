@@ -5,7 +5,7 @@
 
   "jobs": [
     {
-      "cronspec": "*/2 * * * *",
+      "cronspec": "0 */2 * * * *",
       "operation": "SENSE",
       "sensors": ["mcp9808"]
     }

@@ -196,7 +196,7 @@ func main() {
 	}
 
 	// Schedule jobs defined in the config.
-	cr := cron.New()
+	cr := cron.New(cron.WithSeconds())
 	for _, jpb := range config.Jobs {
 		switch jpb.Operation {
 		case configpb.Job_INVALID:

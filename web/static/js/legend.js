@@ -28,6 +28,17 @@ function legend() {
           .enter().append("g")
           .attr("class", "legend-item");
 
+    // Add a canvas so we can use HTML5 canvas methods to get text width.
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    context.font = selection.style('font');
+    function textWidth(text) {
+      return context.measureText(text).width;
+    }
+
+    // The text height is just the font size.
+    var textHeight = parseInt(context.font.match(/\d+/), 10);
+
     var offset = 0;
     var offsets = [];
     leg.append("text")
@@ -36,11 +47,11 @@ function legend() {
       .attr("x", function(d) {
         offsets.push(offset);
         var x = offset + rectSize(d) + textMargin(d);
-        offset = x + this.getBBox().width + textMargin(d) * 3;
+        offset = x + textWidth(d.id) + textMargin(d) * 3;
         return x;
       })
       .attr("y", function(d) {
-        return rectSize(d) / 2 + this.getBBox().height / 3;
+        return rectSize(d) / 2 + textHeight / 3;
       });
 
     var i = 0;
@@ -59,6 +70,9 @@ function legend() {
         .attr("x", function(d) { return bbox.x - textMargin(); })
         .attr("y", function(d) { return bbox.y - textMargin(); });
     }
+
+    // Remove the canvas element added for text width calculation.
+    canvas.remove();
   }
 
   makeLegend.rectSize = function(s) {

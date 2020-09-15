@@ -1,4 +1,5 @@
 // Package aqi computes US EPA Air Quality Index values for PM2.5 and PM10.
+// See https://www.airnow.gov/sites/default/files/2020-05/aqi-technical-assistance-document-sept2018.pdf.
 package aqi
 
 import "math"

@@ -84,3 +84,31 @@ func TestString(t *testing.T) {
 		})
 	}
 }
+
+func TestAbbrv(t *testing.T) {
+	cases := []struct {
+		aqi  int
+		want string
+	}{
+		{-10, "G"},
+		{0, "G"},
+		{27, "G"},
+		{50, "G"},
+		{55, "M"},
+		{100, "M"},
+		{150, "USG"},
+		{200, "U"},
+		{300, "VU"},
+		{400, "H"},
+		{500, "H"},
+		{650, "H"},
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("%v", c.aqi), func(t *testing.T) {
+			if got := Abbrv(c.aqi); got != c.want {
+				t.Errorf("got %v, want %v", got, c.want)
+			}
+		})
+	}
+}

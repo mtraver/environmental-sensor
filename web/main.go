@@ -55,7 +55,7 @@ func main() {
 				}
 				return fmt.Sprintf(format, *f)
 			},
-			"AQIStr": aqi.String,
+			"AQIStr":   aqi.String,
 			"AQIAbbrv": aqi.Abbrv,
 		}).ParseGlob("web/templates/*"))
 

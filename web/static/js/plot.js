@@ -1,8 +1,8 @@
-function multiExtent(data, startTimestamp, endTimestamp) {
+function multiExtent(data, metric, startTimestamp, endTimestamp) {
   // Get the extent of the values for each device
   var extents = data.map(d => d3.extent(
     d.values.filter(e => e.ts > startTimestamp && e.ts < endTimestamp),
-    e => e.t));
+    e => e[metric]));
 
   // Flatten the array of extents, and then get the overall extent
   return d3.extent(extents.reduce((acc, val) => acc.concat(val), []), e => e);
@@ -15,7 +15,7 @@ function padExtent(extent) {
   return [extent[0] - adjustment, extent[1] + adjustment];
 }
 
-function makePlot(selector, data, startDate, endDate) {
+function makePlot(selector, data, metric, startDate, endDate) {
   // This width and height are just used here and for the viewBox (set below).
   // The SVG is given width and height of 100% in the CSS, so it scales
   // automatically based on the viewBox and preserveAspectRatio settings.
@@ -45,12 +45,12 @@ function makePlot(selector, data, startDate, endDate) {
   var line = d3.line()
       .curve(d3.curveBasis)
       .x(function(d) { return x(d.ts); })
-      .y(function(d) { return y(d.t); });
+      .y(function(d) { return y(d[metric]); });
 
   var line2 = d3.line()
       .curve(d3.curveBasis)
       .x(function(d) { return x2(d.ts); })
-      .y(function(d) { return y2(d.t); });
+      .y(function(d) { return y2(d[metric]); });
 
   x.domain([startDate, endDate]);
   x2.domain(x.domain());
@@ -60,12 +60,12 @@ function makePlot(selector, data, startDate, endDate) {
     y.domain([
       d3.min(data, function(c) {
         return d3.min(c.values, function(d) {
-          return d.t;
+          return d[metric];
         });
       }),
       d3.max(data, function(c) {
         return d3.max(c.values, function(d) {
-          return d.t;
+          return d[metric];
         });
       })
     ]);
@@ -200,7 +200,7 @@ function makePlot(selector, data, startDate, endDate) {
   // Rescales the y-axis to fit just the visible data
   function updateYAxis() {
     // Get the domain of the visible data
-    var domain = multiExtent(data, x.domain()[0], x.domain()[1]);
+    var domain = multiExtent(data, metric, x.domain()[0], x.domain()[1]);
 
     // Add a 5% margin to the domain so that lines
     // aren't right at the top or bottom

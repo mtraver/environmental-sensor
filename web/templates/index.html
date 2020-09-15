@@ -385,7 +385,7 @@
           this.classList.add('was-validated');
         });
 
-        makePlot("svg#plot", valuesByDevice, new Date({{ millis .StartTime }}),
+        makePlot("svg#plot", valuesByDevice, "t", new Date({{ millis .StartTime }}),
                  new Date({{ millis .EndTime }}));
       });
     {{ end }}

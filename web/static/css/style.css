@@ -29,3 +29,39 @@ svg {
 small.timeago {
   color: gray;
 }
+
+/* Green */
+.badge-aqi-G {
+  color: black;
+  background-color: rgb(0, 228, 0);
+}
+
+/* Yellow */
+.badge-aqi-M {
+  color: black;
+  background-color: rgb(255, 255, 0);
+}
+
+/* Orange */
+.badge-aqi-USG {
+  color: black;
+  background-color: rgb(255, 126, 0);
+}
+
+/* Red */
+.badge-aqi-U {
+  color: black;
+  background-color: rgb(255, 0, 0);
+}
+
+/* Purple */
+.badge-aqi-VU {
+  color: black;
+  background-color: rgb(143, 63, 151);
+}
+
+/* Maroon */
+.badge-aqi-H {
+  color: black;
+  background-color: rgb(126, 0, 35);
+}

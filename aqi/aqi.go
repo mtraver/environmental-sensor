@@ -73,3 +73,19 @@ func String(aqi int) string {
 		return "Hazardous"
 	}
 }
+
+func Abbrv(aqi int) string {
+	if aqi <= 50 {
+		return "G"
+	} else if aqi <= 100 {
+		return "M"
+	} else if aqi <= 150 {
+		return "USG"
+	} else if aqi <= 200 {
+		return "U"
+	} else if aqi <= 300 {
+		return "VU"
+	} else {
+		return "H"
+	}
+}

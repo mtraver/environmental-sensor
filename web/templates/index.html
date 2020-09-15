@@ -28,6 +28,25 @@
           </div>
         </div>
 
+        {{ if .AQI }}
+        <div class="row">
+          <div class="col-md-11">
+            <hr>
+            <strong>Current PM2.5 AQI</strong>
+          </div>
+        </div>
+        <div class="row">
+          <ul>
+            {{ range $id, $aqi := .AQI }}
+              <li>
+                {{ $id }} &ndash;
+                <span class="badge badge-pill badge-aqi-{{ AQIAbbrv $aqi }}">{{ $aqi }} ({{ AQIStr $aqi }})</span>
+              </li>
+            {{ end }}
+          </ul>
+        </div>
+        {{ end }}
+
         <div class="row">
           <div class="col-md-11">
             <hr>

@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mtraver/environmental-sensor/aqi"
 	"github.com/mtraver/environmental-sensor/measurement"
 	"github.com/mtraver/environmental-sensor/web/device"
 	"github.com/mtraver/gaelog"
@@ -194,6 +195,14 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sort.Strings(latestMetrics)
 	}
 
+	// Compute PM2.5 AQIs.
+	aqis := make(map[string]int)
+	for _, sm := range latest {
+		if sm.PM25 != nil {
+			aqis[sm.DeviceID] = aqi.PM25(*sm.PM25)
+		}
+	}
+
 	data := struct {
 		Measurements     template.JS
 		Stats            map[string]Stats
@@ -208,6 +217,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Latest           map[string]measurement.StorableMeasurement
 		LatestMetrics    []string
 		LatestError      error
+		AQI              map[string]int
 	}{
 		Measurements:     template.JS(jsonBytes),
 		Stats:            stats,
@@ -222,6 +232,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Latest:           latest,
 		LatestMetrics:    latestMetrics,
 		LatestError:      latestErr,
+		AQI:              aqis,
 	}
 
 	if err := h.Template.ExecuteTemplate(w, "index", data); err != nil {

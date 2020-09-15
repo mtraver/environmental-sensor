@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mtraver/environmental-sensor/aqi"
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
@@ -54,6 +55,8 @@ func main() {
 				}
 				return fmt.Sprintf(format, *f)
 			},
+			"AQIStr": aqi.String,
+			"AQIAbbrv": aqi.Abbrv,
 		}).ParseGlob("web/templates/*"))
 
 	database, err := db.NewDatastoreDB(projectID, datastoreKind, newCache())

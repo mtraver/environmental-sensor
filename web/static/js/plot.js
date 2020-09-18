@@ -129,6 +129,10 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
+  var yAxisLabel = name;
+  if (unit != "") {
+    yAxisLabel += " (" + unit + ")";
+  }
   focus.append("g")
       .attr("class", "axis axis--y")
       .call(yAxis)
@@ -138,7 +142,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .attr("dy", -margin.left + 15)
       .attr("dx", -height / 2)
       .attr("fill", "#000")
-      .text(name + " (" + unit + ")");
+      .text(yAxisLabel);
 
   // The context plot just gets an x-axis
   context.append("g")

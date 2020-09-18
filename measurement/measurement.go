@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mtraver/environmental-sensor/aqi"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -87,15 +88,23 @@ func GetMetric(nameOrKey string) (Metric, bool) {
 // no protobuf-specific types. It therefore can be marshaled to JSON and written to
 // Datastore. StorableMeasurement is marshaled to JSON in order to pass data to the
 // frontend. Timestamp is handled specially in MarshalJSON.
-// IMPORTANT: Keep up to date with the generated Measurement type
+// IMPORTANT: Keep up to date with the generated Measurement type (from measurement.proto).
 type StorableMeasurement struct {
 	DeviceID        string    `json:"-" datastore:"device_id"`
 	Timestamp       time.Time `json:"-" datastore:"timestamp"`
 	UploadTimestamp time.Time `json:"-" datastore:"upload_timestamp,omitempty"`
-	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
-	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
-	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
-	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
+
+	// These metrics are the raw values reported by sensors. They must match the
+	// metrics defined in the generated Measurement type (from measurement.proto).
+	Temp *float32 `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
+	PM25 *float32 `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
+	PM10 *float32 `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
+	RH   *float32 `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
+
+	// These metrics are derived from the raw values. They're not stored in the database
+	// (the `datastore` tag is set to "-") but they are passed to the frontend in JSON form.
+	// These values are populated by the FillDerivedMetrics method.
+	AQI *float32 `json:"aqi,omitempty" datastore:"-" metric:"AQI" unit:""`
 }
 
 func (sm StorableMeasurement) MarshalJSON() ([]byte, error) {
@@ -115,7 +124,7 @@ func (sm StorableMeasurement) MarshalJSON() ([]byte, error) {
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,
 // which contains no protobuf-specific types, and therefore can be marshaled to JSON and
 // written to Datastore.
-// IMPORTANT: Keep up to date with the generated Measurement type
+// IMPORTANT: Keep up to date with the generated Measurement type (from measurement.proto).
 func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 	// This will return an error if the timestamp is nil, which is good, because
 	// we want to enforce non-nil timestamps.
@@ -176,7 +185,7 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 
 // NewMeasurement converts a StorableMeasurement into the generated Measurement type,
 // converting time.Time values into the protobuf-specific timestamp type.
-// IMPORTANT: Keep up to date with the generated Measurement type
+// IMPORTANT: Keep up to date with the generated Measurement type (from measurement.proto).
 func NewMeasurement(sm *StorableMeasurement) (mpb.Measurement, error) {
 	// Enforce a non-zero timestamp.
 	if sm.Timestamp.IsZero() {
@@ -278,6 +287,13 @@ func (sm StorableMeasurement) StringValueMap() map[string]string {
 	}
 
 	return m
+}
+
+func (sm *StorableMeasurement) FillDerivedMetrics() {
+	if sm.PM25 != nil {
+		v := float32(aqi.PM25(*sm.PM25))
+		sm.AQI = &v
+	}
 }
 
 func (sm StorableMeasurement) String() string {

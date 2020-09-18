@@ -127,6 +127,12 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		gaelog.Errorf(ctx, "Error fetching data: %v", err)
 	} else {
+		for _, v := range measurements {
+			for i, _ := range v {
+				v[i].FillDerivedMetrics()
+			}
+		}
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

@@ -1,6 +1,7 @@
 package measurement
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -84,16 +85,31 @@ func GetMetric(nameOrKey string) (Metric, bool) {
 
 // StorableMeasurement is equivalent to the generated Measurement type but it contains
 // no protobuf-specific types. It therefore can be marshaled to JSON and written to
-// Datastore.
+// Datastore. StorableMeasurement is marshaled to JSON in order to pass data to the
+// frontend. Timestamp is handled specially in MarshalJSON.
 // IMPORTANT: Keep up to date with the generated Measurement type
 type StorableMeasurement struct {
-	DeviceID        string    `json:"device_id,omitempty" datastore:"device_id"`
-	Timestamp       time.Time `json:"timestamp,omitempty" datastore:"timestamp"`
-	UploadTimestamp time.Time `json:"upload_timestamp,omitempty" datastore:"upload_timestamp,omitempty"`
+	DeviceID        string    `json:"-" datastore:"device_id"`
+	Timestamp       time.Time `json:"-" datastore:"timestamp"`
+	UploadTimestamp time.Time `json:"-" datastore:"upload_timestamp,omitempty"`
 	Temp            *float32  `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
 	PM25            *float32  `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
 	PM10            *float32  `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
 	RH              *float32  `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
+}
+
+func (sm StorableMeasurement) MarshalJSON() ([]byte, error) {
+	// Alias the type so that we don't infinitely recurse.
+	type alias StorableMeasurement
+
+	return json.Marshal(&struct {
+		alias
+		Ts int64 `json:"ts,omitempty"`
+	}{
+		alias: (alias)(sm),
+		// Convert the original timestamp to an offset from the epoch in milliseconds.
+		Ts: sm.Timestamp.Unix() * 1000,
+	})
 }
 
 // NewStorableMeasurement converts the generated Measurement type to a StorableMeasurement,

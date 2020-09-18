@@ -16,8 +16,71 @@ import (
 // device IDs and timestamps, the two things most likely to be used in keys, can't contain it.
 const keySep = "#"
 
-// ErrZeroTimestamp is returned from NewMeasurement if the StorableMeasurement's timestamp is the zero timestamp.
-var ErrZeroTimestamp = fmt.Errorf("measurement: timestamp cannot be nil")
+var (
+	// ErrZeroTimestamp is returned from NewMeasurement if the StorableMeasurement's timestamp is the zero timestamp.
+	ErrZeroTimestamp = fmt.Errorf("measurement: timestamp cannot be nil")
+
+	// jsonKeyToMetric and metricNameToMetric do what they say on the tin in order to allow
+	// lookup of metric names and units from the key that's used in serialized measurements
+	// (e.g., look it up from the frontend).
+	jsonKeyToMetric    = make(map[string]Metric)
+	metricNameToMetric = make(map[string]Metric)
+)
+
+func init() {
+	sm := StorableMeasurement{}
+
+	v := reflect.ValueOf(sm)
+	for i := 0; i < v.NumField(); i++ {
+		// The metric tag must be present. It marks a field as a measurement.
+		metric := getMetric(v, i)
+		if metric == "" {
+			continue
+		}
+
+		// The field must be a float32 pointer.
+		if _, ok := getValue(v, i); !ok {
+			continue
+		}
+
+		jsonKey := strings.Split(v.Type().Field(i).Tag.Get("json"), ",")[0]
+
+		// Ensure that no keys are duplicated. Fail in glorious fashion if they are.
+		if _, ok := jsonKeyToMetric[jsonKey]; ok {
+			panic(fmt.Sprintf("duplicate JSON key %q", jsonKey))
+		}
+		if _, ok := metricNameToMetric[metric]; ok {
+			panic(fmt.Sprintf("duplicate metric name %q", metric))
+		}
+
+		m := Metric{
+			Name:  metric,
+			Abbrv: jsonKey,
+			Unit:  getUnit(v, i),
+		}
+
+		jsonKeyToMetric[jsonKey] = m
+		metricNameToMetric[metric] = m
+	}
+}
+
+type Metric struct {
+	Name  string
+	Abbrv string
+	Unit  string
+}
+
+func GetMetric(nameOrKey string) (Metric, bool) {
+	if metric, ok := jsonKeyToMetric[nameOrKey]; ok {
+		return metric, ok
+	}
+
+	if metric, ok := metricNameToMetric[nameOrKey]; ok {
+		return metric, ok
+	}
+
+	return Metric{}, false
+}
 
 // StorableMeasurement is equivalent to the generated Measurement type but it contains
 // no protobuf-specific types. It therefore can be marshaled to JSON and written to

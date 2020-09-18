@@ -15,7 +15,7 @@ function padExtent(extent) {
   return [extent[0] - adjustment, extent[1] + adjustment];
 }
 
-function makePlot(selector, data, metric, startDate, endDate) {
+function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // This width and height are just used here and for the viewBox (set below).
   // The SVG is given width and height of 100% in the CSS, so it scales
   // automatically based on the viewBox and preserveAspectRatio settings.
@@ -54,6 +54,16 @@ function makePlot(selector, data, metric, startDate, endDate) {
 
   x.domain([startDate, endDate]);
   x2.domain(x.domain());
+
+  // Filter the data based on metric, keeping only data from the devices that
+  // recorded the desired metric.
+  filtered = [];
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].metrics.includes(metric)) {
+      filtered.push(data[i]);
+    }
+  }
+  data = filtered;
 
   // We can only set y and z domains if we have data
   if (data != null) {
@@ -128,7 +138,7 @@ function makePlot(selector, data, metric, startDate, endDate) {
       .attr("dy", -margin.left + 15)
       .attr("dx", -height / 2)
       .attr("fill", "#000")
-      .text("Temperature (°C)");
+      .text(name + " (" + unit + ")");
 
   // The context plot just gets an x-axis
   context.append("g")

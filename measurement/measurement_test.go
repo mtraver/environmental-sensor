@@ -191,3 +191,53 @@ func TestDBKey(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestGetMetric(t *testing.T) {
+	cases := []struct {
+		nameOrKey string
+		want      Metric
+	}{
+		{
+			nameOrKey: "temp",
+			want: Metric{
+				Name:  "temp",
+				Abbrv: "temp",
+				Unit:  "°C",
+			},
+		},
+		{
+			nameOrKey: "PM2.5",
+			want: Metric{
+				Name:  "PM2.5",
+				Abbrv: "pm25",
+				Unit:  "μg/m³",
+			},
+		},
+		{
+			nameOrKey: "pm25",
+			want: Metric{
+				Name:  "PM2.5",
+				Abbrv: "pm25",
+				Unit:  "μg/m³",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.nameOrKey, func(t *testing.T) {
+			got, ok := GetMetric(c.nameOrKey)
+			if !ok {
+				t.Errorf("metric not found")
+			}
+			if diff := cmp.Diff(got, c.want); diff != "" {
+				t.Errorf("Unexpected result (-got +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestGetMetricFailure(t *testing.T) {
+	if got, ok := GetMetric("foo"); ok {
+		t.Errorf("got metric, expected none: %v", got)
+	}
+}

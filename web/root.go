@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"math"
 	"net/http"
+	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -118,6 +120,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get measurements and marshal to JSON for use in the template
 	start := time.Now()
 	measurements, err := h.Database.Between(ctx, startTime, endTime)
+	metrics := []measurement.Metric{}
 	elapsed := time.Since(start)
 	gaelog.Infof(ctx, "Done getting measurements; took %v", elapsed)
 
@@ -138,6 +141,37 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			elapsed := time.Since(start)
 			gaelog.Infof(ctx, "Done marshaling measurements to JSON; took %v", elapsed)
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			start := time.Now()
+
+			// Get the full set of metrics included in the data. This is used to
+			// set up plots for each metric.
+			mm := make(map[string]bool)
+			for _, v := range measurements {
+				for _, sm := range v {
+					for metricName, _ := range sm.ValueMap() {
+						mm[metricName] = true
+					}
+				}
+			}
+			for metricName, _ := range mm {
+				metric, ok := measurement.GetMetric(metricName)
+				if !ok {
+					gaelog.Errorf(ctx, "Error getting metrics: unknown metric %q", metricName)
+					continue
+				}
+				metrics = append(metrics, metric)
+			}
+			sort.Slice(metrics, func(i, j int) bool {
+				return metrics[i].Name < metrics[j].Name
+			})
+
+			elapsed := time.Since(start)
+			gaelog.Infof(ctx, "Done getting metric set; took %v", elapsed)
 		}()
 
 		wg.Add(1)
@@ -205,6 +239,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		Measurements     template.JS
+		Metrics          []measurement.Metric
 		Stats            map[string]Stats
 		Error            error
 		StartTime        time.Time
@@ -220,6 +255,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		AQI              map[string]int
 	}{
 		Measurements:     template.JS(jsonBytes),
+		Metrics:          metrics,
 		Stats:            stats,
 		Error:            err,
 		StartTime:        startTime,
@@ -241,16 +277,39 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // serializableMeasurement is the same as StorableMeasurement except without fields that
-// the frontend doesn't need for plotting data. The JSON keys are also as short as possible,
-// as that reduces the size of the JSON object served to the user.
-// IMPORTANT: Keep up to date with the generated Measurement type, at least to the extent that is required.
+// the frontend doesn't need for plotting data.
+// IMPORTANT: Keep up to date with the generated Measurement type, at least to the
+// extent that is required. Ensure that the JSON keys are the same as StorableMeasurement's.
 type serializableMeasurement struct {
 	// This timestamp is an offset from the epoch in milliseconds (compare to Timestamp in StorableMeasurement).
 	Timestamp int64    `json:"ts,omitempty"`
-	Temp      *float32 `json:"t,omitempty"`
-	PM25      *float32 `json:"p25,omitempty"`
-	PM10      *float32 `json:"p10,omitempty"`
-	RH        *float32 `json:"h,omitempty"`
+	Temp      *float32 `json:"temp,omitempty"`
+	PM25      *float32 `json:"pm25,omitempty"`
+	PM10      *float32 `json:"pm10,omitempty"`
+	RH        *float32 `json:"rh,omitempty"`
+}
+
+// metricsSet returns a slice containing the JSON keys of metric fields that are non-nil.
+func (srm serializableMeasurement) metricsSet() []string {
+	metrics := []string{}
+
+	v := reflect.ValueOf(srm)
+	for i := 0; i < v.NumField(); i++ {
+		jsonKey := strings.Split(v.Type().Field(i).Tag.Get("json"), ",")[0]
+		if jsonKey == "" {
+			continue
+		}
+
+		// The field must be a float32 pointer.
+		f, ok := v.Field(i).Interface().(*float32)
+		if !ok || f == nil {
+			continue
+		}
+
+		metrics = append(metrics, jsonKey)
+	}
+
+	return metrics
 }
 
 // measurementMapToJSON converts a string -> []StorableMeasurement map into a marshaled
@@ -260,8 +319,9 @@ type serializableMeasurement struct {
 // arrays of data than maps.
 func measurementMapToJSON(measurements map[string][]measurement.StorableMeasurement) ([]byte, error) {
 	type dataForTemplate struct {
-		ID     string                    `json:"id"`
-		Values []serializableMeasurement `json:"values"`
+		ID      string                    `json:"id"`
+		Metrics []string                  `json:"metrics"`
+		Values  []serializableMeasurement `json:"values"`
 	}
 
 	// Sort the map's keys so that the resulting JSON always has them in the same
@@ -277,6 +337,10 @@ func measurementMapToJSON(measurements map[string][]measurement.StorableMeasurem
 
 	var data []dataForTemplate
 	for _, k := range keys {
+		// metricsSet will contain the set of the JSON keys of the metrics that are
+		// present in the given measurements.
+		metricsSet := make(map[string]bool)
+
 		vals := make([]serializableMeasurement, len(measurements[k]))
 		for i, sm := range measurements[k] {
 			// IMPORTANT: Keep up to date with serializableMeasurement.
@@ -287,8 +351,25 @@ func measurementMapToJSON(measurements map[string][]measurement.StorableMeasurem
 				PM10:      sm.PM10,
 				RH:        sm.RH,
 			}
+
+			for _, metric := range vals[i].metricsSet() {
+				metricsSet[metric] = true
+			}
 		}
-		data = append(data, dataForTemplate{k, vals})
+
+		// Turn the set into a slice of keys.
+		metrics := make([]string, len(metricsSet))
+		i := 0
+		for k, _ := range metricsSet {
+			metrics[i] = k
+			i++
+		}
+
+		data = append(data, dataForTemplate{
+			ID:      k,
+			Metrics: metrics,
+			Values:  vals,
+		})
 	}
 	return json.Marshal(data)
 }

@@ -22,10 +22,37 @@
       {{ if .Error }}
         <p>Error fetching data: {{ .Error }}</p>
       {{ else }}
-        <div class="row">
-          <div class="col-md-12">
-            <svg id="plot"></svg>
-          </div>
+        <ul class="nav nav-tabs" id="metricTabs" role="tablist">
+          {{ range $i, $metric := .Metrics }}
+            {{ $active := "" }}
+            {{ if eq $i 0 }}
+              {{ $active = "active" }}
+            {{ end }}
+
+            {{ $selected := "false" }}
+            {{ if eq $i 0 }}
+              {{ $selected = "true" }}
+            {{ end }}
+
+            <li class="nav-item">
+              <a class="nav-link {{ $active }}" id="{{ $metric.Abbrv }}-tab" data-toggle="tab" href="#{{ $metric.Abbrv }}" role="tab" aria-controls="{{ $metric.Abbrv }}" aria-selected="{{ $selected }}">{{ $metric.Name }}</a>
+            </li>
+          {{ end }}
+        </ul>
+
+        <div class="tab-content" id="metricTabsContent">
+          {{ range $i, $metric := .Metrics }}
+            {{ $active := "" }}
+            {{ if eq $i 0 }}
+              {{ $active = "active" }}
+            {{ end }}
+
+            <div class="tab-pane fade show {{ $active }}" id="{{ $metric.Abbrv }}" role="tabpanel" aria-labelledby="{{ $metric.Abbrv }}-tab">
+              <div class="col-md-12">
+                <svg id="{{ $metric.Abbrv }}Plot"></svg>
+              </div>
+            </div>
+          {{ end }}
         </div>
 
         {{ if .AQI }}
@@ -297,6 +324,11 @@
       var valuesByDevice = {{ .Measurements }};
 
       $(document).ready(function() {
+        $('#metricTabs a').on('click', function (e) {
+          e.preventDefault()
+          $(this).tab('show')
+        });
+
         updateCurrentTempTimeAgo();
         setInterval(updateCurrentTempTimeAgo, 5000);
 
@@ -385,8 +417,12 @@
           this.classList.add('was-validated');
         });
 
-        makePlot("svg#plot", valuesByDevice, "t", new Date({{ millis .StartTime }}),
-                 new Date({{ millis .EndTime }}));
+        {{ range $metric := .Metrics }}
+          makePlot("svg#{{ $metric.Abbrv }}Plot", valuesByDevice,
+                   "{{ $metric.Abbrv }}", "{{ $metric.Name }}", "{{ $metric.Unit }}",
+                   new Date({{ millis $.StartTime }}),
+                   new Date({{ millis $.EndTime }}));
+        {{ end }}
       });
     {{ end }}
   </script>

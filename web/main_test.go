@@ -18,7 +18,7 @@ func TestMeasurementMapToJSON(t *testing.T) {
 		want         string
 	}{
 		{"none", map[string][]measurement.StorableMeasurement{}, "null"},
-		{"empty", map[string][]measurement.StorableMeasurement{"foo": {}}, `[{"id":"foo","values":[]}]`},
+		{"empty", map[string][]measurement.StorableMeasurement{"foo": {}}, `[{"id":"foo","metrics":[],"values":[]}]`},
 		{"nil_temp", map[string][]measurement.StorableMeasurement{
 			"foo": {
 				{
@@ -37,7 +37,7 @@ func TestMeasurementMapToJSON(t *testing.T) {
 					Temp:      nil,
 				},
 			},
-		}, `[{"id":"foo","values":[{"ts":1521936000000,"t":18.5},{"ts":1522022400000,"t":18.5},{"ts":1522108800000}]}]`},
+		}, `[{"id":"foo","metrics":["temp"],"values":[{"ts":1521936000000,"temp":18.5},{"ts":1522022400000,"temp":18.5},{"ts":1522108800000}]}]`},
 		{"many", map[string][]measurement.StorableMeasurement{
 			"foo": {
 				{
@@ -73,7 +73,7 @@ func TestMeasurementMapToJSON(t *testing.T) {
 					Temp:      floatPtr(18.5),
 				},
 			},
-		}, `[{"id":"bar","values":[{"ts":1521997200000,"t":18.5},{"ts":1522083600000,"t":18.5},{"ts":1522170000000,"t":18.5}]},{"id":"foo","values":[{"ts":1521936000000,"t":18.5},{"ts":1522022400000,"t":18.5},{"ts":1522108800000,"t":18.5}]}]`},
+		}, `[{"id":"bar","metrics":["temp"],"values":[{"ts":1521997200000,"temp":18.5},{"ts":1522083600000,"temp":18.5},{"ts":1522170000000,"temp":18.5}]},{"id":"foo","metrics":["temp"],"values":[{"ts":1521936000000,"temp":18.5},{"ts":1522022400000,"temp":18.5},{"ts":1522108800000,"temp":18.5}]}]`},
 	}
 
 	for _, c := range cases {

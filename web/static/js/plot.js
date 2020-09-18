@@ -24,8 +24,8 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
 
   // Margins around the focus plot (main plot) and context plot (smaller plot).
   // Vars that end with a 2 (e.g. margin2, x2) refer to the context plot.
-  var margin = {top: 5, right: 20, bottom: 150, left: 50};
-  var margin2 = {top: 435, right: 20, bottom: 50, left: 50};
+  var margin = {top: 5, right: 20, bottom: 150, left: 65};
+  var margin2 = {top: 435, right: 20, bottom: 50, left: 65};
 
   var svg = d3.select(selector);
   svg.attr("viewBox", "0 0 " + fullWidth + " " + fullHeight)
@@ -99,6 +99,9 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .extent([[0, 0], [width, height]])
       .on("zoom", zoomed);
 
+  // This is used to style the axes and legend.
+  var font = "16px sans-serif";
+
   var xAxis = d3.axisBottom(x);
   var xAxis2 = d3.axisBottom(x2);
   var yAxis = d3.axisLeft(y);
@@ -126,6 +129,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
 
   focus.append("g")
       .attr("class", "axis axis--x")
+      .style("font", font)
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
@@ -135,11 +139,12 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   }
   focus.append("g")
       .attr("class", "axis axis--y")
+      .style("font", font)
       .call(yAxis)
     .append("text")
       .attr("text-anchor", "middle")
       .attr("transform", "rotate(-90)")
-      .attr("dy", -margin.left + 15)
+      .attr("dy", -margin.left + 12)
       .attr("dx", -height / 2)
       .attr("fill", "#000")
       .text(yAxisLabel);
@@ -147,6 +152,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // The context plot just gets an x-axis
   context.append("g")
       .attr("class", "axis axis--x")
+      .style("font", font)
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
 
@@ -193,7 +199,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
 
   focus.append("g")
     .attr("class", "legend")
-    .style("font", "11px sans-serif")
+    .style("font", font)
     .attr("transform",
           "translate(" + 0 + "," + (height + margin.bottom
                                     - legendRectSize * 1.25) + ")")

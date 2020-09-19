@@ -24,7 +24,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
 
   // Margins around the focus plot (main plot) and context plot (smaller plot).
   // Vars that end with a 2 (e.g. margin2, x2) refer to the context plot.
-  var margin = {top: 5, right: 20, bottom: 150, left: 65};
+  var margin = {top: 10, right: 20, bottom: 150, left: 65};
   var margin2 = {top: 435, right: 20, bottom: 50, left: 65};
 
   var svg = d3.select(selector);
@@ -100,7 +100,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .on("zoom", zoomed);
 
   // This is used to style the axes and legend.
-  var font = "16px sans-serif";
+  var font = "17px sans-serif";
 
   var xAxis = d3.axisBottom(x);
   var xAxis2 = d3.axisBottom(x2);

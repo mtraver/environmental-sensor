@@ -107,8 +107,9 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   var yAxis = d3.axisLeft(y);
 
   // This ensures that the lines don't run off the plot
+  var clipId = metric + "-clip";
   svg.append("defs").append("clipPath")
-      .attr("id", "clip")
+      .attr("id", clipId)
     .append("rect")
       .attr("width", width)
       .attr("height", height);
@@ -173,6 +174,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .data(data)
     .enter().append("g")
       .attr("class", "device")
+      .attr("clip-path", "url(#" + clipId + ")")
     .append("path")
       .attr("class", "line")
       .attr("d", function(d) { return line(d.values); })

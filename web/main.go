@@ -55,8 +55,12 @@ func main() {
 				}
 				return fmt.Sprintf(format, *f)
 			},
-			"AQIStr":   aqi.String,
-			"AQIAbbrv": aqi.Abbrv,
+			"AQIStr": func(v float32) string {
+				return aqi.String(int(v))
+			},
+			"AQIAbbrv": func(v float32) string {
+				return aqi.Abbrv(int(v))
+			},
 		}).ParseGlob("web/templates/*"))
 
 	database, err := db.NewDatastoreDB(projectID, datastoreKind, newCache())

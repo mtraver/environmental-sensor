@@ -220,6 +220,11 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// latest measurements table can be constructed with only the necessary columns.
 	latestMetrics := []string{}
 	if latestErr == nil {
+		for id, sm := range latest {
+			sm.FillDerivedMetrics()
+			latest[id] = sm
+		}
+
 		mm := make(map[string]bool)
 		for _, sm := range latest {
 			for metric, _ := range sm.ValueMap() {
@@ -234,10 +239,10 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Compute PM2.5 AQIs.
-	aqis := make(map[string]int)
+	aqis := make(map[string]float32)
 	for _, sm := range latest {
 		if sm.PM25 != nil {
-			aqis[sm.DeviceID] = aqi.PM25(*sm.PM25)
+			aqis[sm.DeviceID] = float32(aqi.PM25(*sm.PM25))
 		}
 	}
 
@@ -256,7 +261,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Latest           map[string]measurement.StorableMeasurement
 		LatestMetrics    []string
 		LatestError      error
-		AQI              map[string]int
+		AQI              map[string]float32
 	}{
 		Measurements:     template.JS(jsonBytes),
 		Metrics:          metrics,

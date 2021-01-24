@@ -68,6 +68,8 @@ func main() {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
 
+	influxDB := db.NewInfluxDB(mustGetenv("INFLUXDB_SERVER"), mustGetenv("INFLUXDB_TOKEN"), mustGetenv("INFLUXDB_ORG"), mustGetenv("INFLUXDB_BUCKET"))
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/", rootHandler{
@@ -87,6 +89,7 @@ func main() {
 
 	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{
 		Database: database,
+		InfluxDB: influxDB,
 	})
 
 	serve(gaelog.Wrap(mux))

@@ -7,6 +7,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.2
+	github.com/influxdata/influxdb-client-go/v2 v2.2.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/gaelog v0.2.0
 	github.com/mtraver/iotcore v0.0.0-20200528033650-9e94943d647b

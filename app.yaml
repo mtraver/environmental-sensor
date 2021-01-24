@@ -6,6 +6,10 @@ instance_class: F1
 
 env_variables:
   IOTCORE_REGISTRY: 'TODO'
+  INFLUXDB_SERVER: 'TODO'
+  INFLUXDB_TOKEN: 'TODO'
+  INFLUXDB_ORG: 'TODO'
+  INFLUXDB_BUCKET: 'TODO'
 
 handlers:
 - url: /static

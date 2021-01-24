@@ -7,6 +7,7 @@ import (
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
+	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/gaelog"
 	"google.golang.org/protobuf/proto"
 )
@@ -25,6 +26,7 @@ type pushRequest struct {
 // pushHandler handles Pub/Sub push deliveries originating from Google Cloud IoT Core.
 type pushHandler struct {
 	Database Database
+	InfluxDB *db.InfluxDB
 }
 
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +61,12 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.Database.Save(ctx, m); err != nil {
 		gaelog.Errorf(ctx, "Failed to save measurement: %v\n", err)
+	}
+
+	if h.InfluxDB != nil {
+		if err := h.InfluxDB.Save(ctx, m); err != nil {
+			gaelog.Errorf(ctx, "Failed to save measurement to InfluxDB: %v\n", err)
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

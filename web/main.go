@@ -88,8 +88,10 @@ func main() {
 	})
 
 	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{
-		Database: database,
-		InfluxDB: influxDB,
+		PubSubToken:    mustGetenv("PUBSUB_VERIFICATION_TOKEN"),
+		PubSubAudience: mustGetenv("PUBSUB_AUDIENCE"),
+		Database:       database,
+		InfluxDB:       influxDB,
 	})
 
 	serve(gaelog.Wrap(mux))

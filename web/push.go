@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/gaelog"
+	"google.golang.org/api/idtoken"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -25,12 +29,51 @@ type pushRequest struct {
 
 // pushHandler handles Pub/Sub push deliveries originating from Google Cloud IoT Core.
 type pushHandler struct {
-	Database Database
-	InfluxDB *db.InfluxDB
+	PubSubToken    string
+	PubSubAudience string
+	Database       Database
+	InfluxDB       *db.InfluxDB
+}
+
+// authenticate validates the JWT signed by Pub/Sub.
+func (h pushHandler) authenticate(ctx context.Context, r *http.Request) error {
+	// Verify the token provided as a param in the URL requested by Pub/Sub.
+	if token, ok := r.URL.Query()["token"]; !ok || len(token) != 1 || token[0] != h.PubSubToken {
+		return errors.New("Bad token")
+	}
+
+	// Get the Pub/Sub-generated JWT from the "Authorization" header.
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || len(strings.Split(authHeader, " ")) != 2 {
+		return errors.New("Missing Authorization header")
+	}
+	token := strings.Split(authHeader, " ")[1]
+
+	// Decode and verify the JWT.
+	payload, err := idtoken.Validate(ctx, token, h.PubSubAudience)
+	if err != nil {
+		return errors.New("Invalid JWT")
+	}
+	if payload.Issuer != "accounts.google.com" && payload.Issuer != "https://accounts.google.com" {
+		return errors.New("Wrong issuer")
+	}
+
+	return nil
 }
 
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	ctx := newContext(r)
+
+	if err := h.authenticate(ctx, r); err != nil {
+		gaelog.Criticalf(ctx, "Authentication failed: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {

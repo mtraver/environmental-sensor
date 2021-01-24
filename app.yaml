@@ -6,6 +6,8 @@ instance_class: F1
 
 env_variables:
   IOTCORE_REGISTRY: 'TODO'
+  PUBSUB_VERIFICATION_TOKEN: 'TODO'
+  PUBSUB_AUDIENCE: 'TODO'
   INFLUXDB_SERVER: 'TODO'
   INFLUXDB_TOKEN: 'TODO'
   INFLUXDB_ORG: 'TODO'
@@ -15,14 +17,6 @@ handlers:
 - url: /static
   static_dir: web/static
   secure: always
-- url: /_ah/push-handlers/.*
-  script: auto
-  login: admin
-  secure: always
-- url: /uploadz
-  script: auto
-  secure: always
-  login: admin
 - url: /.*
   script: auto
   secure: always

@@ -1,0 +1,17 @@
+{{ define "cachez" }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Environmental Monitor | cachez</title>
+  </head>
+  <body>
+    <h1>/cachez</h1>
+    <p><a href="/">home</a></p>
+
+    <p>{{ .Hits }} / {{ .Total }}</p>
+  </body>
+</html>
+{{ end }}

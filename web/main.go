@@ -63,7 +63,8 @@ func main() {
 			},
 		}).ParseGlob("web/templates/*"))
 
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, newCache())
+	cache := newCache()
+	database, err := db.NewDatastoreDB(projectID, datastoreKind, cache)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
@@ -85,6 +86,11 @@ func main() {
 		DelayedUploadsDur: 48 * time.Hour,
 		Database:          database,
 		Template:          templates,
+	})
+
+	mux.Handle("/cachez", cachezHandler{
+		Cache:    cache,
+		Template: templates,
 	})
 
 	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{

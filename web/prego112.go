@@ -15,7 +15,7 @@ func newContext(r *http.Request) context.Context {
 }
 
 func newCache() cache.Cache {
-	return cache.Memcache{}
+	return &cache.Memcache{}
 }
 
 func serve(mux http.Handler) {

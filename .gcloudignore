@@ -15,7 +15,6 @@ Dockerfile
 Makefile
 *.proto
 *.md
-client_python/
 cmd/
 
 # Binaries for programs and plugins

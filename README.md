@@ -25,31 +25,7 @@ which can then be saved and plotted using the Google App Engine app in the
 Set up a cron job, use it in a daemon, the world's your oyster...as long as the
 world is temperature values read from the MCP9808.
 
-## Choose a Client
-
-**NOTE:** The Python client is unmaintained! It may be deleted in the future.
-Please use the Go client.
-
-This project includes clients — code that runs on the Raspberry Pi to read the
-temperature and log it — written in Go and Python.
-
-Use the [Go client](cmd) if you're sending temperature data to Google
-Cloud IoT Core (it only supports Cloud IoT Core at the moment). It's easier to
-work with than the Python client because you get a statically-linked binary that
-just works on the Raspberry Pi. You don't have to clone this repository on the
-Raspberry Pi or install dependencies or set up a virtualenv. Just `make` and run.
-
-Use the [Python client](client_python) if you want to log directly to Google
-Cloud Pub/Sub, or to Google Sheets. The Python client supports Cloud IoT Core
-as well. Note: This project only supports Python 3. The future is now. The
-future was in [2008](https://www.python.org/download/releases/3.0/). Come with
-us into the future.
-
 ## Prerequisites
-
-Each client's README has information about its prerequisites.
-
-Regardless of your choice of client, you'll need to:
 
   - **Wire up the hardware.** Adafruit have a nice tutorial:
 https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
@@ -58,6 +34,8 @@ this can be done with ``raspi-config``. You'll find the "I2C" option under
 either "Advanced Options" or "Interfacing Options".
 
 ## Setting up Google Cloud IoT Core logging
+
+### Google Cloud setup
 
 The scripts at https://github.com/mtraver/provisioning are useful for creating
 the CA key and cert and device-specific keys and certs described below.
@@ -89,33 +67,10 @@ The end-to-end flow is like this:
 4. The web app receives the request, decodes the payload, and writes
    it to the database.
 
-## Setting up Google Cloud Pub/Sub logging
+### Client program
 
-TODO
+The program in [cmd/iotcorelogger](cmd/iotcorelogger) runs on the Raspberry Pi
+and sends data to Google Cloud IoT Core. [cmd/README](cmd/README)
+has information on building and configuring `iotcorelogger`.
 
-## Setting up Google Sheets logging
-
-Google provide a guide to using the Sheets API in Python:
-https://developers.google.com/sheets/api/quickstart/python.
-
-1. Follow "Step 1: Turn on the Google Sheets API" and use the wizard linked
-   there to make a project and set up access credentials. What you want is a
-   "service account", which is what the wizard will recommend if you say that
-   you want access from a headless device/crontab/etc. You'll get an email
-   address that looks something like this:
-
-   ``<something>@<something>.iam.gserviceaccount.com``
-
-   You'll also get a JSON file containing the key for that service account.
-   Put it in a safe place.
-
-2. Now make a Google Sheets spreadsheet and share it with the service account
-   email address, giving edit permissions.
-
-   Note the spreadsheet ID. For the example URL below, the ID is
-   ``1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms``:
-
-   ``https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit``
-
-The JSON key file and spreadsheet ID are the two things you'll need to log to
-the sheet.
+TODO(mtraver) add info on systemd config

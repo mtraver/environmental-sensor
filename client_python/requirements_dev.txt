@@ -1,5 +1,0 @@
-# Requirements for reading and plotting data. It is not necessary to install
-# this requirements file on the Raspberry Pi / BeagleBone.
-
--r requirements_common.txt
-pandas>=0.19.2

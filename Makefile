@@ -26,10 +26,6 @@ api:
 apiclient:
 	$(BUILD) -o $(OUT_DIR)/$@ ./cmd/$@
 
-# This also used to generate Python code, but the Python client is no longer
-# maintained so it no longer does. If you wish to generate Python, add this
-# flag to the protoc command:
-#   --python_out=client_python/loggers
 .PHONY: proto
 proto:
 	# Get protoc from https://github.com/protocolbuffers/protobuf/releases

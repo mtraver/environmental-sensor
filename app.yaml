@@ -1,5 +1,5 @@
 # https://cloud.google.com/appengine/docs/standard/python/config/appref
-runtime: go114
+runtime: go115
 main: web
 
 instance_class: F1

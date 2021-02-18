@@ -1,8 +1,9 @@
 # This Dockerfile produces an image that runs a gRPC server implementing MeasurementService.
-FROM golang:1.13 as builder
+FROM golang:1.15 as builder
 
 RUN mkdir /build
 WORKDIR /build
+COPY aqi aqi/
 COPY cmd/api api/
 COPY measurement measurement/
 COPY measurementpb measurementpb/

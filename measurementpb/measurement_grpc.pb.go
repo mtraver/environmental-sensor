@@ -12,7 +12,8 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+// Requires gRPC-Go v1.32.0 or later.
+const _ = grpc.SupportPackageIsVersion7
 
 // MeasurementServiceClient is the client API for MeasurementService service.
 //
@@ -61,16 +62,23 @@ type MeasurementServiceServer interface {
 type UnimplementedMeasurementServiceServer struct {
 }
 
-func (*UnimplementedMeasurementServiceServer) GetDevices(context.Context, *empty.Empty) (*GetDevicesResponse, error) {
+func (UnimplementedMeasurementServiceServer) GetDevices(context.Context, *empty.Empty) (*GetDevicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDevices not implemented")
 }
-func (*UnimplementedMeasurementServiceServer) GetLatest(context.Context, *GetLatestRequest) (*Measurement, error) {
+func (UnimplementedMeasurementServiceServer) GetLatest(context.Context, *GetLatestRequest) (*Measurement, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLatest not implemented")
 }
-func (*UnimplementedMeasurementServiceServer) mustEmbedUnimplementedMeasurementServiceServer() {}
+func (UnimplementedMeasurementServiceServer) mustEmbedUnimplementedMeasurementServiceServer() {}
 
-func RegisterMeasurementServiceServer(s *grpc.Server, srv MeasurementServiceServer) {
-	s.RegisterService(&_MeasurementService_serviceDesc, srv)
+// UnsafeMeasurementServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MeasurementServiceServer will
+// result in compilation errors.
+type UnsafeMeasurementServiceServer interface {
+	mustEmbedUnimplementedMeasurementServiceServer()
+}
+
+func RegisterMeasurementServiceServer(s grpc.ServiceRegistrar, srv MeasurementServiceServer) {
+	s.RegisterService(&MeasurementService_ServiceDesc, srv)
 }
 
 func _MeasurementService_GetDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -109,7 +117,10 @@ func _MeasurementService_GetLatest_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-var _MeasurementService_serviceDesc = grpc.ServiceDesc{
+// MeasurementService_ServiceDesc is the grpc.ServiceDesc for MeasurementService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var MeasurementService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "measurement.MeasurementService",
 	HandlerType: (*MeasurementServiceServer)(nil),
 	Methods: []grpc.MethodDesc{

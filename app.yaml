@@ -4,6 +4,9 @@ main: web
 
 instance_class: F1
 
+automatic_scaling:
+  max_instances: 5
+
 env_variables:
   IOTCORE_REGISTRY: 'TODO'
   PUBSUB_VERIFICATION_TOKEN: 'TODO'

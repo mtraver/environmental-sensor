@@ -44,8 +44,8 @@ func parseDeviceFile(filepath string) (iotcore.Device, error) {
 	return device, nil
 }
 
-func fileStore(dir string) func(iotcore.Device, *mqtt.ClientOptions) error {
-	return func(device iotcore.Device, opts *mqtt.ClientOptions) error {
+func fileStore(dir string) func(*iotcore.Device, *mqtt.ClientOptions) error {
+	return func(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 		opts.SetStore(mqtt.NewFileStore(dir))
 		return nil
 	}
@@ -61,7 +61,7 @@ func configHandler(client mqtt.Client, msg mqtt.Message) {
 	log.Printf("Received config message with ID %v", msg.MessageID())
 }
 
-func onConnect(device iotcore.Device, opts *mqtt.ClientOptions) error {
+func onConnect(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
 		log.Printf("Connected to MQTT broker")
 
@@ -90,7 +90,7 @@ func onConnect(device iotcore.Device, opts *mqtt.ClientOptions) error {
 	return nil
 }
 
-func onConnectionLost(device iotcore.Device, opts *mqtt.ClientOptions) error {
+func onConnectionLost(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
 		log.Printf("Connection to MQTT broker lost: %v", err)
 	})

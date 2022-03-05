@@ -14,10 +14,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
-	"periph.io/x/periph/conn/i2c/i2creg"
-	"periph.io/x/periph/conn/physic"
-	"periph.io/x/periph/experimental/devices/mcp9808"
-	"periph.io/x/periph/host"
+	"periph.io/x/conn/v3/i2c/i2creg"
+	"periph.io/x/conn/v3/physic"
+	"periph.io/x/devices/v3/mcp9808"
+	"periph.io/x/host/v3"
 )
 
 var (

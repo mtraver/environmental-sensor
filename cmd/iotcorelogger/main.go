@@ -23,8 +23,8 @@ import (
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
 	cron "github.com/robfig/cron/v3"
 	"google.golang.org/protobuf/encoding/protojson"
-	"periph.io/x/periph/conn/i2c/i2creg"
-	"periph.io/x/periph/host"
+	"periph.io/x/conn/v3/i2c/i2creg"
+	"periph.io/x/host/v3"
 )
 
 // Flags.

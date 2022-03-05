@@ -5,9 +5,9 @@ import (
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
-	"periph.io/x/periph/conn/i2c"
-	"periph.io/x/periph/conn/physic"
-	"periph.io/x/periph/experimental/devices/mcp9808"
+	"periph.io/x/conn/v3/i2c"
+	"periph.io/x/conn/v3/physic"
+	"periph.io/x/devices/v3/mcp9808"
 )
 
 const (

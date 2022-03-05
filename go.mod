@@ -25,5 +25,7 @@ require (
 	google.golang.org/appengine v1.6.7
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
-	periph.io/x/periph v3.6.8+incompatible
+	periph.io/x/conn/v3 v3.6.10
+	periph.io/x/devices/v3 v3.6.13
+	periph.io/x/host/v3 v3.7.2
 )

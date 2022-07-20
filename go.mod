@@ -11,7 +11,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.8
-	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/influxdata/influxdb-client-go/v2 v2.7.0
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/gaelog v0.2.4

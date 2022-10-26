@@ -52,7 +52,7 @@ func (h pushHandler) authenticate(ctx context.Context, r *http.Request) error {
 	// Decode and verify the JWT.
 	payload, err := idtoken.Validate(ctx, token, h.PubSubAudience)
 	if err != nil {
-		return errors.New("Invalid JWT")
+		return fmt.Errorf("Invalid JWT: %w", err)
 	}
 	if payload.Issuer != "accounts.google.com" && payload.Issuer != "https://accounts.google.com" {
 		return errors.New("Wrong issuer")

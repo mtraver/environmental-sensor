@@ -13,11 +13,16 @@ import (
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
+	"github.com/mtraver/envtools"
 	"github.com/mtraver/gaelog"
 )
 
 const (
 	datastoreKind = "measurement"
+
+	// If this env var is set the Go server will serve static files. If not then
+	// static file serving must be achieved another way.
+	serveStaticEnvVar = "SERVE_STATIC"
 )
 
 type Database interface {
@@ -99,6 +104,11 @@ func main() {
 		Database:       database,
 		InfluxDB:       influxDB,
 	})
+
+	if envtools.IsTruthy(serveStaticEnvVar) {
+		log.Printf("Serving static files because $%s is set", serveStaticEnvVar)
+		mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static"))))
+	}
 
 	serve(gaelog.Wrap(mux))
 }

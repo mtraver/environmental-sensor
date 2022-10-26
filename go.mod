@@ -15,6 +15,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.7.0
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mtraver/envtools v0.0.0-20221024021805-ac686dd068a6
 	github.com/mtraver/gaelog v0.2.4
 	github.com/mtraver/iotcore v0.0.0-20220720003626-0f7025a4a845
 	github.com/mtraver/sds011 v0.0.0-20210825191656-b8b932e13721

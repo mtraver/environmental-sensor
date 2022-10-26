@@ -1,20 +1,25 @@
 # This Dockerfile produces an image that runs a gRPC server implementing MeasurementService.
-FROM golang:1.15 as builder
+FROM golang:1.19-bullseye as builder
 
-RUN mkdir /build
 WORKDIR /build
+
+# Retrieve application dependencies.
+# This allows the container build to reuse cached dependencies.
+COPY go.* ./
+RUN go mod download
+
 COPY aqi aqi/
 COPY cmd/api api/
 COPY measurement measurement/
 COPY measurementpb measurementpb/
 COPY web web/
-COPY go.mod .
-COPY go.sum .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o serve api/main.go
 
-FROM alpine
-RUN apk add --no-cache ca-certificates
+FROM debian:bullseye-slim
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build/serve /serve
 

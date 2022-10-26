@@ -37,6 +37,12 @@ api-image: check-env
 web-image: check-env
 	docker build -f Web.Dockerfile -t $(ARTIFACT_REPOSITORY_URL_BASE)/web .
 
+web-image-remote: check-env
+	gcloud --project=$(PROJECT) builds submit \
+	  --region=$(REGION) \
+	  --config cloudbuild-web.yaml \
+	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/web"
+
 run-web: check-env
 	docker run -v $(MAKEFILE_DIR)/keys:/keys --env-file env -p 8080:8080 $(ARTIFACT_REPOSITORY_URL_BASE)/web
 

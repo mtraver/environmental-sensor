@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/mtraver/environmental-sensor/aqi"
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -33,7 +34,21 @@ type Database interface {
 }
 
 func main() {
-	projectID := envtools.MustGetenv("GOOGLE_CLOUD_PROJECT")
+	// Get the project ID from the metadata service if possible, and fall back to
+	// the env var otherwise. The first check is called "OnGCE" but it will return
+	// true when running on Cloud Run as well.
+	var projectID string
+	if metadata.OnGCE() {
+		var err error
+		projectID, err = metadata.ProjectID()
+		if err != nil {
+			log.Fatalf("Failed to get project ID from metadata service: %v", err)
+		}
+		log.Printf("Got project ID from metadata service: %q", projectID)
+	} else {
+		log.Printf("Not on Google Cloud infra, falling back to env var for project ID")
+		projectID = envtools.MustGetenv("GOOGLE_CLOUD_PROJECT")
+	}
 
 	// The path to the templates is relative to go.mod, as that's how the path should
 	// be specified when deployed to App Engine.

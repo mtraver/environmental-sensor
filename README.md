@@ -90,7 +90,6 @@ via env var config, secrets config, or whatever other method you like.
 
 TODO(mtraver) add descriptions of the env vars
 
-- `GOOGLE_CLOUD_PROJECT`
 - `IOTCORE_REGISTRY`
 - `PUBSUB_VERIFICATION_TOKEN`
 - `PUBSUB_AUDIENCE`
@@ -98,6 +97,9 @@ TODO(mtraver) add descriptions of the env vars
 - `INFLUXDB_TOKEN`
 - `INFLUXDB_ORG`
 - `INFLUXDB_BUCKET`
+
+For local development you'll need to set `GOOGLE_CLOUD_PROJECT` to your GCP
+project ID. In production on Cloud Run it's fetched automatically.
 
 For local development you'll also want to put a key for a service account that
 allows reading from Google Cloud Datastore and Google Cloud IoT Core in a dir
@@ -131,5 +133,5 @@ PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make web-image-r
 ### Deploying to Cloud Run
 
 Deploy the image built with `make web-image-remote` to Cloud Run and make sure
-that the env vars (aside from `GOOGLE_APPLICATION_CREDENTIALS`) are made available
-to it.
+that the env vars (aside from `GOOGLE_CLOUD_PROJECT` and `GOOGLE_APPLICATION_CREDENTIALS`)
+are made available to it.

@@ -89,7 +89,7 @@ func main() {
 		Template: templates,
 	})
 
-	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{
+	mux.Handle("/push-handlers/telemetry", pushHandler{
 		PubSubToken:    envtools.MustGetenv("PUBSUB_VERIFICATION_TOKEN"),
 		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
 		Database:       database,

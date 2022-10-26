@@ -29,3 +29,9 @@ cmd/
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Docker env-file storing env vars for use during development.
+env
+
+# Directory containing keys (like service account keys) for use during development.
+keys/

@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+# Docker env-file storing env vars for use during development.
+env
+
+# Directory containing keys (like service account keys) for use during development.
+keys/

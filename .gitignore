@@ -20,6 +20,9 @@
 # Go workspace file
 go.work
 
+# Build output directory
+out/
+
 # Docker env-file storing env vars for use during development.
 env
 

@@ -30,6 +30,9 @@ cmd/
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Build output directory
+out/
+
 # Docker env-file storing env vars for use during development.
 env
 

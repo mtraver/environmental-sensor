@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/mtraver/environmental-sensor/aqi"
@@ -33,16 +32,8 @@ type Database interface {
 	Latest(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
 }
 
-func mustGetenv(varName string) string {
-	val := os.Getenv(varName)
-	if val == "" {
-		log.Fatalf("Environment variable must be set: %v\n", varName)
-	}
-	return val
-}
-
 func main() {
-	projectID := mustGetenv("GOOGLE_CLOUD_PROJECT")
+	projectID := envtools.MustGetenv("GOOGLE_CLOUD_PROJECT")
 
 	// The path to the templates is relative to go.mod, as that's how the path should
 	// be specified when deployed to App Engine.
@@ -74,14 +65,14 @@ func main() {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
 
-	influxDB := db.NewInfluxDB(mustGetenv("INFLUXDB_SERVER"), mustGetenv("INFLUXDB_TOKEN"), mustGetenv("INFLUXDB_ORG"), mustGetenv("INFLUXDB_BUCKET"))
+	influxDB := db.NewInfluxDB(envtools.MustGetenv("INFLUXDB_SERVER"), envtools.MustGetenv("INFLUXDB_TOKEN"), envtools.MustGetenv("INFLUXDB_ORG"), envtools.MustGetenv("INFLUXDB_BUCKET"))
 
 	mux := http.NewServeMux()
 
 	mux.Handle("/", rootHandler{
 		ProjectID: projectID,
 		// This environment variable should be defined in app.yaml.
-		IoTCoreRegistry:   mustGetenv("IOTCORE_REGISTRY"),
+		IoTCoreRegistry:   envtools.MustGetenv("IOTCORE_REGISTRY"),
 		DefaultDisplayAge: 12 * time.Hour,
 		Database:          database,
 		Template:          templates,
@@ -99,8 +90,8 @@ func main() {
 	})
 
 	mux.Handle("/_ah/push-handlers/telemetry", pushHandler{
-		PubSubToken:    mustGetenv("PUBSUB_VERIFICATION_TOKEN"),
-		PubSubAudience: mustGetenv("PUBSUB_AUDIENCE"),
+		PubSubToken:    envtools.MustGetenv("PUBSUB_VERIFICATION_TOKEN"),
+		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
 		Database:       database,
 		InfluxDB:       influxDB,
 	})

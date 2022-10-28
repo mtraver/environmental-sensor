@@ -50,8 +50,8 @@ func main() {
 		projectID = envtools.MustGetenv("GOOGLE_CLOUD_PROJECT")
 	}
 
-	// The path to the templates is relative to go.mod, as that's how the path should
-	// be specified when deployed to App Engine.
+	// The path to the templates is relative to go.mod, as that's how they are
+	// placed in the Docker image.
 	templates := template.Must(template.New("index.html").Funcs(
 		template.FuncMap{
 			"millis": func(t time.Time) int64 {

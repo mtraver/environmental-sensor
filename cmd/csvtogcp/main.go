@@ -23,8 +23,8 @@ const usageStr = `usage: %v csv_file project_id topic_id device_id
 
 Reads lines from a CSV file, converts them into Measurement protobufs as defined
 in measurement.proto, and publishes them to Google Cloud Pub/Sub. It's expected
-that an instance of the web app is running on App Engine to process the
-Pub/Sub messages.
+that an instance of the web app is running on GCP to process the Pub/Sub
+messages.
 
 This program was written to migrate data stored in a Google Sheet to the
 storage back ends supported by the web app.

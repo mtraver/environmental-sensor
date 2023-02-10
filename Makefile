@@ -34,6 +34,12 @@ apiclient:
 api-image: check-env
 	docker build -f MeasurementService.Dockerfile -t $(ARTIFACT_REPOSITORY_URL_BASE)/api .
 
+api-image-remote: check-env
+	gcloud --project=$(PROJECT) builds submit \
+	  --region=$(REGION) \
+	  --config cloudbuild-api.yaml \
+	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/api"
+
 web-image: check-env
 	docker build -f Web.Dockerfile -t $(ARTIFACT_REPOSITORY_URL_BASE)/web .
 

@@ -11,11 +11,9 @@
 .gitignore
 #!include:.gitignore
 
-Dockerfile
 Makefile
 *.proto
 *.md
-cmd/
 
 # Binaries for programs and plugins
 *.exe

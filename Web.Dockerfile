@@ -1,5 +1,5 @@
 # This Dockerfile produces an image that runs the web server.
-FROM golang:1.19-bullseye as builder
+FROM golang:1.20-bullseye as builder
 
 WORKDIR /build
 

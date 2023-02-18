@@ -69,7 +69,8 @@ func String(m mpb.Measurement) string {
 // Validate validates each field of the Measurement against an optional regex provided in the .proto file.
 // It returns nil if all fields are valid and no other errors occurred along the way. Example of how to
 // provide a regex in a .proto file:
-//   string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
+//
+// string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
 func Validate(m *mpb.Measurement) error {
 	// First validate any required fields because protoreflect.Message.Range only
 	// iterates over "populated" fields. From the documentation on Range:

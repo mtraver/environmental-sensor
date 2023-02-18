@@ -7,7 +7,6 @@ require (
 	cloud.google.com/go/datastore v1.10.0
 	cloud.google.com/go/pubsub v1.28.0
 	github.com/eclipse/paho.mqtt.golang v1.4.2
-	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.9
 	github.com/influxdata/influxdb-client-go/v2 v2.12.2
 	github.com/mitchellh/go-homedir v1.1.0
@@ -38,6 +37,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect

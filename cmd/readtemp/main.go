@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/protobuf/jsonpb"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -64,10 +64,11 @@ func toJSONProto(temp physic.Temperature) (string, error) {
 		return "", err
 	}
 
-	marshaler := jsonpb.Marshaler{
+	marshaler := protojson.MarshalOptions{
 		Indent: "  ",
 	}
-	return marshaler.MarshalToString(m)
+	b, err := marshaler.Marshal(m)
+	return string(b), err
 }
 
 func toBinaryProto(temp physic.Temperature) ([]byte, error) {

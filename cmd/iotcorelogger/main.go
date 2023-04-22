@@ -82,7 +82,7 @@ func parseFlags() error {
 	return nil
 }
 
-func validateConfig(c configpb.Config) error {
+func validateConfig(c *configpb.Config) error {
 	if c.DeviceFilePath == "" {
 		return fmt.Errorf("device_file_path must be set")
 	}
@@ -131,7 +131,7 @@ func main() {
 	if err := protojson.Unmarshal(b, &config); err != nil {
 		log.Fatal(err)
 	}
-	if err := validateConfig(config); err != nil {
+	if err := validateConfig(&config); err != nil {
 		log.Fatalf("Invalid config: %v", err)
 	}
 

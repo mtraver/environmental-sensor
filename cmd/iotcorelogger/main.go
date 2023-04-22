@@ -16,6 +16,7 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/gcpiotcore"
 	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/dummy"
@@ -135,7 +136,7 @@ func main() {
 	}
 
 	// Parse device file.
-	device, err := parseDeviceFile(config.DeviceFilePath)
+	device, err := gcpiotcore.ParseDeviceFile(config.DeviceFilePath)
 	if err != nil {
 		log.Fatalf("Failed to parse device file: %v", err)
 	}
@@ -144,9 +145,9 @@ func main() {
 	// going to connect.
 	client := mqtt.NewClient(mqtt.NewClientOptions())
 	if !dryrun {
-		client, err = mqttConnect(device, config.CaCertsPath)
+		client, err = gcpiotcore.MQTTConnect(device, config.CaCertsPath, jwtPath, mqttStoreDir)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("[GCP] %v", err)
 		}
 
 		// If the program is killed, disconnect from the MQTT server.

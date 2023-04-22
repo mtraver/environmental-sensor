@@ -1,4 +1,4 @@
-package main
+package gcpiotcore
 
 import (
 	"encoding/json"
@@ -22,7 +22,7 @@ func certPath(keyPath string) string {
 	return keyPath[:len(keyPath)-len(ext)] + certExtension
 }
 
-func parseDeviceFile(filepath string) (iotcore.Device, error) {
+func ParseDeviceFile(filepath string) (iotcore.Device, error) {
 	b, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return iotcore.Device{}, err
@@ -53,38 +53,38 @@ func fileStore(dir string) func(*iotcore.Device, *mqtt.ClientOptions) error {
 
 func commandHandler(client mqtt.Client, msg mqtt.Message) {
 	msg.Ack()
-	log.Printf("Received command message with ID %v", msg.MessageID())
+	log.Printf("[GCP] Received command message with ID %v", msg.MessageID())
 }
 
 func configHandler(client mqtt.Client, msg mqtt.Message) {
 	msg.Ack()
-	log.Printf("Received config message with ID %v", msg.MessageID())
+	log.Printf("[GCP] Received config message with ID %v", msg.MessageID())
 }
 
 func onConnect(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		log.Printf("Connected to MQTT broker")
+		log.Printf("[GCP] Connected to MQTT broker")
 
 		waitDur := 10 * time.Second
 
 		// Subscribe to the command topic.
 		topic := device.CommandTopic()
 		if token := client.Subscribe(topic, 1, commandHandler); !token.WaitTimeout(waitDur) {
-			log.Printf("Subscription attempt to command topic %s timed out after %v", topic, waitDur)
+			log.Printf("[GCP] Subscription attempt to command topic %s timed out after %v", topic, waitDur)
 		} else if token.Error() != nil {
-			log.Printf("Failed to subscribe to command topic %s: %v", topic, token.Error())
+			log.Printf("[GCP] Failed to subscribe to command topic %s: %v", topic, token.Error())
 		} else {
-			log.Printf("Subscribed to command topic %s", topic)
+			log.Printf("[GCP] Subscribed to command topic %s", topic)
 		}
 
 		// Subscribe to the config topic.
 		topic = device.ConfigTopic()
 		if token := client.Subscribe(topic, 1, configHandler); !token.WaitTimeout(waitDur) {
-			log.Printf("Subscription attempt to config topic %s timed out after %v", topic, waitDur)
+			log.Printf("[GCP] Subscription attempt to config topic %s timed out after %v", topic, waitDur)
 		} else if token.Error() != nil {
-			log.Printf("Failed to subscribe to config topic %s: %v", topic, token.Error())
+			log.Printf("[GCP] Failed to subscribe to config topic %s: %v", topic, token.Error())
 		} else {
-			log.Printf("Subscribed to config topic %s", topic)
+			log.Printf("[GCP] Subscribed to config topic %s", topic)
 		}
 	})
 	return nil
@@ -92,12 +92,12 @@ func onConnect(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 
 func onConnectionLost(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		log.Printf("Connection to MQTT broker lost: %v", err)
+		log.Printf("[GCP] Connection to MQTT broker lost: %v", err)
 	})
 	return nil
 }
 
-func mqttConnect(device iotcore.Device, caCertsPath string) (mqtt.Client, error) {
+func MQTTConnect(device iotcore.Device, caCertsPath, jwtPath, mqttStoreDir string) (mqtt.Client, error) {
 	certsFile, err := os.Open(caCertsPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open certs file: %v", err)

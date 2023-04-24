@@ -11,22 +11,39 @@ which can then be saved and plotted using the web app in the [web](web) director
 Running `make` will build all binaries locally. Running `make web-image` will
 build a Docker image that can be deployed to Cloud Run to serve the web app.
 
+Run the `iotcorelogger` binary on the Raspberry Pi:
+
 ```sh
 make
+
+# Example config.pb.json
+# {
+#   "supported_sensors": ["mcp9808"],
+#
+#   "jobs": [
+#     {
+#       "cronspec": "0 */2 * * * *",
+#       "operation": "SENSE",
+#       "sensors": ["mcp9808"]
+#     }
+#   ]
+# }
 
 # Example device.json:
 # {
 #   "project_id": "my-gcp-project",
 #   "registry_id": "my-iot-core-registry",
 #   "device_id": "my-device",
+#   "ca_certs_path": "roots.pem",
 #   "priv_key_path": "my-device.pem",
 #   "region": "us-central1"
 # }
-./out/iotcorelogger -device device.json -cacerts roots.pem
+./out/iotcorelogger -config config.pb.json -gcp-device device.json
 ```
 
-Set up a cron job, use it in a daemon, the world's your oyster...as long as the
-world is temperature values read from the MCP9808.
+The config file sets up the sensors and schedules jobs using cron syntax, and
+the device file specifies how to connect to IoT Core's MQTT broker to report
+telemetry.
 
 ## Prerequisites
 

@@ -30,9 +30,10 @@ import (
 
 // Flags.
 var (
-	configFilePath string
-	port           int
-	dryrun         bool
+	configFilePath    string
+	gcpDeviceFilePath string
+	port              int
+	dryrun            bool
 )
 
 var (
@@ -51,6 +52,7 @@ var (
 
 func init() {
 	flag.StringVar(&configFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
+	flag.StringVar(&gcpDeviceFilePath, "gcp-device", "", "path to a JSON file describing a GCP IoT Core device. See github.com/mtraver/iotcore.")
 	flag.IntVar(&port, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&dryrun, "dryrun", false, "set to true to print rather than publish measurements")
 
@@ -79,14 +81,14 @@ func parseFlags() error {
 		return fmt.Errorf("config flag must be given")
 	}
 
+	if gcpDeviceFilePath == "" {
+		return fmt.Errorf("gcp-device flag must be given")
+	}
+
 	return nil
 }
 
 func validateConfig(c *configpb.Config) error {
-	if c.DeviceFilePath == "" {
-		return fmt.Errorf("device_file_path must be set")
-	}
-
 	if len(c.SupportedSensors) == 0 {
 		return fmt.Errorf("supported_sensors must contain at least one sensor")
 	}
@@ -132,7 +134,7 @@ func main() {
 	}
 
 	// Parse device file.
-	device, err := gcpiotcore.ParseDeviceFile(config.DeviceFilePath)
+	device, err := gcpiotcore.ParseDeviceFile(gcpDeviceFilePath)
 	if err != nil {
 		log.Fatalf("Failed to parse device file: %v", err)
 	}
@@ -208,7 +210,7 @@ func main() {
 			cr.AddJob(jpb.Cronspec, SenseJob{
 				Sensors: jpb.Sensors,
 				Client:  client,
-				Device:  device,
+				Device:  &device,
 				Dryrun:  dryrun,
 			})
 		case configpb.Job_SHUTDOWN:

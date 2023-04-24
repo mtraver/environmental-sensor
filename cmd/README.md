@@ -11,16 +11,30 @@ From the root of this repository,
     make
 
     # Log temp to Google Cloud IoT Core
+
+    # Example config.pb.json
+    # {
+    #   "supported_sensors": ["mcp9808"],
+    #
+    #   "jobs": [
+    #     {
+    #       "cronspec": "0 */2 * * * *",
+    #       "operation": "SENSE",
+    #       "sensors": ["mcp9808"]
+    #     }
+    #   ]
+    # }
     #
     # Example device.json:
     # {
     #   "project_id": "my-gcp-project",
     #   "registry_id": "my-iot-core-registry",
     #   "device_id": "my-device",
+    #   "ca_certs_path": "roots.pem",
     #   "priv_key_path": "my-device.pem",
     #   "region": "us-central1"
     # }
-    ./out/iotcorelogger -device device.json -cacerts roots.pem
+    ./out/iotcorelogger -config config.pb.json -gcp-device device.json
 
     # Print temp to stdout
     ./out/readtemp
@@ -44,7 +58,7 @@ On the Raspberry Pi:
     wget https://pki.google.com/roots.pem
 
 This is a set of trustworthy root certificates. See [here](http://pki.google.com/faq.html)
-for details. The `cacerts` flag takes the path to this file.
+for details. The path to this file is the value of `"ca_certs_path"` in the device file.
 
 ## Building
 
@@ -59,15 +73,14 @@ Raspberry Pi 3 B<sup>1</sup>).
 ## Full usage
 
     Usage of iotcorelogger:
-      -cacerts string
-          Path to a set of trustworthy CA certs.
-          Download Google's from https://pki.google.com/roots.pem.
-      -device string
-          path to a file containing a JSON-encoded Device struct (see github.com/mtraver/iotcore)
-      -interval int
-          number of seconds to wait between samples (default 1)
-      -numsamples int
-          number of samples to take (default 3)
+      -config string
+          path to a file containing a JSON-encoded config proto
+      -dryrun
+          set to true to print rather than publish measurements
+      -gcp-device string
+          path to a JSON file describing a GCP IoT Core device. See github.com/mtraver/iotcore.
+      -port int
+          port on which the device's web server should listen (default 8080)
 
 ## Footnotes
 <sup>1</sup> "How can this be!? The Raspberry Pi 3 B uses the BCM2837, a 64-bit

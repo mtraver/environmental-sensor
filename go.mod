@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/envtools v0.0.0-20221024021805-ac686dd068a6
 	github.com/mtraver/gaelog v1.1.1
-	github.com/mtraver/iotcore v0.0.0-20230218164853-52a5fe3c1928
+	github.com/mtraver/iotcore v0.0.0-20230423225757-7fc79eb2c3c4
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
 	github.com/robfig/cron/v3 v3.0.1
 	golang.org/x/oauth2 v0.7.0

@@ -117,8 +117,8 @@ github.com/mtraver/envtools v0.0.0-20221024021805-ac686dd068a6 h1:vPbb7X8fZAv/ON
 github.com/mtraver/envtools v0.0.0-20221024021805-ac686dd068a6/go.mod h1:r0ofu+wbHYnyKYG0fD4ODi+rFUJNQtUkD5kxWsLWIu8=
 github.com/mtraver/gaelog v1.1.1 h1:AcOKOD3JxVl+uknflMP8RxgecO2dzcTfK8GYWuXIL+k=
 github.com/mtraver/gaelog v1.1.1/go.mod h1:ApeKustGrNSljWO6mYYILud/T2Qpv9jPbq6xEF6wko0=
-github.com/mtraver/iotcore v0.0.0-20230218164853-52a5fe3c1928 h1:9dSG7UswguB1CKe1P1feVAJPl1kIzKAhCzvCpg55cHw=
-github.com/mtraver/iotcore v0.0.0-20230218164853-52a5fe3c1928/go.mod h1:lDiJTQfpAzgunjOB/RCysHRHLi8tVqgYoAkRVonzjsM=
+github.com/mtraver/iotcore v0.0.0-20230423225757-7fc79eb2c3c4 h1:J2sPRzlR4IOec8QW4bkqxuCYfNOXGRY+HeU+JSOZJdM=
+github.com/mtraver/iotcore v0.0.0-20230423225757-7fc79eb2c3c4/go.mod h1:2wxcBlfUQPflTXcJ86Dsm3UFSRoOYu/sM9V8WnD5j58=
 github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898 h1:m7F2QFaKNeS42mDcrQGsaz3Nym6ezPrK9oTHvlLNw4s=
 github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898/go.mod h1:qhzbgqXYzHRWeKqLHRtDpFlYnJblcukEmSS0POMcOyo=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=

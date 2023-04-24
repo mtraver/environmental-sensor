@@ -4,13 +4,11 @@ option go_package = "github.com/mtraver/environmental-sensor/configpb";
 
 // Config configures the iotcorelogger program.
 message Config {
+  reserved 2;
+
   // Path to a file containing a JSON-encoded Device struct.
   // See github.com/mtraver/iotcore.
   string device_file_path = 1;
-
-  // Path to a set of trustworthy CA certs.
-  // Download Google's from https://pki.google.com/roots.pem.
-  string ca_certs_path = 2;
 
   repeated string supported_sensors = 3;
 

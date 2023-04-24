@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"path"
 	"time"
 
@@ -97,14 +96,8 @@ func onConnectionLost(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 	return nil
 }
 
-func MQTTConnect(device iotcore.Device, caCertsPath, jwtPath, mqttStoreDir string) (mqtt.Client, error) {
-	certsFile, err := os.Open(caCertsPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open certs file: %v", err)
-	}
-	defer certsFile.Close()
-
-	client, err := device.NewClient(iotcore.DefaultBroker, certsFile,
+func MQTTConnect(device iotcore.Device, jwtPath, mqttStoreDir string) (mqtt.Client, error) {
+	client, err := device.NewClient(iotcore.DefaultBroker,
 		iotcore.PersistentlyCacheJWT(60*time.Minute, jwtPath), fileStore(mqttStoreDir), onConnect, onConnectionLost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make MQTT client: %v", err)

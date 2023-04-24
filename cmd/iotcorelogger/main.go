@@ -87,10 +87,6 @@ func validateConfig(c *configpb.Config) error {
 		return fmt.Errorf("device_file_path must be set")
 	}
 
-	if c.CaCertsPath == "" {
-		return fmt.Errorf("ca_certs_path must be set")
-	}
-
 	if len(c.SupportedSensors) == 0 {
 		return fmt.Errorf("supported_sensors must contain at least one sensor")
 	}
@@ -145,7 +141,7 @@ func main() {
 	// going to connect.
 	client := mqtt.NewClient(mqtt.NewClientOptions())
 	if !dryrun {
-		client, err = gcpiotcore.MQTTConnect(device, config.CaCertsPath, jwtPath, mqttStoreDir)
+		client, err = gcpiotcore.MQTTConnect(device, jwtPath, mqttStoreDir)
 		if err != nil {
 			log.Fatalf("[GCP] %v", err)
 		}

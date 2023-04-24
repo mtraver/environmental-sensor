@@ -163,17 +163,17 @@ func main() {
 		log.Fatalf("Failed to initialize periph: %v", err)
 	}
 
-	// Open default I²C bus.
-	bus, err := i2creg.Open("")
-	if err != nil {
-		log.Fatalf("Failed to open I²C bus: %v", err)
-	}
-	defer bus.Close()
-
 	// Register sensors.
 	for _, name := range config.SupportedSensors {
 		switch name {
 		case "mcp9808":
+			// Open default I²C bus.
+			bus, err := i2creg.Open("")
+			if err != nil {
+				log.Fatalf("Failed to open I²C bus: %v", err)
+			}
+			defer bus.Close()
+
 			s, err := mcp9808.New(bus)
 			if err != nil {
 				log.Fatalf("Failed to initialize MCP9808: %v", err)

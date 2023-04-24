@@ -1,6 +1,5 @@
 {
-  "device_file_path": "/home/pi/iotcore_credentials/device.json",
-  "ca_certs_path": "/home/pi/roots.pem",
+  "device_file_path": "/home/pi/iotcore_credentials/gcp_device.json",
   "supported_sensors": ["mcp9808"],
 
   "jobs": [

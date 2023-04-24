@@ -1,0 +1,8 @@
+{
+  "project_id": "my-project-id",
+  "registry_id": "my-registry-id",
+  "device_id": "my-device-id",
+  "ca_certs_path": "/home/pi/roots.pem",
+  "priv_key_path": "/home/pi/iotcore_credentials/my-device-id.pem",
+  "region": "us-central1"
+}

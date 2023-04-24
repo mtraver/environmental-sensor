@@ -9,10 +9,14 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/sensor"
-	"github.com/mtraver/iotcore"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type Device interface {
+	ID() string
+	TelemetryTopic() string
+}
 
 type SetupJob struct {
 	Sensors []string
@@ -35,7 +39,7 @@ func (j SetupJob) Run() {
 type SenseJob struct {
 	Sensors []string
 	Client  mqtt.Client
-	Device  iotcore.Device
+	Device  Device
 	Dryrun  bool
 }
 
@@ -47,7 +51,7 @@ func (j SenseJob) Run() {
 		return
 	}
 	m := mpb.Measurement{
-		DeviceId:  j.Device.DeviceID,
+		DeviceId:  j.Device.ID(),
 		Timestamp: timepb,
 	}
 

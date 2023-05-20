@@ -16,6 +16,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const testDeviceTag = "test"
+
 // This is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.
 // See https://cloud.google.com/pubsub/docs/push.
 type pushRequest struct {
@@ -98,6 +100,13 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// doesn't respect anything other than 200, so return 200 just to be safe.
 		// TODO(mtraver) I'd rather return e.g. 202 (http.StatusAccepted) to
 		// indicate that it was successfully received but not that all is ok.
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// If the device ID contains the string "test" then we won't save this measurement to the database.
+	if strings.Contains(m.GetDeviceId(), testDeviceTag) {
+		gaelog.Infof(ctx, "Got measurement from test device with ID %q, so it will not be saved to the database. Measurement: %+v", m.GetDeviceId(), m)
 		w.WriteHeader(http.StatusOK)
 		return
 	}

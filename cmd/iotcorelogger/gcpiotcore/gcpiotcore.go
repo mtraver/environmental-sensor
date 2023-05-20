@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"time"
 
@@ -97,6 +98,11 @@ func onConnectionLost(device *iotcore.Device, opts *mqtt.ClientOptions) error {
 }
 
 func MQTTConnect(device iotcore.Device, jwtPath, mqttStoreDir string) (mqtt.Client, error) {
+	// Make sure the MQTT store dir exists.
+	if err := os.MkdirAll(mqttStoreDir, 0700); err != nil {
+		return nil, err
+	}
+
 	client, err := device.NewClient(iotcore.DefaultBroker,
 		iotcore.PersistentlyCacheJWT(60*time.Minute, jwtPath), fileStore(mqttStoreDir), onConnect, onConnectionLost)
 	if err != nil {

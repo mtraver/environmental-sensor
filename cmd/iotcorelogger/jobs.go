@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -37,10 +39,9 @@ func (j SetupJob) Run() {
 }
 
 type SenseJob struct {
-	Sensors []string
-	Client  mqtt.Client
-	Device  Device
-	Dryrun  bool
+	Sensors     []string
+	Connections map[ConnectionType]Connection
+	Dryrun      bool
 }
 
 func (j SenseJob) Run() {
@@ -51,7 +52,6 @@ func (j SenseJob) Run() {
 		return
 	}
 	m := mpb.Measurement{
-		DeviceId:  j.Device.ID(),
 		Timestamp: timepb,
 	}
 
@@ -82,23 +82,47 @@ func (j SenseJob) Run() {
 }
 
 func (j SenseJob) publish(m *mpb.Measurement) error {
-	// Marshal to bytes for publication.
-	pbBytes, err := proto.Marshal(m)
-	if err != nil {
-		return err
+	var wg sync.WaitGroup
+
+	errs := make(chan error, len(j.Connections))
+
+	for name, conn := range j.Connections {
+		// Set the measurement's device ID to that of the current connection's device.
+		m.DeviceId = conn.Device.ID()
+
+		// Marshal to bytes for publication.
+		pbBytes, err := proto.Marshal(m)
+		if err != nil {
+			return err
+		}
+
+		wg.Add(1)
+		go func(b []byte, name ConnectionType, client mqtt.Client, topic string) {
+			defer wg.Done()
+
+			waitDur := 10 * time.Second
+			token := client.Publish(topic, 1, false, pbBytes)
+			if ok := token.WaitTimeout(waitDur); !ok {
+				// Timed out.
+				errs <- fmt.Errorf("[%s] publish timed out after %v", name, waitDur)
+			} else if token.Error() != nil {
+				// Finished before timeout but failed to publish.
+				errs <- fmt.Errorf("[%s] failed to publish: %v", name, token.Error())
+			} else {
+				log.Printf("[%s] successful publish\n", name)
+			}
+		}(pbBytes, name, conn.Client, conn.Device.TelemetryTopic())
 	}
 
-	waitDur := 10 * time.Second
-	token := j.Client.Publish(j.Device.TelemetryTopic(), 1, false, pbBytes)
-	if ok := token.WaitTimeout(waitDur); !ok {
-		// Timed out.
-		return fmt.Errorf("publish timed out after %v", waitDur)
-	} else if token.Error() != nil {
-		// Finished before timeout but failed to publish.
-		return fmt.Errorf("failed to publish: %v", token.Error())
+	wg.Wait()
+	close(errs)
+
+	errSlice := []error{}
+	for e := range errs {
+		errSlice = append(errSlice, e)
 	}
 
-	return nil
+	return errors.Join(errSlice...)
 }
 
 type ShutdownJob struct {

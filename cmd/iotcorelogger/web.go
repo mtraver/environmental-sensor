@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/mtraver/iotcore"
 )
 
 type indexHandler struct {
-	device iotcore.Device
+	connections map[ConnectionType]Connection
 }
 
 func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, h.device.DeviceID)
+	for name, conn := range h.connections {
+		fmt.Fprintf(w, "%s: %s\n", name, conn.Device.ID())
+	}
 }

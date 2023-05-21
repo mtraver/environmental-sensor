@@ -16,8 +16,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const testDeviceTag = "test"
-
 // This is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.
 // See https://cloud.google.com/pubsub/docs/push.
 type pushRequest struct {
@@ -35,6 +33,7 @@ type pushHandler struct {
 	PubSubAudience string
 	Database       Database
 	InfluxDB       *db.InfluxDB
+	IgnoredDevices []string
 }
 
 // authenticate validates the JWT signed by Pub/Sub.
@@ -61,6 +60,16 @@ func (h pushHandler) authenticate(ctx context.Context, r *http.Request) error {
 	}
 
 	return nil
+}
+
+func (h pushHandler) shouldIgnore(deviceID string) bool {
+	for _, idPart := range h.IgnoredDevices {
+		if idPart != "" && strings.Contains(deviceID, idPart) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -104,9 +113,10 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If the device ID contains the string "test" then we won't save this measurement to the database.
-	if strings.Contains(m.GetDeviceId(), testDeviceTag) {
-		gaelog.Infof(ctx, "Got measurement from test device with ID %q, so it will not be saved to the database. Measurement: %+v", m.GetDeviceId(), m)
+	// If the device ID contains one of the strings set to be ignored then we won't save this measurement to the database.
+	if h.shouldIgnore(m.GetDeviceId()) {
+		gaelog.Infof(ctx, "Got measurement from device with ID %q, so it will not be saved. Ignored IDs: %v  Measurement: %+v",
+			m.GetDeviceId(), h.IgnoredDevices, m)
 		w.WriteHeader(http.StatusOK)
 		return
 	}

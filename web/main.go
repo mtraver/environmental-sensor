@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
@@ -23,6 +25,10 @@ const (
 	// If this env var is set the Go server will serve static files. If not then
 	// static file serving must be achieved another way.
 	serveStaticEnvVar = "SERVE_STATIC"
+
+	// A comma-separated string of device IDs to ignore. Devices pushing data will be checked
+	// for whether their IDs contain any of the strings specified in this env var.
+	ignoredDevicesEnvVar = "IGNORED_DEVICES"
 )
 
 type Database interface {
@@ -109,6 +115,7 @@ func main() {
 		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
 		Database:       database,
 		InfluxDB:       influxDB,
+		IgnoredDevices: strings.Split(os.Getenv(ignoredDevicesEnvVar), ","),
 	})
 
 	if envtools.IsTruthy(serveStaticEnvVar) {

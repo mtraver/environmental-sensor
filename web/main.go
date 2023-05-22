@@ -39,6 +39,16 @@ type Database interface {
 	Latest(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
 }
 
+func filter[T any](s []T, test func(T) bool) []T {
+	ret := []T{}
+	for _, e := range s {
+		if test(e) {
+			ret = append(ret, e)
+		}
+	}
+	return ret
+}
+
 func main() {
 	// Get the project ID from the metadata service if possible, and fall back to
 	// the env var otherwise. The first check is called "OnGCE" but it will return
@@ -110,12 +120,19 @@ func main() {
 		Template: templates,
 	})
 
+	ignoredDevices := strings.Split(os.Getenv(ignoredDevicesEnvVar), ",")
+	ignoredDevices = filter(ignoredDevices, func(s string) bool { return s != "" })
+	if len(ignoredDevices) > 0 {
+		log.Printf("%s is set to %q. Will ignore devices with IDs containing these strings: %v",
+			ignoredDevicesEnvVar, os.Getenv(ignoredDevicesEnvVar), ignoredDevices)
+	}
+
 	mux.Handle("/push-handlers/telemetry", pushHandler{
 		PubSubToken:    envtools.MustGetenv("PUBSUB_VERIFICATION_TOKEN"),
 		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
 		Database:       database,
 		InfluxDB:       influxDB,
-		IgnoredDevices: strings.Split(os.Getenv(ignoredDevicesEnvVar), ","),
+		IgnoredDevices: ignoredDevices,
 	})
 
 	if envtools.IsTruthy(serveStaticEnvVar) {

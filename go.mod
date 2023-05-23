@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mtraver/awsiotcore v0.0.0-20230516040800-8cdc5f352d44
 	github.com/mtraver/envtools v0.0.0-20221024021805-ac686dd068a6
-	github.com/mtraver/gaelog v1.1.1
+	github.com/mtraver/gaelog v1.1.2
 	github.com/mtraver/iotcore v0.0.0-20230423225757-7fc79eb2c3c4
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
 	github.com/robfig/cron/v3 v3.0.1
@@ -42,7 +42,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.9.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/pkg/errors v0.9.1 // indirect

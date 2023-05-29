@@ -5,7 +5,7 @@ go 1.20
 require (
 	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/datastore v1.11.0
-	cloud.google.com/go/pubsub v1.30.1
+	cloud.google.com/go/pubsub v1.31.0
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/google/go-cmp v0.5.9
 	github.com/influxdata/influxdb-client-go/v2 v2.12.3
@@ -17,7 +17,7 @@ require (
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
 	github.com/robfig/cron/v3 v3.0.1
 	golang.org/x/oauth2 v0.8.0
-	google.golang.org/api v0.123.0
+	google.golang.org/api v0.124.0
 	google.golang.org/appengine v1.6.7
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
@@ -42,7 +42,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
-	github.com/googleapis/gax-go/v2 v2.9.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.9.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -54,5 +54,7 @@ require (
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/genproto v0.0.0-20230526203410-71b5a4ffd15e // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230526203410-71b5a4ffd15e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e // indirect
 )

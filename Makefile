@@ -27,6 +27,11 @@ readtemp:
 api:
 	$(BUILD) -o $(OUT_DIR)/$@ ./cmd/$@
 
+.PHONY: lambda
+lambda:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $(OUT_DIR)/$@ ./cmd/$@
+	cd $(OUT_DIR) && zip $@.zip $@
+
 .PHONY: apiclient
 apiclient:
 	$(BUILD) -o $(OUT_DIR)/$@ ./cmd/$@

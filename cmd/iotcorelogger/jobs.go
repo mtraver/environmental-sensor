@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -100,8 +101,26 @@ func (j SenseJob) publish(m *mpb.Measurement) error {
 		go func(b []byte, name ConnectionType, client mqtt.Client, topic string) {
 			defer wg.Done()
 
+			// Different connection types require different payload marshalling.
+			var token mqtt.Token
+			switch name {
+			case GCP:
+				token = client.Publish(topic, 1, false, pbBytes)
+			case AWS:
+				// AWS expects Lambda function payloads to be JSON-encoded.
+				jsonB, err := json.Marshal(pbBytes)
+				if err != nil {
+					errs <- err
+					return
+				}
+
+				token = client.Publish(topic, 1, false, jsonB)
+			default:
+				errs <- fmt.Errorf("unknown connection type %q", name)
+				return
+			}
+
 			waitDur := 10 * time.Second
-			token := client.Publish(topic, 1, false, pbBytes)
 			if ok := token.WaitTimeout(waitDur); !ok {
 				// Timed out.
 				errs <- fmt.Errorf("[%s] publish timed out after %v", name, waitDur)

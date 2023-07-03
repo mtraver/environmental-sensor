@@ -29,6 +29,11 @@ const (
 	// A comma-separated string of device IDs to ignore. Devices pushing data will be checked
 	// for whether their IDs contain any of the strings specified in this env var.
 	ignoredDevicesEnvVar = "IGNORED_DEVICES"
+
+	// A comma-separated string of Pub/Sub "source" attributes to ignore. Incoming Pub/Sub
+	// messages will be checked for a "source" attribute matching any of the strings specified
+	// in this env var.
+	ignoredSourcesEnvVar = "IGNORED_SOURCES"
 )
 
 type Database interface {
@@ -127,12 +132,20 @@ func main() {
 			ignoredDevicesEnvVar, os.Getenv(ignoredDevicesEnvVar), ignoredDevices)
 	}
 
+	ignoredSources := strings.Split(os.Getenv(ignoredSourcesEnvVar), ",")
+	ignoredSources = filter(ignoredSources, func(s string) bool { return s != "" })
+	if len(ignoredSources) > 0 {
+		log.Printf("%s is set to %q. Will ignore messages with \"source\" attribute equal to any of these strings: %v",
+			ignoredSourcesEnvVar, os.Getenv(ignoredSourcesEnvVar), ignoredSources)
+	}
+
 	mux.Handle("/push-handlers/telemetry", pushHandler{
 		PubSubToken:    envtools.MustGetenv("PUBSUB_VERIFICATION_TOKEN"),
 		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
 		Database:       database,
 		InfluxDB:       influxDB,
 		IgnoredDevices: ignoredDevices,
+		IgnoredSources: ignoredSources,
 	})
 
 	if envtools.IsTruthy(serveStaticEnvVar) {

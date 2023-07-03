@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestShouldIgnore(t *testing.T) {
+func TestShouldIgnoreID(t *testing.T) {
 	cases := []struct {
 		name     string
 		ignored  []string
@@ -62,7 +62,57 @@ func TestShouldIgnore(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			h := pushHandler{IgnoredDevices: c.ignored}
-			got := h.shouldIgnore(c.deviceID)
+			got := h.shouldIgnoreID(c.deviceID)
+			if got != c.want {
+				t.Errorf("got %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+func TestShouldIgnoreSource(t *testing.T) {
+	cases := []struct {
+		name    string
+		ignored []string
+		source  string
+		want    bool
+	}{
+		{
+			name:    "empty",
+			ignored: []string{},
+			source:  "AWS",
+			want:    false,
+		},
+		{
+			name:    "empty_str",
+			ignored: []string{""},
+			source:  "AWS",
+			want:    false,
+		},
+		{
+			name:    "allow",
+			ignored: []string{"my_source"},
+			source:  "AWS",
+			want:    false,
+		},
+		{
+			name:    "allow_multiple",
+			ignored: []string{"my_source", "my_src_2"},
+			source:  "AWS",
+			want:    false,
+		},
+		{
+			name:    "ignore",
+			ignored: []string{"AWS"},
+			source:  "AWS",
+			want:    true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			h := pushHandler{IgnoredSources: c.ignored}
+			got := h.shouldIgnoreSource(c.source)
 			if got != c.want {
 				t.Errorf("got %v, want %v", got, c.want)
 			}

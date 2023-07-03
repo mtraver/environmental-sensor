@@ -38,6 +38,7 @@ type pushHandler struct {
 	Database       Database
 	InfluxDB       *db.InfluxDB
 	IgnoredDevices []string
+	IgnoredSources []string
 }
 
 // authenticate validates the JWT signed by Pub/Sub.
@@ -66,9 +67,23 @@ func (h pushHandler) authenticate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-func (h pushHandler) shouldIgnore(deviceID string) bool {
+func (h pushHandler) shouldIgnoreID(deviceID string) bool {
 	for _, idPart := range h.IgnoredDevices {
 		if idPart != "" && strings.Contains(deviceID, idPart) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (h pushHandler) shouldIgnoreSource(src string) bool {
+	if src == "" {
+		return false
+	}
+
+	for _, s := range h.IgnoredSources {
+		if s == src {
 			return true
 		}
 	}
@@ -97,6 +112,13 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if h.shouldIgnoreSource(msg.Message.Attributes["source"]) {
+		gaelog.Infof(ctx, "Got message from source %q, so it will not be saved. Ignored sources: %v",
+			msg.Message.Attributes["source"], h.IgnoredSources)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	m := &mpb.Measurement{}
 	if err := proto.Unmarshal(msg.Message.Data, m); err != nil {
 		gaelog.Criticalf(ctx, "Failed to unmarshal protobuf: %v\n", err)
@@ -118,7 +140,7 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the device ID contains one of the strings set to be ignored then we won't save this measurement to the database.
-	if h.shouldIgnore(m.GetDeviceId()) {
+	if h.shouldIgnoreID(m.GetDeviceId()) {
 		gaelog.Infof(ctx, "Got measurement from device with ID %q, so it will not be saved. Ignored IDs: %v  Measurement: %+v",
 			m.GetDeviceId(), h.IgnoredDevices, m)
 		w.WriteHeader(http.StatusOK)

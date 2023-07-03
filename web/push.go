@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
@@ -16,14 +17,17 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// This is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.
+type pubSubMessage struct {
+	ID          string `json:"message_id"`
+	Data        []byte
+	Attributes  map[string]string
+	PublishTime time.Time `json:"publish_time"`
+}
+
+// pushRequest is the structure of the JSON payload pushed to the endpoint by Cloud Pub/Sub.
 // See https://cloud.google.com/pubsub/docs/push.
 type pushRequest struct {
-	Message struct {
-		Attributes map[string]string
-		Data       []byte
-		ID         string `json:"message_id"`
-	}
+	Message      pubSubMessage
 	Subscription string
 }
 
@@ -86,8 +90,8 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := &pushRequest{}
-	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
+	var msg pushRequest
+	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
 		return

@@ -89,6 +89,13 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
     z.domain(data.map(function(c) { return c.id; }));
   }
 
+  // This tracks whether we're currently executing a zoom or brush handler in
+  // order to short-circuit brush events triggered by zooms and zoom events
+  // triggered by brushes. This used to be done via d3.event.sourceEvent.type,
+  // but since the global d3.event was removed the sourceEvent field is no use.
+  // See this issue for more info: https://github.com/d3/d3-zoom/issues/222
+  let zoombrush = 0;
+
   var brush = d3.brushX()
       .extent([[0, 0], [width, height2]])
       .on("brush end", brushed);
@@ -231,13 +238,14 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
     focus.select(".axis--y").call(yAxis);
   }
 
-  function brushed() {
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") {
-      // Ignore brush-by-zoom
+  function brushed(event) {
+    // Ignore brush-by-zoom
+    if (zoombrush) {
       return;
     }
+    zoombrush = 1;
 
-    var s = d3.event.selection || x2.range();
+    var s = event.selection || x2.range();
     x.domain(s.map(x2.invert, x2));
     focus.selectAll(".line")
         .attr("d", function(d) { return line(d.values); });
@@ -247,15 +255,17 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
         d3.zoomIdentity.scale(width / (s[1] - s[0])).translate(-s[0], 0));
 
     updateYAxis();
+    zoombrush = 0;
   }
 
-  function zoomed() {
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") {
-      // Ignore zoom-by-brush
+  function zoomed(event) {
+    // Ignore zoom-by-brush
+    if (zoombrush) {
       return;
     }
+    zoombrush = 1;
 
-    var t = d3.event.transform;
+    var t = event.transform;
     x.domain(t.rescaleX(x2).domain());
     focus.selectAll(".line")
         .attr("d", function(d) { return line(d.values); });
@@ -263,5 +273,6 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
     context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
 
     updateYAxis();
+    zoombrush = 0;
   }
 }

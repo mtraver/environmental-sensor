@@ -1,6 +1,6 @@
 function multiExtent(data, metric, startTimestamp, endTimestamp) {
   // Get the extent of the values for each device
-  var extents = data.map(d => d3.extent(
+  const extents = data.map(d => d3.extent(
     d.values.filter(e => e.ts > startTimestamp && e.ts < endTimestamp),
     e => e[metric]));
 
@@ -11,7 +11,7 @@ function multiExtent(data, metric, startTimestamp, endTimestamp) {
 // Adds a 5% margin to the given extent (an array of length 2).
 // This is useful for adding some margin to axis domains.
 function padExtent(extent) {
-  var adjustment = Math.abs(extent[1] - extent[0]) * 0.05;
+  const adjustment = Math.abs(extent[1] - extent[0]) * 0.05;
   return [extent[0] - adjustment, extent[1] + adjustment];
 }
 
@@ -19,35 +19,35 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // This width and height are just used here and for the viewBox (set below).
   // The SVG is given width and height of 100% in the CSS, so it scales
   // automatically based on the viewBox and preserveAspectRatio settings.
-  var fullWidth = 960;
-  var fullHeight = 550;
+  const fullWidth = 960;
+  const fullHeight = 550;
 
   // Margins around the focus plot (main plot) and context plot (smaller plot).
   // Vars that end with a 2 (e.g. margin2, x2) refer to the context plot.
-  var margin = {top: 10, right: 20, bottom: 150, left: 65};
-  var margin2 = {top: 435, right: 20, bottom: 50, left: 65};
+  const margin = {top: 10, right: 20, bottom: 150, left: 65};
+  const margin2 = {top: 435, right: 20, bottom: 50, left: 65};
 
-  var svg = d3.select(selector);
+  const svg = d3.select(selector);
   svg.attr("viewBox", "0 0 " + fullWidth + " " + fullHeight)
     .attr("preserveAspectRatio", "xMidYMid meet");
 
   // Calculate per-plot dimensions from the overall SVG size and the margins
-  var width = fullWidth - margin.left - margin.right;
-  var height = fullHeight - margin.top - margin.bottom;
-  var height2 = fullHeight - margin2.top - margin2.bottom;
+  const width = fullWidth - margin.left - margin.right;
+  const height = fullHeight - margin.top - margin.bottom;
+  const height2 = fullHeight - margin2.top - margin2.bottom;
 
-  var x = d3.scaleTime().range([0, width]);
-  var x2 = d3.scaleTime().range([0, width]);
-  var y = d3.scaleLinear().range([height, 0]);
-  var y2 = d3.scaleLinear().range([height2, 0]);
-  var z = d3.scaleOrdinal(d3.schemeCategory10);
+  const x = d3.scaleTime().range([0, width]);
+  const x2 = d3.scaleTime().range([0, width]);
+  const y = d3.scaleLinear().range([height, 0]);
+  const y2 = d3.scaleLinear().range([height2, 0]);
+  const z = d3.scaleOrdinal(d3.schemeCategory10);
 
-  var line = d3.line()
+  const line = d3.line()
       .curve(d3.curveBasis)
       .x(function(d) { return x(d.ts); })
       .y(function(d) { return y(d[metric]); });
 
-  var line2 = d3.line()
+  const line2 = d3.line()
       .curve(d3.curveBasis)
       .x(function(d) { return x2(d.ts); })
       .y(function(d) { return y2(d[metric]); });
@@ -58,7 +58,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // Filter the data based on metric, keeping only data from the devices that
   // recorded the desired metric.
   filtered = [];
-  for (var i = 0; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     if (data[i].metrics.includes(metric)) {
       filtered.push(data[i]);
     }
@@ -96,25 +96,25 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // See this issue for more info: https://github.com/d3/d3-zoom/issues/222
   let zoombrush = 0;
 
-  var brush = d3.brushX()
+  const brush = d3.brushX()
       .extent([[0, 0], [width, height2]])
       .on("brush end", brushed);
 
-  var zoom = d3.zoom()
+  const zoom = d3.zoom()
       .scaleExtent([1, Infinity])
       .translateExtent([[0, 0], [width, height]])
       .extent([[0, 0], [width, height]])
       .on("zoom", zoomed);
 
   // This is used to style the axes and legend.
-  var font = "17px sans-serif";
+  const font = "17px sans-serif";
 
-  var xAxis = d3.axisBottom(x);
-  var xAxis2 = d3.axisBottom(x2);
-  var yAxis = d3.axisLeft(y);
+  const xAxis = d3.axisBottom(x);
+  const xAxis2 = d3.axisBottom(x2);
+  const yAxis = d3.axisLeft(y);
 
   // This ensures that the lines don't run off the plot
-  var clipId = metric + "-clip";
+  const clipId = metric + "-clip";
   svg.append("defs").append("clipPath")
       .attr("id", clipId)
     .append("rect")
@@ -122,7 +122,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .attr("height", height);
 
   // The "focus" plot is the taller one at the top
-  var focus = svg.append("g")
+  const focus = svg.append("g")
       .attr("class", "focus")
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
@@ -130,7 +130,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // The "context" plot is the shorter one at the bottom. It doesn't have
   // a y-axis because it's so small. It's meant to give a sense of the
   // region you're looking at when you're zoomed in on the focus plot.
-  var context = svg.append("g")
+  const context = svg.append("g")
       .attr("class", "context")
       .attr("transform",
             "translate(" + margin2.left + "," + margin2.top + ")");
@@ -141,7 +141,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
-  var yAxisLabel = name;
+  let yAxisLabel = name;
   if (unit != "") {
     yAxisLabel += " (" + unit + ")";
   }
@@ -200,8 +200,8 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
       .style("fill", function(d) { return "none"; });
 
   // Add a legend at the very bottom
-  var legendRectSize = 15;
-  var legendFunc = legend()
+  const legendRectSize = 15;
+  const legendFunc = legend()
     .rectSize(legendRectSize)
     .label(function(d) { return d.id; })
     .color(function(d) { return z(d.id); });
@@ -229,7 +229,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
   // Rescales the y-axis to fit just the visible data
   function updateYAxis() {
     // Get the domain of the visible data
-    var domain = multiExtent(data, metric, x.domain()[0], x.domain()[1]);
+    let domain = multiExtent(data, metric, x.domain()[0], x.domain()[1]);
 
     // Add a 5% margin to the domain so that lines
     // aren't right at the top or bottom
@@ -245,7 +245,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
     }
     zoombrush = 1;
 
-    var s = event.selection || x2.range();
+    const s = event.selection || x2.range();
     x.domain(s.map(x2.invert, x2));
     focus.selectAll(".line")
         .attr("d", function(d) { return line(d.values); });
@@ -265,7 +265,7 @@ function makePlot(selector, data, metric, name, unit, startDate, endDate) {
     }
     zoombrush = 1;
 
-    var t = event.transform;
+    const t = event.transform;
     x.domain(t.rescaleX(x2).domain());
     focus.selectAll(".line")
         .attr("d", function(d) { return line(d.values); });

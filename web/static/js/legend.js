@@ -5,9 +5,9 @@ function constant(x) {
 }
 
 function legend() {
-  var rectSize = constant(12);
-  var textMargin = constant(4);
-  var border = false;
+  let rectSize = constant(12);
+  let textMargin = constant(4);
+  let border = false;
 
   function label(d) {
     return d.name;
@@ -19,34 +19,34 @@ function legend() {
 
   function makeLegend(selection, data) {
     if (border) {
-      var borderRect = selection.append("rect")
+      const borderRect = selection.append("rect")
         .attr("class", "legend-border");
     }
 
-    var leg = selection.selectAll(".legend-item")
+    const leg = selection.selectAll(".legend-item")
           .data(data)
           .enter().append("g")
           .attr("class", "legend-item");
 
     // Add a canvas so we can use HTML5 canvas methods to get text width.
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
     context.font = selection.style('font');
     function textWidth(text) {
       return context.measureText(text).width;
     }
 
     // The text height is just the font size.
-    var textHeight = parseInt(context.font.match(/\d+/), 10);
+    const textHeight = parseInt(context.font.match(/\d+/), 10);
 
-    var offset = 0;
-    var offsets = [];
+    let offset = 0;
+    const offsets = [];
     leg.append("text")
       .attr("class", "legend-text")
       .text(label)
       .attr("x", function(d) {
         offsets.push(offset);
-        var x = offset + rectSize(d) + textMargin(d);
+        const x = offset + rectSize(d) + textMargin(d);
         offset = x + textWidth(d.id) + textMargin(d) * 3;
         return x;
       })
@@ -54,7 +54,7 @@ function legend() {
         return rectSize(d) / 2 + textHeight / 3;
       });
 
-    var i = 0;
+    let i = 0;
     leg.append("rect")
       .attr("class", "legend-rect")
       .attr("width", function(d) { return rectSize(d); })
@@ -63,7 +63,7 @@ function legend() {
       .attr("fill", color);
 
     if (border) {
-      var bbox = selection.node().getBBox();
+      const bbox = selection.node().getBBox();
       borderRect.attr("width", function(d) {
           return bbox.width + 2 * textMargin();
       }).attr("height", function(d) { return bbox.height + 2 * textMargin(); })

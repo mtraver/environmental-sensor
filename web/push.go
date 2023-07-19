@@ -107,7 +107,7 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var msg pushRequest
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		gaelog.Criticalf(ctx, "Could not decode body: %v\n", err)
+		gaelog.Criticalf(ctx, "Could not decode body: %v", err)
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
 		return
 	}

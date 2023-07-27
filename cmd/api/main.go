@@ -14,12 +14,20 @@ import (
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/environmental-sensor/web/device"
+	"github.com/mtraver/envtools"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
 	datastoreKind = "measurement"
+
+	// awsRoleARNEnvVar is the name of the env var that should contain the ARN of the
+	// AWS role that we'll assume and use to authenticate with AWS IoT to fetch the
+	// list of devices.
+	awsRoleARNEnvVar = "AWS_ROLE_ARN"
+
+	awsRegionEnvVar = "AWS_REGION"
 )
 
 var (
@@ -34,18 +42,20 @@ type apiServer struct {
 	mpb.UnimplementedMeasurementServiceServer
 	projectID  string
 	registryID string
+	awsRoleARN string
+	awsRegion  string
 	database   Database
 }
 
 func (s *apiServer) GetDevices(ctx context.Context, in *emptypb.Empty) (*mpb.GetDevicesResponse, error) {
-	devices, err := device.GetDevices(ctx, s.projectID, s.registryID)
+	things, err := device.GetDevicesAWS(ctx, s.awsRoleARN, s.awsRegion)
 	if err != nil {
 		return nil, err
 	}
 
-	deviceIDs := make([]string, 0, len(devices))
-	for _, d := range devices {
-		deviceIDs = append(deviceIDs, d.Id)
+	deviceIDs := make([]string, 0, len(things.Things))
+	for _, t := range things.Things {
+		deviceIDs = append(deviceIDs, *t.ThingName)
 	}
 
 	return &mpb.GetDevicesResponse{
@@ -99,13 +109,20 @@ func main() {
 	}
 	registryID := flag.Args()[0]
 
+	onGCE := metadata.OnGCE()
+
 	projectID := os.Getenv("PROJECT_ID")
-	if projectID == "" && metadata.OnGCE() {
+	if projectID == "" && onGCE {
 		var err error
 		projectID, err = metadata.ProjectID()
 		if err != nil {
 			log.Fatalf("Failed to get project ID: %v", err)
 		}
+	}
+
+	roleARN := os.Getenv(awsRoleARNEnvVar)
+	if roleARN == "" && onGCE {
+		log.Printf("On GCE and $%s is not set. Fetching devices will probably fail.", awsRoleARNEnvVar)
 	}
 
 	database, err := db.NewDatastoreDB(projectID, datastoreKind, nil)
@@ -122,6 +139,8 @@ func main() {
 	mpb.RegisterMeasurementServiceServer(grpcServer, &apiServer{
 		projectID:  projectID,
 		registryID: registryID,
+		awsRoleARN: roleARN,
+		awsRegion:  envtools.MustGetenv(awsRegionEnvVar),
 		database:   database,
 	})
 

@@ -19,8 +19,8 @@ import (
 
 // rootHandler renders the page for the root URL, which includes a plot and latest measurements.
 type rootHandler struct {
-	ProjectID         string
-	IoTCoreRegistry   string
+	awsRoleARN        string
+	awsRegion         string
 	DefaultDisplayAge time.Duration
 	Database          Database
 	Template          *template.Template
@@ -198,7 +198,7 @@ func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		start := time.Now()
 
-		ids, err := device.GetDeviceIDs(ctx, h.ProjectID, h.IoTCoreRegistry)
+		ids, err := device.GetDeviceIDsAWS(ctx, h.awsRoleARN, h.awsRegion)
 		if err != nil {
 			latestErr = err
 			gaelog.Errorf(ctx, "Error getting device IDs: %v", err)

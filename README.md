@@ -107,7 +107,6 @@ via env var config, secrets config, or whatever other method you like.
 
 TODO(mtraver) add descriptions of the env vars
 
-- `IOTCORE_REGISTRY`
 - `PUBSUB_VERIFICATION_TOKEN`
 - `PUBSUB_AUDIENCE`
 - `INFLUXDB_SERVER`

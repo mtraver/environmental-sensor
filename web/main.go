@@ -34,6 +34,13 @@ const (
 	// messages will be checked for a "source" attribute matching any of the strings specified
 	// in this env var.
 	ignoredSourcesEnvVar = "IGNORED_SOURCES"
+
+	// awsRoleARNEnvVar is the name of the env var that should contain the ARN of the
+	// AWS role that we'll assume and use to authenticate with AWS IoT to fetch the
+	// list of devices.
+	awsRoleARNEnvVar = "AWS_ROLE_ARN"
+
+	awsRegionEnvVar = "AWS_REGION"
 )
 
 type Database interface {
@@ -58,8 +65,9 @@ func main() {
 	// Get the project ID from the metadata service if possible, and fall back to
 	// the env var otherwise. The first check is called "OnGCE" but it will return
 	// true when running on Cloud Run as well.
+	onGCE := metadata.OnGCE()
 	var projectID string
-	if metadata.OnGCE() {
+	if onGCE {
 		var err error
 		projectID, err = metadata.ProjectID()
 		if err != nil {
@@ -69,6 +77,11 @@ func main() {
 	} else {
 		log.Printf("Not on Google Cloud infra, falling back to env var for project ID")
 		projectID = envtools.MustGetenv("GOOGLE_CLOUD_PROJECT")
+	}
+
+	roleARN := os.Getenv(awsRoleARNEnvVar)
+	if roleARN == "" && onGCE {
+		log.Printf("On GCE and $%s is not set. Fetching devices will probably fail.", awsRoleARNEnvVar)
 	}
 
 	// The path to the templates is relative to go.mod, as that's how they are
@@ -106,9 +119,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/", rootHandler{
-		ProjectID: projectID,
-		// This environment variable should be defined in app.yaml.
-		IoTCoreRegistry:   envtools.MustGetenv("IOTCORE_REGISTRY"),
+		awsRoleARN:        roleARN,
+		awsRegion:         envtools.MustGetenv(awsRegionEnvVar),
 		DefaultDisplayAge: 12 * time.Hour,
 		Database:          database,
 		Template:          templates,

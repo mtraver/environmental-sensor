@@ -37,6 +37,20 @@ func GetDevicesAWS(ctx context.Context, roleARN, region string) (*awsiot.ListThi
 	return client.ListThings(nil)
 }
 
+func GetDeviceIDsAWS(ctx context.Context, roleARN, region string) ([]string, error) {
+	things, err := GetDevicesAWS(ctx, roleARN, region)
+	if err != nil {
+		return []string{}, err
+	}
+
+	ids := make([]string, len(things.Things))
+	for i, t := range things.Things {
+		ids[i] = *t.ThingName
+	}
+
+	return ids, nil
+}
+
 func getRegistryPath(projectID, registryID string) string {
 	return fmt.Sprintf("projects/%s/locations/%s/registries/%s",
 		projectID, gcpRegion, registryID)

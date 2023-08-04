@@ -53,9 +53,9 @@ func (s *apiServer) GetDevices(ctx context.Context, in *emptypb.Empty) (*mpb.Get
 		return nil, err
 	}
 
-	deviceIDs := make([]string, 0, len(things.Things))
-	for _, t := range things.Things {
-		deviceIDs = append(deviceIDs, *t.ThingName)
+	deviceIDs := make([]string, len(things.Things))
+	for i, t := range things.Things {
+		deviceIDs[i] = *t.ThingName
 	}
 
 	return &mpb.GetDevicesResponse{

@@ -3,6 +3,7 @@ package federatedidentity
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/aws/aws-sdk-go/aws"
@@ -33,11 +34,17 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 		return nil, err
 	}
 
-	// Get the GCE instance's hostname, which we'll use as the session name when assuming
-	// the AWS role. The hostname is of the form "<instanceID>.c.<projID>.internal".
-	hostname, err := metadata.Hostname()
-	if err != nil {
-		return nil, err
+	// Use an identifier of the environment we're running in as the session name when assuming
+	// the AWS role. First try the Cloud Run revision. If that's not present, then try to get
+	// the GCE instance's hostname.
+	sessionName := os.Getenv("K_REVISION")
+	if sessionName == "" {
+		// The hostname is of the form "<instanceID>.c.<projID>.internal".
+		hostname, err := metadata.Hostname()
+		if err != nil {
+			return nil, err
+		}
+		sessionName = hostname
 	}
 
 	session, err := session.NewSession()
@@ -49,7 +56,7 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 	out, err := client.AssumeRoleWithWebIdentity(&sts.AssumeRoleWithWebIdentityInput{
 		DurationSeconds:  &awsCredentialDurationSeconds,
 		RoleArn:          &roleARN,
-		RoleSessionName:  &hostname,
+		RoleSessionName:  &sessionName,
 		WebIdentityToken: &gceToken,
 	})
 	if err != nil {

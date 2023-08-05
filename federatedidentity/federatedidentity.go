@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,8 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
+const (
+	cacheTTL = time.Second * 840
+)
+
 var (
 	awsCredentialDurationSeconds int64 = 900
+
+	cache = newCache()
 )
 
 func getGCEToken() (string, error) {
@@ -29,6 +36,11 @@ func getGCEToken() (string, error) {
 }
 
 func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, error) {
+	cachedCred := cache.get(roleARN)
+	if cachedCred != nil {
+		return cachedCred, nil
+	}
+
 	gceToken, err := getGCEToken()
 	if err != nil {
 		return nil, err
@@ -63,6 +75,10 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 		return nil, err
 	}
 
-	return credentials.NewStaticCredentials(
-		*out.Credentials.AccessKeyId, *out.Credentials.SecretAccessKey, *out.Credentials.SessionToken), nil
+	cred := credentials.NewStaticCredentials(
+		*out.Credentials.AccessKeyId, *out.Credentials.SecretAccessKey, *out.Credentials.SessionToken)
+
+	cache.set(roleARN, cred, cacheTTL)
+
+	return cred, nil
 }

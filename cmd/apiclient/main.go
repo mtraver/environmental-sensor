@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -57,7 +56,7 @@ func main() {
 
 	if len(flag.Args()) != 1 {
 		flag.Usage()
-		os.Exit(1)
+		os.Exit(2)
 	}
 	serverAddr := flag.Args()[0]
 
@@ -72,21 +71,28 @@ func main() {
 
 	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Failed to dial: %v", err)
+		fmt.Printf("Failed to dial: %v", err)
+		os.Exit(1)
 	}
 
 	client := mpb.NewMeasurementServiceClient(conn)
 
+	fmt.Println("Calling GetDevices")
+	fmt.Println("------------------")
 	devices, err := devices(ctx, client)
 	if err != nil {
-		log.Fatalf("Failed to GetDevices: %v", err)
+		fmt.Printf("Failed to GetDevices: %v", err)
 	}
 	fmt.Printf("%v\n", devices)
 
+	fmt.Println("")
+
+	fmt.Println("Calling GetLatest")
+	fmt.Println("-----------------")
 	for _, d := range devices.DeviceId {
 		m, err := latest(ctx, client, d)
 		if err != nil {
-			log.Fatalf("Failed to GetLatest for %q: %v", d, err)
+			fmt.Printf("Failed to GetLatest for %q: %v", d, err)
 		}
 		fmt.Printf("%v\n", m)
 	}

@@ -48,14 +48,9 @@ type apiServer struct {
 }
 
 func (s *apiServer) GetDevices(ctx context.Context, in *emptypb.Empty) (*mpb.GetDevicesResponse, error) {
-	things, err := device.GetDevicesAWS(ctx, s.awsRoleARN, s.awsRegion)
+	deviceIDs, err := device.GetDeviceIDsAWS(ctx, s.awsRoleARN, s.awsRegion)
 	if err != nil {
 		return nil, err
-	}
-
-	deviceIDs := make([]string, len(things.Things))
-	for i, t := range things.Things {
-		deviceIDs[i] = *t.ThingName
 	}
 
 	return &mpb.GetDevicesResponse{

@@ -9,6 +9,7 @@ COPY go.* ./
 RUN go mod download
 
 COPY aqi aqi/
+COPY cache cache/
 COPY federatedidentity federatedidentity/
 COPY measurement measurement/
 COPY measurementpb measurementpb/

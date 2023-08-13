@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
+	cachepkg "github.com/mtraver/environmental-sensor/cache"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 var (
 	awsCredentialDurationSeconds int64 = 900
 
-	cache = newCache()
+	cache = cachepkg.New[*credentials.Credentials]()
 )
 
 func getGCEToken() (string, error) {
@@ -36,7 +37,7 @@ func getGCEToken() (string, error) {
 }
 
 func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, error) {
-	cachedCred := cache.get(roleARN)
+	cachedCred := cache.Get(roleARN)
 	if cachedCred != nil {
 		return cachedCred, nil
 	}
@@ -78,7 +79,7 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 	cred := credentials.NewStaticCredentials(
 		*out.Credentials.AccessKeyId, *out.Credentials.SecretAccessKey, *out.Credentials.SessionToken)
 
-	cache.set(roleARN, cred, cacheTTL)
+	cache.Set(roleARN, cred, cacheTTL)
 
 	return cred, nil
 }

@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/base64"
 	"log"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	cachepkg "github.com/mtraver/environmental-sensor/cache"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/envtools"
 	"golang.org/x/oauth2/google"
@@ -20,6 +22,8 @@ import (
 
 const (
 	gcpCredentialsScope = "https://www.googleapis.com/auth/pubsub"
+
+	cacheTTL = 24 * 7 * time.Hour
 )
 
 var (
@@ -28,9 +32,16 @@ var (
 
 	secretsManagerRegion = envtools.MustGetenv("AWS_SECRETS_MANAGER_REGION")
 	secretName           = envtools.MustGetenv("GCP_CREDENTIALS_SECRET_NAME")
+
+	cache = cachepkg.New[string]()
 )
 
 func getServiceAccountKey(ctx context.Context) (*google.Credentials, error) {
+	cachedKey := cache.Get(secretName)
+	if cachedKey != "" {
+		return google.CredentialsFromJSON(ctx, []byte(cachedKey), gcpCredentialsScope)
+	}
+
 	config, err := config.LoadDefaultConfig(ctx, config.WithRegion(secretsManagerRegion))
 	if err != nil {
 		return nil, err
@@ -49,6 +60,8 @@ func getServiceAccountKey(ctx context.Context) (*google.Credentials, error) {
 
 	// Decrypt the secret using the associated KMS key.
 	key := *result.SecretString
+
+	cache.Set(secretName, key, cacheTTL)
 
 	return google.CredentialsFromJSON(ctx, []byte(key), gcpCredentialsScope)
 }

@@ -29,8 +29,8 @@ api:
 
 .PHONY: lambda
 lambda:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $(OUT_DIR)/$@ ./cmd/$@
-	cd $(OUT_DIR) && zip $@.zip $@
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -tags lambda.norpc -o $(OUT_DIR)/bootstrap ./cmd/$@
+	cd $(OUT_DIR) && zip $@.zip bootstrap
 
 .PHONY: apiclient
 apiclient:

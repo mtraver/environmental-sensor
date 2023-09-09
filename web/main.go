@@ -112,7 +112,7 @@ func main() {
 				return aqi.Abbrv(int(v))
 			},
 			"ContainsKey": containsKey[string, float32],
-		}).ParseGlob("web/templates/*"))
+		}).Option("missingkey=error").ParseGlob("web/templates/*"))
 
 	cache := newCache()
 	database, err := db.NewDatastoreDB(projectID, datastoreKind, cache)

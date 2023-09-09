@@ -61,6 +61,11 @@ func filter[T any](s []T, test func(T) bool) []T {
 	return ret
 }
 
+func containsKey[K comparable, V any](m map[K]V, k K) bool {
+	_, ok := m[k]
+	return ok
+}
+
 func main() {
 	// Get the project ID from the metadata service if possible, and fall back to
 	// the env var otherwise. The first check is called "OnGCE" but it will return
@@ -106,6 +111,7 @@ func main() {
 			"AQIAbbrv": func(v float32) string {
 				return aqi.Abbrv(int(v))
 			},
+			"ContainsKey": containsKey[string, float32],
 		}).ParseGlob("web/templates/*"))
 
 	cache := newCache()

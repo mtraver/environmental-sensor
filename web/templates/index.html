@@ -87,8 +87,8 @@
                       {{ range $metric := $.LatestMetrics  }}
                         <td>
                           {{ if eq $metric "AQI" }}
-                            {{ $aqi := index $vm $metric }}
-                            {{ if $aqi }}
+                            {{ if ContainsKey $vm $metric }}
+                              {{ $aqi := index $vm $metric }}
                               <span class="badge badge-pill badge-aqi-{{ AQIAbbrv $aqi }}">{{ $aqi }} ({{ AQIStr $aqi }})</span>
                             {{ end }}
                           {{ else }}

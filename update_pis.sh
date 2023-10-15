@@ -15,19 +15,42 @@ readonly commit="$(git rev-parse --verify --short HEAD)"
 
 echo "Updating to binaries at commit ${commit}"
 
+update_device() {
+  if [ "$#" -ne 2 ]; then
+    echo "expected two arguments"
+    return 2
+  fi
+
+  readonly device="$1"
+  if [ -z "${device}" ]; then
+    echo "expected device to be non-empty"
+    return 2
+  fi
+
+  readonly arch="$2"
+  if [ -z "${arch}" ]; then
+    echo "expected arch to be non-empty"
+    return 2
+  fi
+
+  readonly new_binary="${binary_name}_${arch}_${commit}"
+
+  echo -e "\n#################################################"
+  echo "# ${device}" "${arch}"
+  echo "#################################################"
+
+  ssh "${device}" "sudo systemctl stop ${service_name}.service"
+
+  scp "out/${arch}/${binary_name}" "${device}:~/${new_binary}"
+  ssh "${device}" "rm -f ${binary_name} && ln -s ${new_binary} ${binary_name}"
+
+  ssh "${device}" "sudo systemctl start ${service_name}.service"
+}
+
 for d in "${!devices[@]}"; do
   arch="${devices[$d]}"
 
-  new_binary="${binary_name}_${arch}_${commit}"
-
-  echo -e "\n#################################################"
-  echo "# ${d}"
-  echo "#################################################"
-
-  ssh "${d}" "sudo systemctl stop ${service_name}.service"
-
-  scp "out/${arch}/${binary_name}" "${d}:~/${new_binary}"
-  ssh "${d}" "rm -f ${binary_name} && ln -s ${new_binary} ${binary_name}"
-
-  ssh "${d}" "sudo systemctl start ${service_name}.service"
+  update_device "${d}" "${arch}" &
 done
+
+wait

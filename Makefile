@@ -9,7 +9,7 @@ OUT_DIR := out
 
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-all: iotcorelogger readtemp api apiclient
+all: iotcorelogger lambda readtemp api apiclient
 
 .PHONY: iotcorelogger
 iotcorelogger: proto

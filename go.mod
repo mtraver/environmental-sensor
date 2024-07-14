@@ -1,6 +1,6 @@
 module github.com/mtraver/environmental-sensor
 
-go 1.21.0
+go 1.22.5
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0

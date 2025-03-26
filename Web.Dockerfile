@@ -1,5 +1,5 @@
 # This Dockerfile produces an image that runs the web server.
-FROM golang:1.22-bookworm as builder
+FROM golang:1.23-bookworm as builder
 
 WORKDIR /build
 

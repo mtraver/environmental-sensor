@@ -46,7 +46,7 @@ Positional Arguments (required):
 Options:
 `
 
-		fmt.Fprintf(flag.CommandLine.Output(), message)
+		fmt.Fprint(flag.CommandLine.Output(), message)
 		flag.PrintDefaults()
 	}
 }

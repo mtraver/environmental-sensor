@@ -44,6 +44,9 @@ update_device() {
   scp "out/${arch}/${binary_name}" "${device}:~/${new_binary}"
   ssh "${device}" "rm -f ${binary_name} && ln -s ${new_binary} ${binary_name}"
 
+  # Delete the old JWT because it can cause connection problems on restart
+  ssh "${device}" 'rm -f ~/.iotcorelogger/iotcorelogger.jwt'
+
   ssh "${device}" "sudo systemctl start ${service_name}.service"
 }
 

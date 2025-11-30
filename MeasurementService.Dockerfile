@@ -1,5 +1,5 @@
 # This Dockerfile produces an image that runs a gRPC server implementing MeasurementService.
-FROM golang:1.24-bookworm as builder
+FROM golang:1.25-trixie AS builder
 
 WORKDIR /build
 
@@ -18,7 +18,7 @@ COPY web web/
 
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o serve api/main.go
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*

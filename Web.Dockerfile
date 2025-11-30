@@ -1,5 +1,5 @@
 # This Dockerfile produces an image that runs the web server.
-FROM golang:1.24-bookworm as builder
+FROM golang:1.25-trixie AS builder
 
 WORKDIR /build
 
@@ -19,7 +19,7 @@ COPY web web/
 RUN mkdir out
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o out ./web/...
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*

@@ -55,7 +55,7 @@ web-image-remote: check-env
 	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/web"
 
 run-web: check-env
-	docker run -v $(MAKEFILE_DIR)/keys:/keys --env-file env -p 8080:8080 $(ARTIFACT_REPOSITORY_URL_BASE)/web
+	docker run -v $(MAKEFILE_DIR)/keys:/keys:ro -v ~/.aws:/root/.aws:ro --env-file env -p 8080:8080 $(ARTIFACT_REPOSITORY_URL_BASE)/web
 
 .PHONY: proto
 proto:

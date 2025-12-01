@@ -8,9 +8,9 @@ import (
 	"golang.org/x/oauth2/google"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	awsiot "github.com/aws/aws-sdk-go/service/iot"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	awsiot "github.com/aws/aws-sdk-go-v2/service/iot"
 	fedident "github.com/mtraver/environmental-sensor/federatedidentity"
 	cloudiot "google.golang.org/api/cloudiot/v1"
 )
@@ -18,23 +18,30 @@ import (
 const gcpRegion = "us-central1"
 
 func GetDevicesAWS(ctx context.Context, roleARN, region string) (*awsiot.ListThingsOutput, error) {
-	config := aws.NewConfig().WithRegion(region)
+	var cfg aws.Config
 
 	// If we're on GCE, assume AWS role and fetch credentials.
 	if metadata.OnGCE() {
-		creds, err := fedident.GetCredentialsForRole(roleARN, region)
+		creds, err := fedident.GetCredentialsForRole(ctx, roleARN, region)
 		if err != nil {
 			return nil, err
 		}
-		config = config.WithCredentials(creds)
+
+		cfg, err = config.LoadDefaultConfig(
+			ctx, config.WithRegion(region), config.WithCredentialsProvider(creds))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		cfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(region))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	session, err := session.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	client := awsiot.New(session, config)
-	return client.ListThings(nil)
+	client := awsiot.NewFromConfig(cfg)
+	return client.ListThings(ctx, &awsiot.ListThingsInput{})
 }
 
 func GetDeviceIDsAWS(ctx context.Context, roleARN, region string) ([]string, error) {

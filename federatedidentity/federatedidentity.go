@@ -1,16 +1,17 @@
 package federatedidentity
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	cachepkg "github.com/mtraver/environmental-sensor/cache"
 )
 
@@ -19,9 +20,9 @@ const (
 )
 
 var (
-	awsCredentialDurationSeconds int64 = 900
+	awsCredentialDurationSeconds int32 = 900
 
-	cache = cachepkg.New[*credentials.Credentials]()
+	cache = cachepkg.New[aws.CredentialsProvider]()
 )
 
 func getGCEToken() (string, error) {
@@ -36,7 +37,7 @@ func getGCEToken() (string, error) {
 	return metadata.Get(suffix)
 }
 
-func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, error) {
+func GetCredentialsForRole(ctx context.Context, roleARN, region string) (aws.CredentialsProvider, error) {
 	cachedCred := cache.Get(roleARN)
 	if cachedCred != nil {
 		return cachedCred, nil
@@ -60,13 +61,15 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 		sessionName = hostname
 	}
 
-	session, err := session.NewSession()
+	// Load minimal config to create an STS client.
+	cfg, err := config.LoadDefaultConfig(
+		ctx, config.WithRegion(region), config.WithCredentialsProvider(aws.AnonymousCredentials{}))
 	if err != nil {
 		return nil, err
 	}
-	client := sts.New(session, aws.NewConfig().WithRegion(region))
+	client := sts.NewFromConfig(cfg)
 
-	out, err := client.AssumeRoleWithWebIdentity(&sts.AssumeRoleWithWebIdentityInput{
+	out, err := client.AssumeRoleWithWebIdentity(ctx, &sts.AssumeRoleWithWebIdentityInput{
 		DurationSeconds:  &awsCredentialDurationSeconds,
 		RoleArn:          &roleARN,
 		RoleSessionName:  &sessionName,
@@ -76,8 +79,11 @@ func GetCredentialsForRole(roleARN, region string) (*credentials.Credentials, er
 		return nil, err
 	}
 
-	cred := credentials.NewStaticCredentials(
-		*out.Credentials.AccessKeyId, *out.Credentials.SecretAccessKey, *out.Credentials.SessionToken)
+	cred := credentials.NewStaticCredentialsProvider(
+		*out.Credentials.AccessKeyId,
+		*out.Credentials.SecretAccessKey,
+		*out.Credentials.SessionToken,
+	)
 
 	cache.Set(roleARN, cred, cacheTTL)
 

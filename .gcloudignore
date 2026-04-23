@@ -6,33 +6,12 @@
 # For more information, run:
 #   $ gcloud topic gcloudignore
 #
+
+#!include:.gitignore
+
 .gcloudignore
 .git
 .gitignore
-#!include:.gitignore
-
-Makefile
 *.proto
 *.md
-
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, build with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Build output directory
-out/
-
-# Docker env-file storing env vars for use during development.
-env
-
-# Directory containing keys (like service account keys) for use during development.
-keys/
+Makefile

@@ -27,7 +27,7 @@ go.work
 go.work.sum
 
 # Docker env-file storing env vars for use during development.
-env
+.env
 
 # Go build output directory
 out/

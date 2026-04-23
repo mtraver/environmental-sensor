@@ -13,6 +13,15 @@ server {
     add_header Cache-Control "no-cache, no-store, must-revalidate";
   }
 
+  # Proxy requests to the telemetry push handler to the backend.
+  location ~ ^/push-handlers/telemetry/?$ {
+    proxy_pass ${BACKEND_HOST}:${BACKEND_PORT};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
   # Proxy GraphQL requests to the backend.
   location ~ ^/query/?$ {
     proxy_pass ${BACKEND_HOST}:${BACKEND_PORT};

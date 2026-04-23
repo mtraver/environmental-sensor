@@ -4,10 +4,11 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -66,6 +67,10 @@ func getServiceAccountKey(ctx context.Context) (*google.Credentials, error) {
 	return google.CredentialsFromJSON(ctx, []byte(key), gcpCredentialsScope)
 }
 
+func fullyQualifiedTopic(projectID, topicID string) string {
+	return fmt.Sprintf("projects/%s/topics/%s", projectID, topicID)
+}
+
 func handle(ctx context.Context, message string) (string, error) {
 	// message is unmarshaled from JSON before being passed into this function, and
 	// because on the other end the message was made by JSON-encoding a byte slice,
@@ -96,10 +101,10 @@ func handle(ctx context.Context, message string) (string, error) {
 		return "error", err
 	}
 
-	topic := client.Topic(pubSubTopicName)
-	defer topic.Stop()
+	publisher := client.Publisher(fullyQualifiedTopic(gcpProjectID, pubSubTopicName))
+	defer publisher.Stop()
 
-	r := topic.Publish(ctx, &pubsub.Message{
+	r := publisher.Publish(ctx, &pubsub.Message{
 		Data: protoBytes,
 		Attributes: map[string]string{
 			"source": "AWS",

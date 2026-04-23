@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
 	cloud.google.com/go/datastore v1.22.0
-	cloud.google.com/go/pubsub v1.50.2
+	cloud.google.com/go/pubsub/v2 v2.6.0
 	github.com/99designs/gqlgen v0.17.89
 	github.com/aws/aws-lambda-go v1.54.0
 	github.com/aws/aws-sdk-go-v2 v1.41.6
@@ -42,7 +42,6 @@ require (
 	cloud.google.com/go/iam v1.9.0 // indirect
 	cloud.google.com/go/logging v1.16.0 // indirect
 	cloud.google.com/go/longrunning v0.11.0 // indirect
-	cloud.google.com/go/pubsub/v2 v2.6.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/albenik/go-serial/v2 v2.6.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect

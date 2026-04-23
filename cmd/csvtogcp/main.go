@@ -12,7 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
+	"cloud.google.com/go/pubsub/v2/apiv1/pubsubpb"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
@@ -109,28 +110,29 @@ func publishFromCSV(csvFile string, projectID string, pubsubTopic string, device
 	}
 	reader := csv.NewReader(bufio.NewReader(f))
 
-	// Set up the Pub/Sub client
+	// Set up the Pub/Sub client.
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
 		return err
 	}
 
-	if exists, err := client.Topic(pubsubTopic).Exists(ctx); err != nil {
-		return err
-	} else if !exists {
-		return fmt.Errorf("Topic does not exist. Create it first: %v", pubsubTopic)
+	// Confirm that the topic exists.
+	if _, err := client.TopicAdminClient.GetTopic(ctx, &pubsubpb.GetTopicRequest{
+		Topic: pubsubTopic,
+	}); err != nil {
+		return fmt.Errorf("Failed to fetch topic %q: %v", pubsubTopic, err)
 	}
 
-	topic := client.Topic(pubsubTopic)
-	defer topic.Stop()
+	publisher := client.Publisher(pubsubTopic)
+	defer publisher.Stop()
 
-	topic.PublishSettings = pubsub.PublishSettings{
+	publisher.PublishSettings = pubsub.PublishSettings{
 		DelayThreshold: 10 * time.Millisecond,
 		CountThreshold: 50,
 	}
 
-	// Assume that the CSV file has column headers, and strip them off first
+	// Assume that the CSV file has column headers, and strip them off first.
 	if _, err := reader.Read(); err == io.EOF {
 		return err
 	}
@@ -153,10 +155,14 @@ func publishFromCSV(csvFile string, projectID string, pubsubTopic string, device
 			return err
 		}
 
-		topic.Publish(ctx, &pubsub.Message{Data: data})
+		publisher.Publish(ctx, &pubsub.Message{Data: data})
 	}
 
 	return nil
+}
+
+func fullyQualifiedTopic(projectID, topicID string) string {
+	return fmt.Sprintf("projects/%s/topics/%s", projectID, topicID)
 }
 
 func usage() {
@@ -169,7 +175,13 @@ func main() {
 		os.Exit(2)
 	}
 
-	if err := publishFromCSV(os.Args[1], os.Args[2], os.Args[3], os.Args[4]); err != nil {
+	csvFile := os.Args[1]
+	projectID := os.Args[2]
+	topicID := os.Args[3]
+	deviceID := os.Args[4]
+	fullTopic := fullyQualifiedTopic(projectID, topicID)
+
+	if err := publishFromCSV(csvFile, projectID, fullTopic, deviceID); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

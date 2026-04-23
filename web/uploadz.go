@@ -20,7 +20,7 @@ type uploadzHandler struct {
 }
 
 func (h uploadzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := newContext(r)
+	ctx := r.Context()
 
 	endTime := time.Now().UTC()
 	startTime := endTime.Add(-h.DelayedUploadsDur)

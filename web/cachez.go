@@ -14,7 +14,7 @@ type cachezHandler struct {
 }
 
 func (h cachezHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := newContext(r)
+	ctx := r.Context()
 
 	if err := h.Template.ExecuteTemplate(w, "cachez", h.Cache.Stats()); err != nil {
 		gaelog.Errorf(ctx, "Could not execute template: %v", err)

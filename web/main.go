@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/mtraver/environmental-sensor/graph"
+	"github.com/mtraver/environmental-sensor/web/cache"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/envtools"
 	"github.com/mtraver/gaelog"
@@ -81,8 +82,8 @@ func main() {
 	// The path to the templates is relative to go.mod, as that's how they are placed in the Docker image.
 	templates := template.Must(template.New("index.html").Option("missingkey=error").ParseGlob("web/templates/*"))
 
-	cache := newCache()
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, cache)
+	cacheImpl := cache.NewLocal()
+	database, err := db.NewDatastoreDB(projectID, datastoreKind, &cacheImpl)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
@@ -122,7 +123,7 @@ func main() {
 	})
 
 	mux.Handle("/debug/cachez", cachezHandler{
-		Cache:    cache,
+		Cache:    &cacheImpl,
 		Template: templates,
 	})
 
@@ -149,7 +150,14 @@ func main() {
 		IgnoredSources: ignoredSources,
 	})
 
-	serve(gaelog.Wrap(mux))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
+	}
+
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), gaelog.Wrap(stripTrailingSlash(mux))))
 }
 
 func noCache(h http.Handler) http.HandlerFunc {
@@ -157,4 +165,13 @@ func noCache(h http.Handler) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		h.ServeHTTP(w, r)
 	}
+}
+
+func stripTrailingSlash(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+			r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+		}
+		next.ServeHTTP(w, r)
+	})
 }

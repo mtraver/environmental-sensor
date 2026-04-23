@@ -98,7 +98,7 @@ func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := newContext(r)
+	ctx := r.Context()
 
 	if err := h.authenticate(ctx, r); err != nil {
 		gaelog.Criticalf(ctx, "Authentication failed: %v", err)

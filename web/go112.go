@@ -8,8 +8,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/mtraver/environmental-sensor/web/cache"
+	"github.com/mtraver/gaelog"
 )
 
 func newContext(r *http.Request) context.Context {
@@ -29,5 +31,14 @@ func serve(mux http.Handler) {
 	}
 
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), mux))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), gaelog.Wrap(stripTrailingSlash(mux))))
+}
+
+func stripTrailingSlash(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+			r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+		}
+		next.ServeHTTP(w, r)
+	})
 }

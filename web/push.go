@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mtraver/environmental-sensor/database"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/web/db"
@@ -35,7 +36,7 @@ type pushRequest struct {
 type pushHandler struct {
 	PubSubToken    string
 	PubSubAudience string
-	Database       Database
+	Database       database.Database
 	InfluxDB       *db.InfluxDB
 	IgnoredDevices []string
 	IgnoredSources []string

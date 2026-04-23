@@ -1,0 +1,18 @@
+scalar DateTime
+
+type Query {
+  measurements(startTime: DateTime!, endTime: DateTime): [Measurement!]!
+  latest: [Measurement!]!
+}
+
+type Measurement {
+  deviceId: String!
+  timestamp: DateTime!
+  uploadTimestamp: DateTime!
+
+  temp: Float
+  pm25: Float
+  pm10: Float
+  rh: Float
+  aqi: Float
+}

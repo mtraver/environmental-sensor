@@ -1,0 +1,33 @@
+server {
+  listen 8080;
+  server_name _;
+  root /app;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html =404;
+  }
+
+  # Disable caching for index.html.
+  location = /index.html {
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+  }
+
+  # Proxy GraphQL requests to the backend.
+  location ~ ^/query/?$ {
+    proxy_pass ${BACKEND_HOST}:${BACKEND_PORT};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # Proxy requests to debug URLs to the backend.
+  location ~ ^/debug/.+$ {
+    proxy_pass ${BACKEND_HOST}:${BACKEND_PORT};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}

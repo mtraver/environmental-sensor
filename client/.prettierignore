@@ -1,0 +1,5 @@
+.react-router
+app/types/__generated__
+build
+coverage
+node_modules

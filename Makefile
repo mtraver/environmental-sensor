@@ -55,7 +55,7 @@ web-image-remote: check-env
 	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/web"
 
 run-web: check-env
-	docker run -v $(MAKEFILE_DIR)/keys:/keys:ro -v ~/.aws:/root/.aws:ro --env-file env -p 8080:8080 $(ARTIFACT_REPOSITORY_URL_BASE)/web
+	docker run -p 8080:8080 -e DEBUG_GQL_PLAYGROUND="true" -v $(MAKEFILE_DIR)/keys:/keys:ro -v ~/.aws:/root/.aws:ro --env-file env $(ARTIFACT_REPOSITORY_URL_BASE)/web
 
 .PHONY: proto
 proto:
@@ -71,6 +71,10 @@ proto:
 
 	protoc --go_out=module=github.com/mtraver/environmental-sensor:. \
 	  configpb/config.proto
+
+gqlgen:
+	go run github.com/99designs/gqlgen generate --verbose
+	cd client && npm run codegen
 
 check-env:
 ifndef PROJECT

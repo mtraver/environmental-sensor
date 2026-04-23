@@ -7,6 +7,7 @@ import (
 
 	"github.com/mtraver/gaelog"
 
+	"github.com/mtraver/environmental-sensor/database"
 	"github.com/mtraver/environmental-sensor/measurement"
 )
 
@@ -14,7 +15,7 @@ import (
 type uploadzHandler struct {
 	// Display delayed uploads up to this duration old.
 	DelayedUploadsDur time.Duration
-	Database          Database
+	Database          database.Database
 	Template          *template.Template
 }
 

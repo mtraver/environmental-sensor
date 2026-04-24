@@ -100,19 +100,22 @@ TODO(mtraver) add info on systemd config
 ### Environment variables
 
 The web app expects the following environment variables to be set. Define them
-in a file called `env` and the `make run-web` command below will pick them up.
+in a file called `.env` and the `make run-web` command below will pick them up.
 
 In production, you'll need to make sure that they are available to the container
 via env var config, secrets config, or whatever other method you like.
 
 TODO(mtraver) add descriptions of the env vars
 
-- `PUBSUB_VERIFICATION_TOKEN`
-- `PUBSUB_AUDIENCE`
+- `AWS_REGION`
+- `AWS_ROLE_ARN`
+- `IGNORED_DEVICES`
+- `INFLUXDB_BUCKET`
+- `INFLUXDB_ORG`
 - `INFLUXDB_SERVER`
 - `INFLUXDB_TOKEN`
-- `INFLUXDB_ORG`
-- `INFLUXDB_BUCKET`
+- `PUBSUB_AUDIENCE`
+- `PUBSUB_VERIFICATION_TOKEN`
 
 For local development you'll need to set `GOOGLE_CLOUD_PROJECT` to your GCP
 project ID. In production on Cloud Run it's fetched automatically.
@@ -130,12 +133,19 @@ will have the proper permissions granted to it.
 
 ### Build and run locally
 
-Did you make your `env` file and put your service account key in `keys`?
+Did you make your `.env` file and put your service account key in `keys`?
 Do that first (see above).
 
 ```sh
-PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make web-image
-PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make run-web
+PROJECT=my-gcp-project-id \
+REPO=my-artifact-repository-repo-name \
+SERVICE=my-cloud-run-service-name \
+make web-image
+
+PROJECT=my-gcp-project-id \
+REPO=my-artifact-repository-repo-name \
+SERVICE=my-cloud-run-service-name \
+make run-web
 ```
 
 ### Build on Google Cloud Build
@@ -143,7 +153,10 @@ PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make run-web
 This will build the image remotely and push it to Google Artifact Repository.
 
 ```sh
-PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make web-image-remote
+PROJECT=my-gcp-project-id \
+REPO=my-artifact-repository-repo-name \
+SERVICE=my-cloud-run-service-name \
+make web-image-remote
 ```
 
 ### Deploying to Cloud Run
@@ -151,3 +164,14 @@ PROJECT=my-gcp-project-id REPO=my-artifact-repository-repo-name make web-image-r
 Deploy the image built with `make web-image-remote` to Cloud Run and make sure
 that the env vars (aside from `GOOGLE_CLOUD_PROJECT` and `GOOGLE_APPLICATION_CREDENTIALS`)
 are made available to it.
+
+Subsequent deploys can be done using this make command:
+
+```sh
+PROJECT=my-gcp-project-id \
+REPO=my-artifact-repository-repo-name \
+SERVICE=my-cloud-run-service-name \
+make deploy-web
+```
+
+`make deploy-web` doesn't set env vars so it can't be used for the first deploy.

@@ -1,5 +1,6 @@
-REGION = us-central1
-ARTIFACT_REPOSITORY_URL_BASE = $(REGION)-docker.pkg.dev/$(PROJECT)/$(REPO)
+ARTIFACT_REGISTRY_REGION = us-central1
+CLOUD_RUN_REGION = us-central1
+ARTIFACT_REPOSITORY_URL_BASE = $(ARTIFACT_REGISTRY_REGION)-docker.pkg.dev/$(PROJECT)/$(REPO)
 
 BUILD := go build
 BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -ldflags="-s -w"
@@ -41,7 +42,7 @@ api-image: check-env
 
 api-image-remote: check-env
 	gcloud --project=$(PROJECT) builds submit \
-	  --region=$(REGION) \
+	  --region=$(ARTIFACT_REGISTRY_REGION) \
 	  --config cloudbuild-api.yaml \
 	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/api"
 
@@ -50,12 +51,15 @@ web-image: check-env
 
 web-image-remote: check-env
 	gcloud --project=$(PROJECT) builds submit \
-	  --region=$(REGION) \
+	  --region=$(ARTIFACT_REGISTRY_REGION) \
 	  --config cloudbuild-web.yaml \
 	  --substitutions=TAG_NAME="$(ARTIFACT_REPOSITORY_URL_BASE)/web"
 
 run-web: check-env
 	docker run -p 8080:8080 -e DEBUG_GQL_PLAYGROUND="true" -v $(MAKEFILE_DIR)/keys:/keys:ro -v ~/.aws:/root/.aws:ro --env-file .env $(ARTIFACT_REPOSITORY_URL_BASE)/web
+
+deploy-web: check-env
+	gcloud --project=$(PROJECT) run deploy $(SERVICE) --region=$(CLOUD_RUN_REGION) --image=$(ARTIFACT_REPOSITORY_URL_BASE)/web
 
 .PHONY: proto
 proto:
@@ -82,6 +86,9 @@ ifndef PROJECT
 endif
 ifndef REPO
 	$(error REPO is undefined)
+endif
+ifndef SERVICE
+	$(error SERVICE is undefined)
 endif
 
 clean:

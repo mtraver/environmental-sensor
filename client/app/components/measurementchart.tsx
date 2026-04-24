@@ -13,6 +13,7 @@ import fnv1a from "@sindresorhus/fnv1a";
 import type { Measurement } from "../types/__generated__/graphql";
 import { DEFAULT_METRIC, METRICS, METRIC_ORDER } from "../lib/metrics";
 import type { MetricKey } from "../lib/metrics";
+import { formatDate } from "../lib/time";
 import "@mantine/charts/styles.css";
 
 type SeriesPoint = {
@@ -291,7 +292,7 @@ export function MeasurementChart({
           withTooltip
           tooltipProps={{
             labelFormatter: (value) =>
-              new Date(value as number).toLocaleString(),
+              value != null ? formatDate(value as number) : "",
             cursor: { strokeDasharray: "3 3" },
           }}
           withLegend

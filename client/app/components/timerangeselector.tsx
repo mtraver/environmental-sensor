@@ -15,8 +15,7 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { DateTimePicker } from "@mantine/dates";
 import { Calendar } from "@phosphor-icons/react";
-import { DateTime } from "luxon";
-import { parseRelativeTime } from "../lib/time";
+import { formatDate, parseRelativeTime } from "../lib/time";
 import "@mantine/dates/styles.css";
 import classes from "../css/UnstyledButton.module.css";
 
@@ -60,17 +59,6 @@ const PRESET_GROUPS = [
 ];
 
 const DATE_TIME_PICKER_VALUE_FORMAT = "YYYY-MM-DD HH:mm";
-
-function formatDate(ts: number, narrow = false): string {
-  const d = DateTime.fromMillis(ts);
-  const isCurrentYear = d.year === DateTime.now().year;
-
-  if (narrow) {
-    return d.toFormat(isCurrentYear ? "MM/dd HH:mm" : "MM/dd/yy HH:mm");
-  }
-
-  return d.toFormat(isCurrentYear ? "MMM dd HH:mm" : "MMM dd, yyyy HH:mm");
-}
 
 function formatAbsoluteRange(from: number, to: number, narrow = false): string {
   return `${formatDate(from, narrow)} – ${formatDate(to, narrow)}`;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DateTime } from "luxon";
 
 const RTF = new Intl.RelativeTimeFormat("en", {
   numeric: "auto",
@@ -11,6 +12,17 @@ const UNIT_MS: Record<string, number> = {
   h: 60 * 60_000,
   m: 60_000,
 };
+
+export function formatDate(ts: number, narrow = false): string {
+  const d = DateTime.fromMillis(ts);
+  const isCurrentYear = d.year === DateTime.now().year;
+
+  if (narrow) {
+    return d.toFormat(isCurrentYear ? "MM/dd HH:mm" : "MM/dd/yy HH:mm");
+  }
+
+  return d.toFormat(isCurrentYear ? "MMM dd HH:mm" : "MMM dd, yyyy HH:mm");
+}
 
 export function parseRelativeTime(input: string): number | null {
   const FULL = /^(\d+mo|\d+d|\d+h|\d+m)(\s*(\d+mo|\d+d|\d+h|\d+m))*$/;

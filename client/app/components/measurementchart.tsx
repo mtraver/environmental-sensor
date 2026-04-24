@@ -285,6 +285,7 @@ export function MeasurementChart({
           }}
           yAxisLabel={METRICS[validatedMetric].unit}
           valueFormatter={(value) => value.toFixed(2)}
+          strokeWidth={1}
           withDots={false}
           curveType="monotone"
           withTooltip

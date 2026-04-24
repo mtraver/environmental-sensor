@@ -1,6 +1,13 @@
 import type { JSX } from "react";
 import { useMemo } from "react";
-import { Center, Loader, Table, Text } from "@mantine/core";
+import {
+  Center,
+  Loader,
+  ScrollArea,
+  Table,
+  Text,
+  useMantineTheme,
+} from "@mantine/core";
 import type { LatestQuery } from "../types/__generated__/graphql";
 import { AQIBadge } from "./aqibadge";
 import { METRICS, METRIC_ORDER } from "../lib/metrics";
@@ -85,36 +92,39 @@ export function LatestMeasurementsTable({
     [measurements],
   );
 
+  const theme = useMantineTheme();
   return (
     <div style={{ position: "relative" }}>
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Device</Table.Th>
-            {presentMetrics.map((m) => (
-              <Table.Th key={m}>
-                {METRICS[m].label}
-                {METRICS[m].unit && (
-                  <Text span c="dimmed" size="xs">
-                    {" "}
-                    ({METRICS[m].unit})
-                  </Text>
-                )}
-              </Table.Th>
-            ))}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {rows.map((row) => (
-            <Table.Tr key={row.deviceId}>
-              <DeviceCell deviceId={row.deviceId} timestamp={row.timestamp} />
+      <ScrollArea>
+        <Table striped highlightOnHover miw={theme.breakpoints.xs}>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Device</Table.Th>
               {presentMetrics.map((m) => (
-                <MetricCell metric={m} measurement={row} />
+                <Table.Th key={m}>
+                  {METRICS[m].shortLabel}
+                  {METRICS[m].unit && (
+                    <Text span c="dimmed" size="xs">
+                      {" "}
+                      ({METRICS[m].unit})
+                    </Text>
+                  )}
+                </Table.Th>
               ))}
             </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          </Table.Thead>
+          <Table.Tbody>
+            {rows.map((row) => (
+              <Table.Tr key={row.deviceId}>
+                <DeviceCell deviceId={row.deviceId} timestamp={row.timestamp} />
+                {presentMetrics.map((m) => (
+                  <MetricCell metric={m} measurement={row} />
+                ))}
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </ScrollArea>
       {loading && (
         <Center
           style={{

@@ -10,9 +10,12 @@ import {
   Text,
   TextInput,
   UnstyledButton,
+  useMantineTheme,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { DateTimePicker } from "@mantine/dates";
 import { Calendar } from "@phosphor-icons/react";
+import { DateTime } from "luxon";
 import { parseRelativeTime } from "../lib/time";
 import "@mantine/dates/styles.css";
 import classes from "../css/UnstyledButton.module.css";
@@ -58,17 +61,19 @@ const PRESET_GROUPS = [
 
 const DATE_TIME_PICKER_VALUE_FORMAT = "YYYY-MM-DD HH:mm";
 
-const DATE_FMT = new Intl.DateTimeFormat(undefined, {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
+function formatDate(ts: number, narrow = false): string {
+  const d = DateTime.fromMillis(ts);
+  const isCurrentYear = d.year === DateTime.now().year;
 
-function formatAbsoluteRange(from: number, to: number): string {
-  return `${DATE_FMT.format(from)} – ${DATE_FMT.format(to)}`;
+  if (narrow) {
+    return d.toFormat(isCurrentYear ? "MM/dd HH:mm" : "MM/dd/yy HH:mm");
+  }
+
+  return d.toFormat(isCurrentYear ? "MMM dd HH:mm" : "MMM dd, yyyy HH:mm");
+}
+
+function formatAbsoluteRange(from: number, to: number, narrow = false): string {
+  return `${formatDate(from, narrow)} – ${formatDate(to, narrow)}`;
 }
 
 function rangeToShortLabel(range: TimeRange): string {
@@ -78,13 +83,13 @@ function rangeToShortLabel(range: TimeRange): string {
   return "";
 }
 
-function rangeToDisplayString(range: TimeRange): string {
+function rangeToDisplayString(range: TimeRange, narrow = false): string {
   if (range.type === "relative") {
     const now = Date.now();
-    return formatAbsoluteRange(now - range.ms, now);
+    return formatAbsoluteRange(now - range.ms, now, narrow);
   }
 
-  return formatAbsoluteRange(range.from, range.to);
+  return formatAbsoluteRange(range.from, range.to, narrow);
 }
 
 export function TimeRangeSelector({
@@ -94,6 +99,9 @@ export function TimeRangeSelector({
   value: TimeRange;
   onChange: (range: TimeRange) => void;
 }): JSX.Element {
+  const theme = useMantineTheme();
+  const isNarrow = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+
   const [open, setOpen] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [textError, setTextError] = useState(false);
@@ -160,7 +168,7 @@ export function TimeRangeSelector({
   );
 
   const shortLabel = rangeToShortLabel(value);
-  const displayString = rangeToDisplayString(value);
+  const displayString = rangeToDisplayString(value, isNarrow);
 
   // Update fromDate and toDate when value changes.
   useEffect(() => {

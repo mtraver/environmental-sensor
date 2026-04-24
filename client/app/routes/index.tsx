@@ -1,9 +1,17 @@
 import type { JSX } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { gql } from "@apollo/client";
 import type { TypedDocumentNode } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
-import { Card, Group, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Card,
+  Group,
+  Stack,
+  Text,
+  useMantineTheme,
+} from "@mantine/core";
+import { ArrowsClockwise } from "@phosphor-icons/react";
 import type {
   GetMeasurementsQuery,
   LatestQuery,
@@ -43,6 +51,8 @@ const LATEST: TypedDocumentNode<LatestQuery> = gql`
   }
 `;
 
+const LATEST_REFETCH_INTERVAL_MS = 60_000;
+
 const DEFAULT_TIME_RANGE: TimeRange = {
   type: "relative",
   ms: 12 * 60 * 60 * 1000,
@@ -74,8 +84,19 @@ export default function Index(): JSX.Element {
     error: latestError,
     loading: latestLoading,
     data: latestData,
+    refetch: refetchLatest,
   } = useQuery(LATEST);
 
+  // Refetch latest measurement data at intervals as long as the page is visible.
+  useEffect(() => {
+    const tick = () => {
+      if (!document.hidden) refetchLatest();
+    };
+    const id = setInterval(tick, LATEST_REFETCH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const theme = useMantineTheme();
   return (
     <>
       <Card withBorder radius="md" p="md">
@@ -97,9 +118,20 @@ export default function Index(): JSX.Element {
 
       <Card withBorder radius="md" p="md">
         <Stack gap="sm">
-          <Text fw={600} mb="sm">
-            Latest Readings
-          </Text>
+          <Group justify="space-between" align="flex-start" mb="sm">
+            <Text fw={600} mb="sm">
+              Latest Readings
+            </Text>
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              onClick={() => refetchLatest()}
+              loading={latestLoading}
+              aria-label="Refresh"
+            >
+              <ArrowsClockwise size={theme.fontSizes.md} />
+            </ActionIcon>
+          </Group>
 
           {latestError ? (
             <Text c="red">Error: {latestError.message}</Text>

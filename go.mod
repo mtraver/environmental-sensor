@@ -21,7 +21,6 @@ require (
 	github.com/mtraver/awsiotcore v0.0.0-20260421190623-3b8ec2ce6466
 	github.com/mtraver/envtools v0.0.0-20250815190129-f1d680d4b06a
 	github.com/mtraver/gaelog v1.1.6
-	github.com/mtraver/iotcore v0.0.0-20260421192442-a154403040db
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/vektah/gqlparser/v2 v2.5.32
@@ -62,7 +61,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect

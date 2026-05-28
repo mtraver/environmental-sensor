@@ -104,8 +104,6 @@ func (j SenseJob) publish(m *mpb.Measurement) error {
 			// Different connection types require different payload marshalling.
 			var token mqtt.Token
 			switch name {
-			case GCP:
-				token = client.Publish(topic, 1, false, pbBytes)
 			case AWS:
 				// AWS expects Lambda function payloads to be JSON-encoded.
 				jsonB, err := json.Marshal(pbBytes)

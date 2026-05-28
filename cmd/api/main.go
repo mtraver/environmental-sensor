@@ -41,7 +41,6 @@ type Database interface {
 type apiServer struct {
 	mpb.UnimplementedMeasurementServiceServer
 	projectID  string
-	registryID string
 	awsRoleARN string
 	awsRegion  string
 	database   Database
@@ -81,11 +80,7 @@ func init() {
 	flag.IntVar(&port, "p", 9090, "port on which the gRPC server will listen")
 
 	flag.Usage = func() {
-		message := `usage: api registry
-
-Positional Arguments (required):
-  registry
-	the ID of the Google Cloud IoT Core registry to query for device information
+		message := `usage: api
 
 Options:
 `
@@ -97,12 +92,6 @@ Options:
 
 func main() {
 	flag.Parse()
-
-	if len(flag.Args()) != 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
-	registryID := flag.Args()[0]
 
 	onGCE := metadata.OnGCE()
 
@@ -133,7 +122,6 @@ func main() {
 	grpcServer := grpc.NewServer()
 	mpb.RegisterMeasurementServiceServer(grpcServer, &apiServer{
 		projectID:  projectID,
-		registryID: registryID,
 		awsRoleARN: roleARN,
 		awsRegion:  envtools.MustGetenv(awsRegionEnvVar),
 		database:   database,

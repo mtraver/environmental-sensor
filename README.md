@@ -6,7 +6,7 @@
 Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)
 connected to a Raspberry Pi.
 
-Send temperature to [Google Cloud IoT Core](https://cloud.google.com/iot-core/),
+Send temperature to [AWS IoT Core](https://aws.amazon.com/iot-core/) (RIP Google Cloud IoT Core, which I used before it was decommissioned 😭),
 which can then be saved and plotted using the web app in the [web](web) directory.
 Running `make` will build all binaries locally. Running `make web-image` will
 build a Docker image that can be deployed to Cloud Run to serve the web app.
@@ -31,14 +31,13 @@ make
 
 # Example device.json:
 # {
-#   "project_id": "my-gcp-project",
-#   "registry_id": "my-iot-core-registry",
+#   "endpoint": "endpoint-name",
 #   "device_id": "my-device",
-#   "ca_certs_path": "roots.pem",
-#   "priv_key_path": "my-device.pem",
-#   "region": "us-central1"
+#   "ca_certs_path": "amazon_root_cas.pem",
+#   "cert_path": "my-device.x509",
+#   "priv_key_path": "my-device.pem"
 # }
-./out/iotcorelogger -config config.pb.json -gcp-device device.json
+./out/iotcorelogger -config config.pb.json -aws-device device.json
 ```
 
 The config file sets up the sensors and schedules jobs using cron syntax, and
@@ -54,6 +53,8 @@ this can be done with `raspi-config`. You'll find the "I2C" option under
 either "Advanced Options" or "Interfacing Options".
 
 ## Setting up Google Cloud IoT Core logging
+
+TODO(mtraver) Re-write for AWS IoT Core
 
 ### Google Cloud setup
 

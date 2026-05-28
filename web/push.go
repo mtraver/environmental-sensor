@@ -32,7 +32,7 @@ type pushRequest struct {
 	Subscription string
 }
 
-// pushHandler handles Pub/Sub push deliveries originating from Google Cloud IoT Core.
+// pushHandler handles Pub/Sub push deliveries from the AWS Lambda function (originating from AWS IoT Core).
 type pushHandler struct {
 	PubSubToken    string
 	PubSubAudience string

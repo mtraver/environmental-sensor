@@ -1,5 +1,6 @@
-// Program iotcorelogger reads the temperature from an MCP9808 sensor and publishes
-// it to Google Cloud IoT Core over MQTT.
+// Program iotcorelogger reads from sensors and publishes the measurements to AWS IoT Core over MQTT.
+//
+//go:generate stringer -type ConnectionType
 package main
 
 import (
@@ -18,13 +19,11 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	aic "github.com/mtraver/awsiotcore"
 	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/awsiotcore"
-	"github.com/mtraver/environmental-sensor/cmd/iotcorelogger/gcpiotcore"
 	"github.com/mtraver/environmental-sensor/configpb"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/dummy"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
-	"github.com/mtraver/iotcore"
 	cron "github.com/robfig/cron/v3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/conn/v3/i2c/i2creg"
@@ -34,7 +33,6 @@ import (
 // Flags.
 var (
 	configFilePath    string
-	gcpDeviceFilePath string
 	awsDeviceFilePath string
 	port              int
 	dryrun            bool
@@ -49,21 +47,16 @@ var (
 	// the network went down. It's used to configure an mqtt.NewFileStore. This is joined
 	// with the user's home directory in init.
 	mqttStoreDir = path.Join(dotDir, "mqtt_store")
-
-	// This is joined with the user's home directory in init.
-	jwtPath = path.Join(dotDir, "iotcorelogger.jwt")
 )
 
 type ConnectionType int
 
 const (
-	GCP ConnectionType = iota
-	AWS
+	AWS ConnectionType = iota
 )
 
 func init() {
 	flag.StringVar(&configFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
-	flag.StringVar(&gcpDeviceFilePath, "gcp-device", "", "path to a JSON file describing a GCP IoT Core device. See github.com/mtraver/iotcore.")
 	flag.StringVar(&awsDeviceFilePath, "aws-device", "", "path to a device config file describing an AWS IoT Core device")
 	flag.IntVar(&port, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&dryrun, "dryrun", false, "set to true to print rather than publish measurements")
@@ -75,7 +68,6 @@ func init() {
 	}
 	dotDir = path.Join(home, dotDir)
 	mqttStoreDir = path.Join(home, mqttStoreDir)
-	jwtPath = path.Join(home, jwtPath)
 
 	// Make all directories required by the program.
 	dirs := []string{dotDir, mqttStoreDir}
@@ -93,8 +85,8 @@ func parseFlags() error {
 		return fmt.Errorf("config flag must be given")
 	}
 
-	if gcpDeviceFilePath == "" && awsDeviceFilePath == "" {
-		return fmt.Errorf("at least one of gcp-device and aws-device must be given")
+	if awsDeviceFilePath == "" {
+		return fmt.Errorf("aws-device must be given")
 	}
 
 	return nil
@@ -152,41 +144,20 @@ func main() {
 
 	// Parse device files.
 	connections := map[ConnectionType]Connection{}
-	if gcpDeviceFilePath != "" {
-		device, err := gcpiotcore.ParseDeviceFile(gcpDeviceFilePath)
-		if err != nil {
-			log.Fatalf("Failed to parse GCP device file: %v", err)
-		}
-		connections[GCP] = Connection{
-			Device: &device,
-			// Client is initialized to a dummy client that doesn't connect to anything.
-			Client: mqtt.NewClient(mqtt.NewClientOptions()),
-		}
+	device, err := awsiotcore.ParseDeviceFile(awsDeviceFilePath)
+	if err != nil {
+		log.Fatalf("Failed to parse AWS device file: %v", err)
 	}
-	if awsDeviceFilePath != "" {
-		device, err := awsiotcore.ParseDeviceFile(awsDeviceFilePath)
-		if err != nil {
-			log.Fatalf("Failed to parse AWS device file: %v", err)
-		}
-		connections[AWS] = Connection{
-			Device: &device,
-			// Client is initialized to a dummy client that doesn't connect to anything.
-			Client: mqtt.NewClient(mqtt.NewClientOptions()),
-		}
+	connections[AWS] = Connection{
+		Device: &device,
+		// Client is initialized to a dummy client that doesn't connect to anything.
+		Client: mqtt.NewClient(mqtt.NewClientOptions()),
 	}
 
 	// Connect to MQTT brokers.
 	if !dryrun {
 		for name, conn := range connections {
 			switch name {
-			case GCP:
-				log.Printf("[%s] Connecting...", name)
-				client, err := gcpiotcore.MQTTConnect(*conn.Device.(*iotcore.Device), jwtPath, mqttStoreDir+"_gcp")
-				if err != nil {
-					log.Fatalf("[%s] %v", name, err)
-				}
-				conn.Client = client
-				connections[name] = conn
 			case AWS:
 				log.Printf("[%s] Connecting...", name)
 				client, err := awsiotcore.MQTTConnect(*conn.Device.(*aic.Device), mqttStoreDir+"_aws")

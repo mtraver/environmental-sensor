@@ -2,15 +2,14 @@
 
 [iotcorelogger](iotcorelogger) and [readtemp](readtemp) contain code that runs
 on the Raspberry Pi. `iotcorelogger` reads the temperature and logs it via
-[Google Cloud IoT Core](https://cloud.google.com/iot-core/), storing the data
-in Google Cloud Datastore (see the Google App Engine app in the [web](../web)
-directory).
+[AWS IoT Core](https://aws.amazon.com/iot-core/), storing the data in Google
+Cloud Datastore (see the Docker image in the [web](../web) directory).
 
 From the root of this repository,
 
     make
 
-    # Log temp to Google Cloud IoT Core
+    # Log temp to AWS IoT Core
 
     # Example config.pb.json
     # {
@@ -27,14 +26,13 @@ From the root of this repository,
     #
     # Example device.json:
     # {
-    #   "project_id": "my-gcp-project",
-    #   "registry_id": "my-iot-core-registry",
+    #   "endpoint": "endpoint-name",
     #   "device_id": "my-device",
-    #   "ca_certs_path": "roots.pem",
-    #   "priv_key_path": "my-device.pem",
-    #   "region": "us-central1"
+    #   "ca_certs_path": "amazon_root_cas.pem",
+    #   "cert_path": "my-device.x509",
+    #   "priv_key_path": "my-device.pem"
     # }
-    ./out/iotcorelogger -config config.pb.json -gcp-device device.json
+    ./out/iotcorelogger -config config.pb.json -aws-device device.json
 
     # Print temp to stdout
     ./out/readtemp
@@ -53,12 +51,12 @@ on the Raspberry Pi! In fact it is slow and painful to do so.):
   the instructions [here](https://github.com/golang/protobuf), or TL;DR:
   `go get -u github.com/golang/protobuf/protoc-gen-go`
 
-On the Raspberry Pi:
+Finally, you'll need Amazon's root CA certificates. Information on AWS IoT Core's
+usage of the root CA certs and links to download them can be found here:
+https://docs.aws.amazon.com/iot/latest/developerguide/server-authentication.html#server-authentication-certs.
 
-    wget https://pki.google.com/roots.pem
-
-This is a set of trustworthy root certificates. See [here](http://pki.google.com/faq.html)
-for details. The path to this file is the value of `"ca_certs_path"` in the device file.
+Download the relevant CA certs and save them on your Raspberry Pi. Set `"ca_certs_path"`
+in your device file to the path of the file containing the cert(s).
 
 ## Building
 
@@ -73,12 +71,12 @@ Raspberry Pi 3 B<sup>1</sup>).
 ## Full usage
 
     Usage of iotcorelogger:
+      -aws-device string
+          path to a device config file describing an AWS IoT Core device
       -config string
           path to a file containing a JSON-encoded config proto
       -dryrun
           set to true to print rather than publish measurements
-      -gcp-device string
-          path to a JSON file describing a GCP IoT Core device. See github.com/mtraver/iotcore.
       -port int
           port on which the device's web server should listen (default 8080)
 

@@ -110,8 +110,6 @@ github.com/go-viper/mapstructure/v2 v2.5.0 h1:vM5IJoUAy3d7zRSVtIwQgBj7BiWtMPfmPE
 github.com/go-viper/mapstructure/v2 v2.5.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
 github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
-github.com/golang-jwt/jwt/v4 v4.5.2 h1:YtQM7lnr8iZ+j5q71MGKkNw9Mn7AjHM68uc9g5fXeUI=
-github.com/golang-jwt/jwt/v4 v4.5.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 h1:f+oWsMOmNPc8JmEHVZIycC7hBoQxHH9pNKQORJNozsQ=
@@ -176,8 +174,6 @@ github.com/mtraver/envtools v0.0.0-20250815190129-f1d680d4b06a h1:b8AiOo3hcaveVP
 github.com/mtraver/envtools v0.0.0-20250815190129-f1d680d4b06a/go.mod h1:QBCAG912zVI0ZcmW33QZJsaM7b2kaY9xAdTwC62hnrc=
 github.com/mtraver/gaelog v1.1.6 h1:Lqjn6HalyVqqlJARDzO7xz0sRQ1JYO75kU2DBNYx02E=
 github.com/mtraver/gaelog v1.1.6/go.mod h1:dGGGZq7zO33894EY73Tcm4CwgRvC5fc/Nn7sq8R/gEA=
-github.com/mtraver/iotcore v0.0.0-20260421192442-a154403040db h1:DJ/nGUvrj76CAm44LMsd+9axhbpzgvce+yyJdoNJuj0=
-github.com/mtraver/iotcore v0.0.0-20260421192442-a154403040db/go.mod h1:Ljb5jLPt5dBTNJFU3bkTNN4Wht7ngi8iENOgyGS+4w0=
 github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898 h1:m7F2QFaKNeS42mDcrQGsaz3Nym6ezPrK9oTHvlLNw4s=
 github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898/go.mod h1:qhzbgqXYzHRWeKqLHRtDpFlYnJblcukEmSS0POMcOyo=
 github.com/oapi-codegen/runtime v1.4.0 h1:KLOSFOp7UzkbS7Cs1ms6NBEKYr0WmH2wZG0KKbd2er4=

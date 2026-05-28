@@ -8,17 +8,17 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[GCP-0]
-	_ = x[AWS-1]
+	_ = x[AWS-0]
 }
 
-const _ConnectionType_name = "GCPAWS"
+const _ConnectionType_name = "AWS"
 
-var _ConnectionType_index = [...]uint8{0, 3, 6}
+var _ConnectionType_index = [...]uint8{0, 3}
 
 func (i ConnectionType) String() string {
-	if i < 0 || i >= ConnectionType(len(_ConnectionType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_ConnectionType_index)-1 {
 		return "ConnectionType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _ConnectionType_name[_ConnectionType_index[i]:_ConnectionType_index[i+1]]
+	return _ConnectionType_name[_ConnectionType_index[idx]:_ConnectionType_index[idx+1]]
 }

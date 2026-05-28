@@ -61,6 +61,16 @@ func init() {
 	flag.IntVar(&port, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&dryrun, "dryrun", false, "set to true to print rather than publish measurements")
 
+	flag.Usage = func() {
+		message := `usage: iotcorelogger [options]
+
+Options:
+`
+
+		fmt.Fprint(flag.CommandLine.Output(), message)
+		flag.PrintDefaults()
+	}
+
 	// Update directory and file paths by joining them to the user's home directory.
 	home, err := homedir.Dir()
 	if err != nil {
@@ -126,6 +136,7 @@ type Connection struct {
 func main() {
 	if err := parseFlags(); err != nil {
 		fmt.Printf("argument error: %v\n", err)
+		flag.Usage()
 		os.Exit(2)
 	}
 

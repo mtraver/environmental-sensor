@@ -70,7 +70,9 @@ Raspberry Pi 3 B<sup>1</sup>).
 
 ## Full usage
 
-    Usage of iotcorelogger:
+    usage: iotcorelogger [options]
+
+    Options:
       -aws-device string
           path to a device config file describing an AWS IoT Core device
       -config string

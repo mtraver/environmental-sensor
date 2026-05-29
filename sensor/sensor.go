@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	sensorsMu sync.Mutex
-	sensors   map[string]Sensor
+	mu      sync.RWMutex
+	sensors map[string]Sensor
 )
 
 type Sensor interface {
@@ -24,8 +24,8 @@ type Sensor interface {
 
 // Register adds a Sensor to the set of available sensors.
 func Register(name string, s Sensor) {
-	sensorsMu.Lock()
-	defer sensorsMu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 
 	if sensors == nil {
 		sensors = make(map[string]Sensor)
@@ -35,8 +35,8 @@ func Register(name string, s Sensor) {
 
 // Get gets a sensor by name. It returns false if no sensor with the given name is found.
 func Get(name string) (Sensor, bool) {
-	sensorsMu.Lock()
-	defer sensorsMu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 
 	if sensors == nil {
 		sensors = make(map[string]Sensor)

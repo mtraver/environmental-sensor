@@ -2,18 +2,19 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
-	"sync"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	publishWaitDuration = 10 * time.Second
 )
 
 type Device interface {
@@ -40,9 +41,9 @@ func (j SetupJob) Run() {
 }
 
 type SenseJob struct {
-	Sensors     []string
-	Connections map[ConnectionType]Connection
-	Dryrun      bool
+	Sensors []string
+	Conn    Connection
+	Dryrun  bool
 }
 
 func (j SenseJob) Run() {
@@ -83,63 +84,33 @@ func (j SenseJob) Run() {
 }
 
 func (j SenseJob) publish(m *mpb.Measurement) error {
-	var wg sync.WaitGroup
+	// Set the measurement's device ID to the connection's device ID.
+	m.DeviceId = j.Conn.Device.ID()
 
-	errs := make(chan error, len(j.Connections))
-
-	for name, conn := range j.Connections {
-		// Set the measurement's device ID to that of the current connection's device.
-		m.DeviceId = conn.Device.ID()
-
-		// Marshal to bytes for publication.
-		pbBytes, err := proto.Marshal(m)
-		if err != nil {
-			return err
-		}
-
-		wg.Add(1)
-		go func(b []byte, name ConnectionType, client mqtt.Client, topic string) {
-			defer wg.Done()
-
-			// Different connection types require different payload marshalling.
-			var token mqtt.Token
-			switch name {
-			case AWS:
-				// AWS expects Lambda function payloads to be JSON-encoded.
-				jsonB, err := json.Marshal(pbBytes)
-				if err != nil {
-					errs <- err
-					return
-				}
-
-				token = client.Publish(topic, 1, false, jsonB)
-			default:
-				errs <- fmt.Errorf("unknown connection type %q", name)
-				return
-			}
-
-			waitDur := 10 * time.Second
-			if ok := token.WaitTimeout(waitDur); !ok {
-				// Timed out.
-				errs <- fmt.Errorf("[%s] publish timed out after %v", name, waitDur)
-			} else if token.Error() != nil {
-				// Finished before timeout but failed to publish.
-				errs <- fmt.Errorf("[%s] failed to publish: %v", name, token.Error())
-			} else {
-				log.Printf("[%s] successful publish\n", name)
-			}
-		}(pbBytes, name, conn.Client, conn.Device.TelemetryTopic())
+	// Marshal proto to bytes for publication.
+	pbBytes, err := proto.Marshal(m)
+	if err != nil {
+		return err
 	}
 
-	wg.Wait()
-	close(errs)
-
-	errSlice := []error{}
-	for e := range errs {
-		errSlice = append(errSlice, e)
+	// AWS expects Lambda function payloads to be JSON-encoded.
+	jsonB, err := json.Marshal(pbBytes)
+	if err != nil {
+		return err
 	}
 
-	return errors.Join(errSlice...)
+	token := j.Conn.Client.Publish(j.Conn.Device.TelemetryTopic(), 1, false, jsonB)
+	if ok := token.WaitTimeout(publishWaitDuration); !ok {
+		// Timed out.
+		return fmt.Errorf("publish timed out after %v", publishWaitDuration)
+	} else if token.Error() != nil {
+		// Finished before timeout but failed to publish.
+		return fmt.Errorf("failed to publish: %w", token.Error())
+	} else {
+		log.Println("Successful publish")
+	}
+
+	return nil
 }
 
 type ShutdownJob struct {
@@ -153,6 +124,7 @@ func (j ShutdownJob) Run() {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}
+
 		if err := s.Shutdown(); err != nil {
 			log.Printf("Failed to shut down %q: %v", name, err)
 			continue

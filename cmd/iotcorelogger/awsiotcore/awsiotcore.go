@@ -43,12 +43,12 @@ func fileStore(dir string) func(*aic.Device, *mqtt.ClientOptions) error {
 
 func commandHandler(client mqtt.Client, msg mqtt.Message) {
 	msg.Ack()
-	log.Printf("[AWS] Received command message with ID %v", msg.MessageID())
+	log.Printf("Received command message with ID %v", msg.MessageID())
 }
 
 func onConnect(device *aic.Device, opts *mqtt.ClientOptions) error {
 	opts.SetOnConnectHandler(func(client mqtt.Client) {
-		log.Printf("[AWS] Connected to MQTT broker")
+		log.Println("Connected to MQTT broker")
 
 		// TODO subscribe to cloud-to-device topics
 	})
@@ -57,7 +57,7 @@ func onConnect(device *aic.Device, opts *mqtt.ClientOptions) error {
 
 func onConnectionLost(device *aic.Device, opts *mqtt.ClientOptions) error {
 	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		log.Printf("[AWS] Connection to MQTT broker lost: %v", err)
+		log.Printf("Connection to MQTT broker lost: %v", err)
 	})
 	return nil
 }

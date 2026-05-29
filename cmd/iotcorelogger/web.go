@@ -6,11 +6,9 @@ import (
 )
 
 type indexHandler struct {
-	connections map[ConnectionType]Connection
+	conn Connection
 }
 
 func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for name, conn := range h.connections {
-		fmt.Fprintf(w, "%s: %s\n", name, conn.Device.ID())
-	}
+	fmt.Fprintf(w, "%s\n", h.conn.Device.ID())
 }

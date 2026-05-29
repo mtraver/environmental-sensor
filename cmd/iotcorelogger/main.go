@@ -1,6 +1,4 @@
 // Program iotcorelogger reads from sensors and publishes the measurements to AWS IoT Core over MQTT.
-//
-//go:generate stringer -type ConnectionType
 package main
 
 import (
@@ -47,12 +45,6 @@ var (
 	// the network went down. It's used to configure an mqtt.NewFileStore. This is joined
 	// with the user's home directory in init.
 	mqttStoreDir = path.Join(dotDir, "mqtt_store")
-)
-
-type ConnectionType int
-
-const (
-	AWS ConnectionType = iota
 )
 
 func init() {
@@ -153,46 +145,36 @@ func main() {
 		log.Fatalf("Invalid config: %v", err)
 	}
 
-	// Parse device files.
-	connections := map[ConnectionType]Connection{}
+	// Parse device file.
 	device, err := awsiotcore.ParseDeviceFile(awsDeviceFilePath)
 	if err != nil {
 		log.Fatalf("Failed to parse AWS device file: %v", err)
 	}
-	connections[AWS] = Connection{
+
+	conn := Connection{
 		Device: &device,
 		// Client is initialized to a dummy client that doesn't connect to anything.
 		Client: mqtt.NewClient(mqtt.NewClientOptions()),
 	}
 
-	// Connect to MQTT brokers.
+	// Connect to MQTT broker.
 	if !dryrun {
-		for name, conn := range connections {
-			switch name {
-			case AWS:
-				log.Printf("[%s] Connecting...", name)
-				client, err := awsiotcore.MQTTConnect(*conn.Device.(*aic.Device), mqttStoreDir+"_aws")
-				if err != nil {
-					log.Fatalf("[%s] %v", name, err)
-				}
-				conn.Client = client
-				connections[name] = conn
-			default:
-				log.Fatalf("unknown connection type %q", name)
-			}
+		log.Println("Connecting to MQTT broker...")
+		client, err := awsiotcore.MQTTConnect(*conn.Device.(*aic.Device), mqttStoreDir+"_aws")
+		if err != nil {
+			log.Fatalf("%v", err)
 		}
+		conn.Client = client
 
 		// If the program is killed, disconnect from the MQTT server.
 		c := make(chan os.Signal, 2)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-c
-			log.Println("Cleaning up...")
-			for _, conn := range connections {
-				conn.Client.Disconnect(250)
-			}
+			log.Println("Disconnecting from MQTT broker...")
+			conn.Client.Disconnect(500)
 			time.Sleep(500 * time.Millisecond)
-			os.Exit(1)
+			os.Exit(0)
 		}()
 	}
 
@@ -244,9 +226,9 @@ func main() {
 		case configpb.Job_SENSE:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
 			cr.AddJob(jpb.Cronspec, SenseJob{
-				Sensors:     jpb.Sensors,
-				Connections: connections,
-				Dryrun:      dryrun,
+				Sensors: jpb.Sensors,
+				Conn:    conn,
+				Dryrun:  dryrun,
 			})
 		case configpb.Job_SHUTDOWN:
 			log.Printf("Adding %s job with cronspec %q", configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Cronspec)
@@ -261,7 +243,7 @@ func main() {
 
 	// Start up a web server that provides basic info about the device.
 	http.Handle("/", indexHandler{
-		connections: connections,
+		conn: conn,
 	})
 	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil); err != nil {
 		log.Fatal(err)

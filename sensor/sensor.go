@@ -1,7 +1,6 @@
 package sensor
 
 import (
-	"fmt"
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -34,9 +33,8 @@ func Register(name string, s Sensor) {
 	sensors[name] = s
 }
 
-// Get looks up a sensor by name. It returns an error if no sensor with
-// the given name is found.
-func Get(name string) (Sensor, error) {
+// Get gets a sensor by name. It returns false if no sensor with the given name is found.
+func Get(name string) (Sensor, bool) {
 	sensorsMu.Lock()
 	defer sensorsMu.Unlock()
 
@@ -44,8 +42,6 @@ func Get(name string) (Sensor, error) {
 		sensors = make(map[string]Sensor)
 	}
 
-	if _, ok := sensors[name]; !ok {
-		return nil, fmt.Errorf("unknown sensor %q", name)
-	}
-	return sensors[name], nil
+	s, ok := sensors[name]
+	return s, ok
 }

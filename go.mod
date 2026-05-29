@@ -22,7 +22,7 @@ require (
 	github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787
 	github.com/mtraver/gaelog v1.1.6
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
-	github.com/robfig/cron/v3 v3.0.1
+	github.com/netresearch/go-cron v0.14.0
 	github.com/vektah/gqlparser/v2 v2.5.33
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.282.0

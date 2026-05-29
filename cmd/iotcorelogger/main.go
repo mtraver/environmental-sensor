@@ -24,7 +24,7 @@ import (
 	"github.com/mtraver/environmental-sensor/sensor/dummy"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
-	cron "github.com/robfig/cron/v3"
+	cron "github.com/netresearch/go-cron"
 	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/conn/v3/i2c/i2creg"
 	"periph.io/x/host/v3"

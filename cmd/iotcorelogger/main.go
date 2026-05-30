@@ -121,7 +121,7 @@ func validateConfig(c *configpb.Config) error {
 }
 
 type Connection struct {
-	Device Device
+	Device *aic.Device
 	Client mqtt.Client
 }
 
@@ -160,7 +160,7 @@ func main() {
 	// Connect to MQTT broker.
 	if !dryrun {
 		log.Println("Connecting to MQTT broker...")
-		client, err := awsiotcore.MQTTConnect(*conn.Device.(*aic.Device), mqttStoreDir+"_aws")
+		client, err := awsiotcore.MQTTConnect(conn.Device, mqttStoreDir+"_aws")
 		if err != nil {
 			log.Fatalf("%v", err)
 		}

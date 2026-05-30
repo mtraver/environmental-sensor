@@ -62,7 +62,7 @@ func onConnectionLost(device *aic.Device, opts *mqtt.ClientOptions) error {
 	return nil
 }
 
-func MQTTConnect(device aic.Device, mqttStoreDir string) (mqtt.Client, error) {
+func MQTTConnect(device *aic.Device, mqttStoreDir string) (mqtt.Client, error) {
 	// Make sure the MQTT store dir exists.
 	if err := os.MkdirAll(mqttStoreDir, 0700); err != nil {
 		return nil, err

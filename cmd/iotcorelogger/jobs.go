@@ -17,11 +17,6 @@ const (
 	publishWaitDuration = 10 * time.Second
 )
 
-type Device interface {
-	ID() string
-	TelemetryTopic() string
-}
-
 type SetupJob struct {
 	Sensors []string
 }

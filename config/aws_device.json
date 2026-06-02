@@ -1,0 +1,6 @@
+{
+  "endpoint": "endpoint-name",
+  "device_id": "my-device",
+  "cert_path": "/home/pi/iotcore_credentials/my-device.x509",
+  "priv_key_path": "/home/pi/iotcore_credentials/my-device.pem"
+}

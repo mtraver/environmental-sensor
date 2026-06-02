@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.9
 	github.com/aws/aws-sdk-go-v2/config v1.32.20
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.19
-	github.com/aws/aws-sdk-go-v2/service/iot v1.74.1
+	github.com/aws/aws-sdk-go-v2/service/iot v1.75.0
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.41.9
 	github.com/aws/aws-sdk-go-v2/service/sts v1.42.3
 	github.com/eclipse/paho.mqtt.golang v1.5.1
@@ -22,10 +22,10 @@ require (
 	github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787
 	github.com/mtraver/gaelog v1.1.6
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
-	github.com/netresearch/go-cron v0.14.0
+	github.com/netresearch/go-cron v0.15.0
 	github.com/vektah/gqlparser/v2 v2.5.33
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/api v0.282.0
+	google.golang.org/api v0.283.0
 	google.golang.org/appengine v1.6.8
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
@@ -53,7 +53,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/signin v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.30.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.36.2 // indirect
-	github.com/aws/smithy-go v1.26.0 // indirect
+	github.com/aws/smithy-go v1.27.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/creack/goselect v0.1.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

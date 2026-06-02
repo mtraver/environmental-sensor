@@ -33,7 +33,6 @@ make
 # {
 #   "endpoint": "endpoint-name",
 #   "device_id": "my-device",
-#   "ca_certs_path": "amazon_root_cas.pem",
 #   "cert_path": "my-device.x509",
 #   "priv_key_path": "my-device.pem"
 # }

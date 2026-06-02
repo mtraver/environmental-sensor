@@ -80,6 +80,17 @@ gqlgen:
 	go run github.com/99designs/gqlgen generate --verbose
 	cd client && npm run codegen
 
+.PHONY: awscerts
+awscerts:
+	> awscerts/amazon_root_certs.pem; \
+	for url in \
+		"https://www.amazontrust.com/repository/AmazonRootCA1.pem" \
+		"https://www.amazontrust.com/repository/AmazonRootCA3.pem" \
+	; do \
+		echo "# $$url" >> awscerts/amazon_root_certs.pem; \
+		wget -O - "$$url" >> awscerts/amazon_root_certs.pem; \
+	done
+
 check-env:
 ifndef PROJECT
 	$(error PROJECT is undefined)

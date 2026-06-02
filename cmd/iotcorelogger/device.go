@@ -2,23 +2,21 @@ package main
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 
 	aic "github.com/mtraver/awsiotcore"
+	"github.com/mtraver/environmental-sensor/awscerts"
 )
 
 type DeviceConfig struct {
 	Endpoint               string `json:"endpoint"`
 	DeviceID               string `json:"device_id"`
 	TelemetryTopicOverride string `json:"telemetry_topic"`
-	// CACerts must contain the path to a .pem file containing Amazon's trusted root certs. See the README for more info.
-	CACerts     string `json:"ca_certs_path"`
-	CertPath    string `json:"cert_path"`
-	PrivKeyPath string `json:"priv_key_path"`
+	CertPath               string `json:"cert_path"`
+	PrivKeyPath            string `json:"priv_key_path"`
 }
 
 func parseDeviceFile(path string) (*aic.Device, error) {
@@ -30,16 +28,6 @@ func parseDeviceFile(path string) (*aic.Device, error) {
 	var config DeviceConfig
 	if err := json.Unmarshal(b, &config); err != nil {
 		return nil, err
-	}
-
-	// Load CA certs.
-	pemCerts, err := os.ReadFile(config.CACerts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read CA certs: %w", err)
-	}
-	certpool := x509.NewCertPool()
-	if !certpool.AppendCertsFromPEM(pemCerts) {
-		return nil, errors.New("no certs were parsed")
 	}
 
 	// Load device certificate/private key pair.
@@ -62,7 +50,7 @@ func parseDeviceFile(path string) (*aic.Device, error) {
 		Endpoint:               config.Endpoint,
 		DeviceID:               config.DeviceID,
 		TelemetryTopicOverride: config.TelemetryTopicOverride,
-		CACerts:                certpool,
+		CACerts:                awscerts.CertPool,
 		Cert:                   cert,
 	}
 

@@ -28,7 +28,6 @@ From the root of this repository,
     # {
     #   "endpoint": "endpoint-name",
     #   "device_id": "my-device",
-    #   "ca_certs_path": "amazon_root_cas.pem",
     #   "cert_path": "my-device.x509",
     #   "priv_key_path": "my-device.pem"
     # }
@@ -50,13 +49,6 @@ on the Raspberry Pi! In fact it is slow and painful to do so.):
   3. You'll also need the protobuf compiler plugin that generates Go code. Follow
   the instructions [here](https://github.com/golang/protobuf), or TL;DR:
   `go get -u github.com/golang/protobuf/protoc-gen-go`
-
-Finally, you'll need Amazon's root CA certificates. Information on AWS IoT Core's
-usage of the root CA certs and links to download them can be found here:
-https://docs.aws.amazon.com/iot/latest/developerguide/server-authentication.html#server-authentication-certs.
-
-Download the relevant CA certs and save them on your Raspberry Pi. Set `"ca_certs_path"`
-in your device file to the path of the file containing the cert(s).
 
 ## Building
 

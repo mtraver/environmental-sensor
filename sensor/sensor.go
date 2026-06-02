@@ -38,3 +38,12 @@ func Get(name string) (Sensor, bool) {
 	s, ok := sensors[name]
 	return s, ok
 }
+
+func UsesI2C(name string) bool {
+	switch name {
+	case "mcp9808":
+		return true
+	default:
+		return false
+	}
+}

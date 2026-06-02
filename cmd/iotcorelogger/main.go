@@ -9,7 +9,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 
 	homedir "github.com/mitchellh/go-homedir"
 	aic "github.com/mtraver/awsiotcore"
@@ -166,6 +168,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer monitor.Close()
+
+	// If the program is killed, clean up.
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		log.Println("Cleaning up...")
+		monitor.Close()
+		os.Exit(0)
+	}()
 
 	// Start up a web server that provides basic info about the device.
 	http.Handle("/{$}", monitor)

@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -19,6 +16,7 @@ import (
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
 	cron "github.com/netresearch/go-cron"
 	"google.golang.org/protobuf/proto"
+	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/conn/v3/i2c/i2creg"
 )
 
@@ -32,6 +30,7 @@ const (
 type Monitor struct {
 	device *aic.Device
 	client mqtt.Client
+	i2cBus i2c.BusCloser
 	cron   *cron.Cron
 }
 
@@ -76,33 +75,44 @@ func NewMonitor(device *aic.Device, config *configpb.Config) (*Monitor, error) {
 	}
 	monitor.client = client
 
-	// If the program is killed, disconnect from the MQTT broker.
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Println("Disconnecting from MQTT broker...")
-		monitor.client.Disconnect(500)
-		time.Sleep(500 * time.Millisecond)
-		os.Exit(0)
-	}()
-
 	return monitor, nil
 }
 
+func (mon *Monitor) reconcileI2CBus(config *configpb.Config) error {
+	var needI2C bool
+	for _, name := range config.SupportedSensors {
+		if sensor.UsesI2C(name) {
+			needI2C = true
+			break
+		}
+	}
+
+	if needI2C && mon.i2cBus == nil {
+		// Open default I²C bus.
+		bus, err := i2creg.Open("")
+		if err != nil {
+			return fmt.Errorf("failed to open I²C bus: %w", err)
+		}
+
+		mon.i2cBus = bus
+	} else if !needI2C && mon.i2cBus != nil {
+		mon.i2cBus.Close()
+		mon.i2cBus = nil
+	}
+
+	return nil
+}
+
 func (mon *Monitor) applyConfig(config *configpb.Config) error {
+	if err := mon.reconcileI2CBus(config); err != nil {
+		return err
+	}
+
 	// Register sensors.
 	for _, name := range config.SupportedSensors {
 		switch name {
 		case "mcp9808":
-			// Open default I²C bus.
-			bus, err := i2creg.Open("")
-			if err != nil {
-				return fmt.Errorf("failed to open I²C bus: %w", err)
-			}
-			defer bus.Close()
-
-			s, err := mcp9808.New(bus)
+			s, err := mcp9808.New(mon.i2cBus)
 			if err != nil {
 				return fmt.Errorf("failed to initialize MCP9808: %w", err)
 			}
@@ -171,6 +181,20 @@ func (mon *Monitor) OnConnect(client mqtt.Client) {
 
 func (mon *Monitor) OnConnectionLost(client mqtt.Client, err error) {
 	log.Printf("Connection to MQTT broker lost: %v", err)
+}
+
+func (mon *Monitor) Close() error {
+	mon.cron.StopAndWait()
+
+	mon.client.Disconnect(1000)
+
+	if mon.i2cBus != nil {
+		err := mon.i2cBus.Close()
+		mon.i2cBus = nil
+		return err
+	}
+
+	return nil
 }
 
 func (mon *Monitor) jobFromConfig(jpb *configpb.Job) (cron.Job, error) {

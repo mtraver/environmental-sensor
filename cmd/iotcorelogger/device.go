@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -38,7 +39,7 @@ func parseDeviceFile(path string) (*aic.Device, error) {
 	}
 	certpool := x509.NewCertPool()
 	if !certpool.AppendCertsFromPEM(pemCerts) {
-		return nil, fmt.Errorf("no certs were parsed")
+		return nil, errors.New("no certs were parsed")
 	}
 
 	// Load device certificate/private key pair.
@@ -47,12 +48,14 @@ func parseDeviceFile(path string) (*aic.Device, error) {
 		return nil, fmt.Errorf("failed to load device cert/key pair: %w", err)
 	}
 
+	// If the config doesn't have a device ID set then use the cert's Common Name (CN).
 	if config.DeviceID == "" {
-		deviceID, err := aic.DeviceIDFromCert(config.CertPath)
-		if err != nil {
-			return nil, err
+		commonName := cert.Leaf.Subject.CommonName
+		if commonName == "" {
+			return nil, errors.New("config has no device ID set and cert Common Name (CN) is empty")
 		}
-		config.DeviceID = deviceID
+
+		config.DeviceID = commonName
 	}
 
 	device := &aic.Device{

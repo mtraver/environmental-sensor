@@ -5,10 +5,7 @@ import (
 	"net/http"
 )
 
-type indexHandler struct {
-	conn Connection
-}
-
-func (h indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s\n", h.conn.Device.ID())
+func (mon *Monitor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	fmt.Fprintf(w, "%s\n", mon.device.ID())
 }

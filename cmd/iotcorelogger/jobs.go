@@ -1,20 +1,13 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	mpbutil "github.com/mtraver/environmental-sensor/measurementpbutil"
 	"github.com/mtraver/environmental-sensor/sensor"
-	"google.golang.org/protobuf/proto"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
-)
-
-const (
-	publishWaitDuration = 10 * time.Second
 )
 
 type SetupJob struct {
@@ -37,7 +30,7 @@ func (j SetupJob) Run() {
 
 type SenseJob struct {
 	Sensors []string
-	Conn    Connection
+	Publish func(*mpb.Measurement) error
 	Dryrun  bool
 }
 
@@ -73,39 +66,11 @@ func (j SenseJob) Run() {
 
 	if j.Dryrun {
 		log.Print(mpbutil.String(m))
-	} else if err := j.publish(&m); err != nil {
+	} else if err := j.Publish(&m); err != nil {
 		log.Printf("Failed to publish measurement: %v", err)
-	}
-}
-
-func (j SenseJob) publish(m *mpb.Measurement) error {
-	// Set the measurement's device ID to the connection's device ID.
-	m.DeviceId = j.Conn.Device.ID()
-
-	// Marshal proto to bytes for publication.
-	pbBytes, err := proto.Marshal(m)
-	if err != nil {
-		return err
-	}
-
-	// AWS expects Lambda function payloads to be JSON-encoded.
-	jsonB, err := json.Marshal(pbBytes)
-	if err != nil {
-		return err
-	}
-
-	token := j.Conn.Client.Publish(j.Conn.Device.TelemetryTopic(), 1, false, jsonB)
-	if ok := token.WaitTimeout(publishWaitDuration); !ok {
-		// Timed out.
-		return fmt.Errorf("publish timed out after %v", publishWaitDuration)
-	} else if token.Error() != nil {
-		// Finished before timeout but failed to publish.
-		return fmt.Errorf("failed to publish: %w", token.Error())
 	} else {
 		log.Println("Successful publish")
 	}
-
-	return nil
 }
 
 type ShutdownJob struct {

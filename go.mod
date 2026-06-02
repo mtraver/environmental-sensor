@@ -18,7 +18,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mtraver/awsiotcore v0.0.0-20260602180629-e1040563672a
+	github.com/mtraver/awsiotcore v0.0.0-20260602183511-ebc21e8fa379
 	github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787
 	github.com/mtraver/gaelog v1.1.6
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898

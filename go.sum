@@ -168,8 +168,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
-github.com/mtraver/awsiotcore v0.0.0-20260602180629-e1040563672a h1:ZwvXbv/BuR1bWYv4w2mNUE/FU/l5s4RPa/wpj5NP57o=
-github.com/mtraver/awsiotcore v0.0.0-20260602180629-e1040563672a/go.mod h1:qCRUiFWF/iihzWpDsGcwpK/QJ2+FqKNGw6V/yAPBQmM=
+github.com/mtraver/awsiotcore v0.0.0-20260602183511-ebc21e8fa379 h1:r7zTkkjSS39R+6o1f9oN9MRE/saNj3vaFmSJ5vAPfTc=
+github.com/mtraver/awsiotcore v0.0.0-20260602183511-ebc21e8fa379/go.mod h1:qCRUiFWF/iihzWpDsGcwpK/QJ2+FqKNGw6V/yAPBQmM=
 github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787 h1:09C3Q0Knc8TtoiZsdxzHb1z5ioPMKkE4eTzpitddVjM=
 github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787/go.mod h1:QBCAG912zVI0ZcmW33QZJsaM7b2kaY9xAdTwC62hnrc=
 github.com/mtraver/gaelog v1.1.6 h1:Lqjn6HalyVqqlJARDzO7xz0sRQ1JYO75kU2DBNYx02E=

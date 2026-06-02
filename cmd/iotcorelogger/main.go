@@ -2,7 +2,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"syscall"
 
 	homedir "github.com/mitchellh/go-homedir"
-	aic "github.com/mtraver/awsiotcore"
 	"github.com/mtraver/environmental-sensor/configpb"
 	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/host/v3"
@@ -85,28 +83,6 @@ func parseFlags() error {
 	return nil
 }
 
-func parseDeviceFile(filepath string) (aic.Device, error) {
-	b, err := os.ReadFile(filepath)
-	if err != nil {
-		return aic.Device{}, err
-	}
-
-	var device aic.Device
-	if err := json.Unmarshal(b, &device); err != nil {
-		return aic.Device{}, err
-	}
-
-	if device.DeviceID == "" {
-		deviceID, err := aic.DeviceIDFromCert(device.CertPath)
-		if err != nil {
-			return aic.Device{}, err
-		}
-		device.DeviceID = deviceID
-	}
-
-	return device, nil
-}
-
 func validateConfig(c *configpb.Config) error {
 	if len(c.SupportedSensors) == 0 {
 		return fmt.Errorf("supported_sensors must contain at least one sensor")
@@ -164,7 +140,7 @@ func main() {
 		log.Fatalf("Failed to initialize periph: %v", err)
 	}
 
-	monitor, err := NewMonitor(&device, &config)
+	monitor, err := NewMonitor(device, &config)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,6 +1,6 @@
 module github.com/mtraver/environmental-sensor
 
-go 1.25.8
+go 1.26.2
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
@@ -8,17 +8,17 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.6.0
 	github.com/99designs/gqlgen v0.17.90
 	github.com/aws/aws-lambda-go v1.54.0
-	github.com/aws/aws-sdk-go-v2 v1.41.10
-	github.com/aws/aws-sdk-go-v2/config v1.32.21
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.20
-	github.com/aws/aws-sdk-go-v2/service/iot v1.75.1
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.42.0
-	github.com/aws/aws-sdk-go-v2/service/sts v1.43.0
+	github.com/aws/aws-sdk-go-v2 v1.41.11
+	github.com/aws/aws-sdk-go-v2/config v1.32.22
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.21
+	github.com/aws/aws-sdk-go-v2/service/iot v1.75.2
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.42.1
+	github.com/aws/aws-sdk-go-v2/service/sts v1.43.1
 	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/google/go-cmp v0.7.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mtraver/awsiotcore v0.0.0-20260602185857-f3512f067c4a
+	github.com/mtraver/awsiotcore v0.0.0-20260603194727-5012b999faaf
 	github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787
 	github.com/mtraver/gaelog v1.1.6
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898
@@ -44,15 +44,15 @@ require (
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/albenik/go-serial/v2 v2.6.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.26 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.26 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.26 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.27 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.26 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.1.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.31.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.36.3 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.27 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.28 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.27 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.1.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.31.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.36.4 // indirect
 	github.com/aws/smithy-go v1.27.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/creack/goselect v0.1.3 // indirect

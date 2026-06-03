@@ -10,6 +10,28 @@ import (
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type JobType string
+
+const (
+	JobTypeSetup    JobType = "SETUP"
+	JobTypeSense            = "SENSE"
+	JobTypeShutdown         = "SHUTDOWN"
+)
+
+var (
+	allJobTypes = map[JobType]struct{}{
+		JobTypeSetup:    struct{}{},
+		JobTypeSense:    struct{}{},
+		JobTypeShutdown: struct{}{},
+	}
+)
+
+type JobSpec struct {
+	Cronspec  string   `json:"cronspec"`
+	Operation JobType  `json:"operation"`
+	Sensors   []string `json:"sensors"`
+}
+
 type SetupJob struct {
 	Sensors []string
 }

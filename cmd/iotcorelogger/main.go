@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,8 +14,6 @@ import (
 	"syscall"
 
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/mtraver/environmental-sensor/configpb"
-	"google.golang.org/protobuf/encoding/protojson"
 	"periph.io/x/host/v3"
 )
 
@@ -35,6 +34,11 @@ var (
 	// with the user's home directory in init.
 	mqttStoreDir = path.Join(dotDir, "mqtt_store")
 )
+
+type Config struct {
+	SupportedSensors []string  `json:"supported_sensors"`
+	Jobs             []JobSpec `json:"jobs"`
+}
 
 func init() {
 	flag.StringVar(&flagConfigFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
@@ -83,7 +87,7 @@ func parseFlags() error {
 	return nil
 }
 
-func validateConfig(c *configpb.Config) error {
+func validateConfig(c *Config) error {
 	if len(c.SupportedSensors) == 0 {
 		return fmt.Errorf("supported_sensors must contain at least one sensor")
 	}
@@ -92,16 +96,16 @@ func validateConfig(c *configpb.Config) error {
 		return fmt.Errorf("at least one job must be given")
 	}
 
-	for _, jpb := range c.Jobs {
-		if jpb.Cronspec == "" {
+	for _, jobSpec := range c.Jobs {
+		if jobSpec.Cronspec == "" {
 			return fmt.Errorf("all jobs must set cronspec")
 		}
 
-		if jpb.Operation == configpb.Job_INVALID {
-			return fmt.Errorf("all jobs must set operation")
+		if _, ok := allJobTypes[jobSpec.Operation]; !ok {
+			return fmt.Errorf("invalid operation: %q", jobSpec.Operation)
 		}
 
-		if len(jpb.Sensors) == 0 {
+		if len(jobSpec.Sensors) == 0 {
 			return fmt.Errorf("all jobs must have at least one sensor")
 		}
 	}
@@ -121,8 +125,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var config configpb.Config
-	if err := protojson.Unmarshal(b, &config); err != nil {
+	var config Config
+	if err := json.Unmarshal(b, &config); err != nil {
 		log.Fatal(err)
 	}
 	if err := validateConfig(&config); err != nil {

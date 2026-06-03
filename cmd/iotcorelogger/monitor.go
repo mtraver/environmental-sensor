@@ -8,7 +8,6 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	aic "github.com/mtraver/awsiotcore"
-	"github.com/mtraver/environmental-sensor/configpb"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/sensor"
 	"github.com/mtraver/environmental-sensor/sensor/dummy"
@@ -35,7 +34,7 @@ type Monitor struct {
 }
 
 // NewMonitor creates a new Monitor, connecting to the MQTT broker and starting the cron job runner.
-func NewMonitor(device *aic.Device, config *configpb.Config) (*Monitor, error) {
+func NewMonitor(device *aic.Device, config *Config) (*Monitor, error) {
 	cr := cron.New(cron.WithSeconds())
 	cr.Start()
 
@@ -78,7 +77,7 @@ func NewMonitor(device *aic.Device, config *configpb.Config) (*Monitor, error) {
 	return monitor, nil
 }
 
-func (mon *Monitor) reconcileI2CBus(config *configpb.Config) error {
+func (mon *Monitor) reconcileI2CBus(config *Config) error {
 	var needI2C bool
 	for _, name := range config.SupportedSensors {
 		if sensor.UsesI2C(name) {
@@ -103,7 +102,7 @@ func (mon *Monitor) reconcileI2CBus(config *configpb.Config) error {
 	return nil
 }
 
-func (mon *Monitor) applyConfig(config *configpb.Config) error {
+func (mon *Monitor) applyConfig(config *Config) error {
 	if err := mon.reconcileI2CBus(config); err != nil {
 		return err
 	}
@@ -134,15 +133,15 @@ func (mon *Monitor) applyConfig(config *configpb.Config) error {
 	}
 
 	// Schedule jobs defined in the config.
-	for _, jpb := range config.Jobs {
-		job, err := mon.jobFromConfig(jpb)
+	for _, jobSpec := range config.Jobs {
+		job, err := mon.jobFromSpec(&jobSpec)
 		if err != nil {
 			return fmt.Errorf("failed to make job: %w", err)
 		}
 
 		log.Printf("Adding %s job for sensors %v with cronspec %q",
-			configpb.Job_Operation_name[int32(jpb.Operation)], jpb.Sensors, jpb.Cronspec)
-		mon.cron.AddJob(jpb.Cronspec, job)
+			jobSpec.Operation, jobSpec.Sensors, jobSpec.Cronspec)
+		mon.cron.AddJob(jobSpec.Cronspec, job)
 	}
 
 	return nil
@@ -197,26 +196,26 @@ func (mon *Monitor) Close() error {
 	return nil
 }
 
-func (mon *Monitor) jobFromConfig(jpb *configpb.Job) (cron.Job, error) {
-	switch jpb.Operation {
-	case configpb.Job_SETUP:
+func (mon *Monitor) jobFromSpec(jobSpec *JobSpec) (cron.Job, error) {
+	switch jobSpec.Operation {
+	case JobTypeSetup:
 		return SetupJob{
-			Sensors: jpb.Sensors,
+			Sensors: jobSpec.Sensors,
 		}, nil
 
-	case configpb.Job_SENSE:
+	case JobTypeSense:
 		return SenseJob{
-			Sensors: jpb.Sensors,
+			Sensors: jobSpec.Sensors,
 			Publish: mon.Publish,
 			Dryrun:  flagDryrun,
 		}, nil
 
-	case configpb.Job_SHUTDOWN:
+	case JobTypeShutdown:
 		return ShutdownJob{
-			Sensors: jpb.Sensors,
+			Sensors: jobSpec.Sensors,
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported operation: %v", jpb.Operation)
+		return nil, fmt.Errorf("unsupported operation: %v", jobSpec.Operation)
 	}
 }

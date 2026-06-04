@@ -54,6 +54,32 @@ func (c *Config) sensors() []string {
 	return sensors
 }
 
+func (c *Config) validate() error {
+	if c == nil {
+		return nil
+	}
+
+	for i, jobSpec := range c.Jobs {
+		if jobSpec.Cronspec == "" {
+			return fmt.Errorf("job %d has no cronspec", i)
+		}
+
+		if _, ok := allJobTypes[jobSpec.Operation]; !ok {
+			return fmt.Errorf("job %d has invalid operation: %q", i, jobSpec.Operation)
+		}
+
+		if len(jobSpec.Sensors) == 0 {
+			return fmt.Errorf("job %d has no sensors", i)
+		}
+
+		if hasDuplicates(jobSpec.Sensors) {
+			return fmt.Errorf("job %d has duplicate sensors: %v", i, jobSpec.Sensors)
+		}
+	}
+
+	return nil
+}
+
 func init() {
 	flag.StringVar(&flagConfigFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
 	flag.StringVar(&flagAWSDeviceFilePath, "aws-device", "", "path to a device config file describing an AWS IoT Core device")
@@ -101,28 +127,6 @@ func parseFlags() error {
 	return nil
 }
 
-func validateConfig(c *Config) error {
-	if len(c.Jobs) == 0 {
-		return fmt.Errorf("at least one job must be given")
-	}
-
-	for _, jobSpec := range c.Jobs {
-		if jobSpec.Cronspec == "" {
-			return fmt.Errorf("all jobs must set cronspec")
-		}
-
-		if _, ok := allJobTypes[jobSpec.Operation]; !ok {
-			return fmt.Errorf("invalid operation: %q", jobSpec.Operation)
-		}
-
-		if len(jobSpec.Sensors) == 0 {
-			return fmt.Errorf("all jobs must have at least one sensor")
-		}
-	}
-
-	return nil
-}
-
 func main() {
 	if err := parseFlags(); err != nil {
 		fmt.Printf("argument error: %v\n", err)
@@ -139,7 +143,7 @@ func main() {
 	if err := json.Unmarshal(b, &config); err != nil {
 		log.Fatal(err)
 	}
-	if err := validateConfig(&config); err != nil {
+	if err := config.validate(); err != nil {
 		log.Fatalf("Invalid config: %v", err)
 	}
 

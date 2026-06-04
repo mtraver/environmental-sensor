@@ -79,7 +79,7 @@ func NewMonitor(device *aic.Device, config *Config) (*Monitor, error) {
 
 func (mon *Monitor) reconcileI2CBus(config *Config) error {
 	var needI2C bool
-	for _, name := range config.SupportedSensors {
+	for _, name := range config.sensors() {
 		if sensor.UsesI2C(name) {
 			needI2C = true
 			break
@@ -108,7 +108,7 @@ func (mon *Monitor) applyConfig(config *Config) error {
 	}
 
 	// Register sensors.
-	for _, name := range config.SupportedSensors {
+	for _, name := range config.sensors() {
 		switch name {
 		case "mcp9808":
 			s, err := mcp9808.New(mon.i2cBus)

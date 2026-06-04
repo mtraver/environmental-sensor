@@ -36,8 +36,22 @@ var (
 )
 
 type Config struct {
-	SupportedSensors []string  `json:"supported_sensors"`
-	Jobs             []JobSpec `json:"jobs"`
+	Jobs []JobSpec `json:"jobs"`
+}
+
+func (c *Config) sensors() []string {
+	seen := make(map[string]struct{})
+	for _, job := range c.Jobs {
+		for _, sensor := range job.Sensors {
+			seen[sensor] = struct{}{}
+		}
+	}
+
+	sensors := make([]string, 0, len(seen))
+	for sensor := range seen {
+		sensors = append(sensors, sensor)
+	}
+	return sensors
 }
 
 func init() {
@@ -88,10 +102,6 @@ func parseFlags() error {
 }
 
 func validateConfig(c *Config) error {
-	if len(c.SupportedSensors) == 0 {
-		return fmt.Errorf("supported_sensors must contain at least one sensor")
-	}
-
 	if len(c.Jobs) == 0 {
 		return fmt.Errorf("at least one job must be given")
 	}

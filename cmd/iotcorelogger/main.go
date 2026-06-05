@@ -2,7 +2,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,7 +17,9 @@ import (
 )
 
 var (
-	flagConfigFilePath    string
+	// TODO(mtraver) Remove flagConfigFilePath when clients no longer specify it.
+	flagConfigFilePath string
+
 	flagAWSDeviceFilePath string
 	flagPort              int
 	flagDryrun            bool
@@ -35,53 +36,10 @@ var (
 	mqttStoreDir = path.Join(dotDir, "mqtt_store")
 )
 
-type Config struct {
-	Jobs []JobSpec `json:"jobs"`
-}
-
-func (c *Config) sensors() []string {
-	seen := make(map[string]struct{})
-	for _, job := range c.Jobs {
-		for _, sensor := range job.Sensors {
-			seen[sensor] = struct{}{}
-		}
-	}
-
-	sensors := make([]string, 0, len(seen))
-	for sensor := range seen {
-		sensors = append(sensors, sensor)
-	}
-	return sensors
-}
-
-func (c *Config) validate() error {
-	if c == nil {
-		return nil
-	}
-
-	for i, jobSpec := range c.Jobs {
-		if jobSpec.Cronspec == "" {
-			return fmt.Errorf("job %d has no cronspec", i)
-		}
-
-		if _, ok := allJobTypes[jobSpec.Operation]; !ok {
-			return fmt.Errorf("job %d has invalid operation: %q", i, jobSpec.Operation)
-		}
-
-		if len(jobSpec.Sensors) == 0 {
-			return fmt.Errorf("job %d has no sensors", i)
-		}
-
-		if hasDuplicates(jobSpec.Sensors) {
-			return fmt.Errorf("job %d has duplicate sensors: %v", i, jobSpec.Sensors)
-		}
-	}
-
-	return nil
-}
-
 func init() {
+	// TODO(mtraver) Remove flagConfigFilePath when clients no longer specify it.
 	flag.StringVar(&flagConfigFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
+
 	flag.StringVar(&flagAWSDeviceFilePath, "aws-device", "", "path to a device config file describing an AWS IoT Core device")
 	flag.IntVar(&flagPort, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&flagDryrun, "dryrun", false, "set to true to print rather than publish measurements")
@@ -116,10 +74,6 @@ Options:
 func parseFlags() error {
 	flag.Parse()
 
-	if flagConfigFilePath == "" {
-		return errors.New("-config must be given")
-	}
-
 	if flagAWSDeviceFilePath == "" {
 		return errors.New("-aws-device must be given")
 	}
@@ -134,19 +88,6 @@ func main() {
 		os.Exit(2)
 	}
 
-	// Parse and validate config file.
-	b, err := os.ReadFile(flagConfigFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var config Config
-	if err := json.Unmarshal(b, &config); err != nil {
-		log.Fatal(err)
-	}
-	if err := config.validate(); err != nil {
-		log.Fatalf("Invalid config: %v", err)
-	}
-
 	// Parse device file.
 	device, err := parseDeviceFile(flagAWSDeviceFilePath)
 	if err != nil {
@@ -158,7 +99,7 @@ func main() {
 		log.Fatalf("Failed to initialize periph: %v", err)
 	}
 
-	monitor, err := NewMonitor(device, &config)
+	monitor, err := NewMonitor(device)
 	if err != nil {
 		log.Fatal(err)
 	}

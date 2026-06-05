@@ -1,6 +1,8 @@
 package sensor
 
 import (
+	"iter"
+	"maps"
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -22,7 +24,7 @@ type Sensor interface {
 	Shutdown() error
 }
 
-// Register adds a Sensor to the set of available sensors.
+// Register adds a sensor to the registry.
 func Register(name string, s Sensor) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -30,13 +32,33 @@ func Register(name string, s Sensor) {
 	sensors[name] = s
 }
 
-// Get gets a sensor by name. It returns false if no sensor with the given name is found.
-func Get(name string) (Sensor, bool) {
+// Remove removes a sensor from the registry.
+func Remove(name string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	delete(sensors, name)
+}
+
+// Get gets a sensor by name. It returns nil if no sensor with the given name is found.
+func Get(name string) Sensor {
 	mu.RLock()
 	defer mu.RUnlock()
 
 	s, ok := sensors[name]
-	return s, ok
+	if !ok {
+		return nil
+	}
+
+	return s
+}
+
+// Names returns the names of all sensors in the registry.
+func Names() iter.Seq[string] {
+	mu.RLock()
+	defer mu.RUnlock()
+
+	return maps.Keys(sensors)
 }
 
 func UsesI2C(name string) bool {

@@ -38,8 +38,8 @@ type SetupJob struct {
 
 func (j SetupJob) Run() {
 	for _, name := range j.Sensors {
-		s, exists := sensor.Get(name)
-		if !exists {
+		s := sensor.Get(name)
+		if s == nil {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}
@@ -69,8 +69,8 @@ func (j SenseJob) Run() {
 
 	count := 0
 	for _, name := range j.Sensors {
-		s, exists := sensor.Get(name)
-		if !exists {
+		s := sensor.Get(name)
+		if s == nil {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}
@@ -101,8 +101,8 @@ type ShutdownJob struct {
 
 func (j ShutdownJob) Run() {
 	for _, name := range j.Sensors {
-		s, exists := sensor.Get(name)
-		if !exists {
+		s := sensor.Get(name)
+		if s == nil {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}

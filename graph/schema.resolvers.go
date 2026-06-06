@@ -23,6 +23,9 @@ func (r *queryResolver) Measurements(ctx context.Context, startTime string, endT
 	var measurements map[string][]measurement.StorableMeasurement
 	if endTime == nil {
 		measurements, err = r.Database.Since(ctx, start)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		end, err := gqlTimestampToTime(*endTime)
 		if err != nil {
@@ -30,6 +33,9 @@ func (r *queryResolver) Measurements(ctx context.Context, startTime string, endT
 		}
 
 		measurements, err = r.Database.Between(ctx, start, end)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	gqlMeasurements := []*model.Measurement{}

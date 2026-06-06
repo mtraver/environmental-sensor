@@ -1,5 +1,5 @@
 # This Dockerfile produces an image that runs a gRPC server implementing MeasurementService.
-FROM golang:1.25-trixie AS builder
+FROM golang:1.26-trixie AS builder
 
 WORKDIR /build
 

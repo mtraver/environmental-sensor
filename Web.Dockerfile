@@ -4,7 +4,7 @@
 ####################
 # Build Go backend #
 ####################
-FROM golang:1.25-trixie AS backend-builder
+FROM golang:1.26-trixie AS backend-builder
 
 WORKDIR /build
 

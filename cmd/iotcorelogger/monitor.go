@@ -31,14 +31,23 @@ const (
 
 // Monitor manages the MQTT connection and the cron jobs.
 type Monitor struct {
-	device        *aic.Device
+	device *aic.Device
+
+	configMu      sync.Mutex
 	config        *Config
 	configVersion int
-	configMu      sync.Mutex
-	client        mqtt.Client
-	shadowClient  *shadow.Client[*Config]
-	i2cBus        i2c.BusCloser
-	cron          *cron.Cron
+
+	client       mqtt.Client
+	shadowClient *shadow.Client[*Config]
+
+	i2cBus i2c.BusCloser
+
+	cron *cron.Cron
+
+	connectionMetricsMu sync.RWMutex
+	firstConnectTime    *time.Time
+	lastConnectTime     *time.Time
+	connectionCount     int
 }
 
 // NewMonitor creates a new Monitor, connecting to the MQTT broker and starting the cron job runner.
@@ -111,6 +120,16 @@ func (mon *Monitor) Publish(m *mpb.Measurement) error {
 func (mon *Monitor) OnConnect(client mqtt.Client) {
 	log.Println("Connected to MQTT broker")
 
+	now := time.Now().UTC()
+
+	mon.connectionMetricsMu.Lock()
+	if mon.firstConnectTime == nil {
+		mon.firstConnectTime = &now
+	}
+	mon.lastConnectTime = &now
+	mon.connectionCount += 1
+	mon.connectionMetricsMu.Unlock()
+
 	log.Println("Subscribing to device shadow topics...")
 	shadowClient, err := shadow.NewClient[*Config](client, mon.device.ID(), "", mon)
 	if err != nil {
@@ -152,6 +171,10 @@ func (mon *Monitor) OnConnect(client mqtt.Client) {
 
 func (mon *Monitor) OnConnectionLost(client mqtt.Client, err error) {
 	log.Printf("Connection to MQTT broker lost: %v", err)
+
+	mon.connectionMetricsMu.Lock()
+	defer mon.connectionMetricsMu.Unlock()
+	mon.lastConnectTime = nil
 }
 
 func (mon *Monitor) Close() error {

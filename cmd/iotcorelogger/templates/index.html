@@ -12,6 +12,11 @@
     <h1>Environmental Monitor Node</h1>
 
     <p>Device ID: {{ .DeviceID }}</p>
+
+    <p>First connected: {{ .FirstConnected }}</p>
+    <p>Last (re)connected: {{ .LastConnected }}</p>
+    <p>Reconnections: {{ .ReconnectCount }}</p>
+
     <p>Current config version: {{ .ConfigVersion }}</p>
     <p>Current config:</p>
     <pre>{{ .Config }}</pre>

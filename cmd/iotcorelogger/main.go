@@ -121,7 +121,7 @@ func main() {
 		templates: templates,
 		mon:       monitor,
 	})
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", flagPort), nil); err != nil {
-		log.Fatal(err)
-	}
+
+	log.Printf("Web server listening on port %d", flagPort)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", flagPort), nil))
 }

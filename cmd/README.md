@@ -9,21 +9,6 @@ From the root of this repository,
 
     make
 
-    # Log temp to AWS IoT Core
-
-    # Example config.pb.json
-    # {
-    #   "supported_sensors": ["mcp9808"],
-    #
-    #   "jobs": [
-    #     {
-    #       "cronspec": "0 */2 * * * *",
-    #       "operation": "SENSE",
-    #       "sensors": ["mcp9808"]
-    #     }
-    #   ]
-    # }
-    #
     # Example device.json:
     # {
     #   "endpoint": "endpoint-name",
@@ -31,7 +16,7 @@ From the root of this repository,
     #   "cert_path": "my-device.x509",
     #   "priv_key_path": "my-device.pem"
     # }
-    ./out/iotcorelogger -config config.pb.json -aws-device device.json
+    ./out/iotcorelogger -aws-device device.json
 
     # Print temp to stdout
     ./out/readtemp
@@ -67,12 +52,72 @@ Raspberry Pi 3 B<sup>1</sup>).
     Options:
       -aws-device string
           path to a device config file describing an AWS IoT Core device
-      -config string
-          path to a file containing a JSON-encoded config proto
       -dryrun
           set to true to print rather than publish measurements
       -port int
           port on which the device's web server should listen (default 8080)
+
+## `iotcorelogger` sensor and job configuration
+
+The `iotcorelogger` program is told which sensors to use and the frequency at
+which to take measurements via a JSON job spec. A job has:
+
+- A cronspec
+- An operation, which must be one of `"SETUP"`, `"SENSE"`, or `"SHUTDOWN"`
+- A list of sensors
+
+Example of a simple config that gets a measurement from an MCP9808 temperature
+sensor every 2 minutes:
+```json
+{
+  "jobs": [
+    {
+      "cronspec": "0 */2 * * * *",
+      "operation": "SENSE",
+      "sensors": ["mcp9808"]
+    }
+  ]
+}
+```
+
+Example of a more complex config that gets particulate matter measurements from an
+SDS011 sensor every 2 minutes, but that runs setup and shutdown jobs before taking
+measurements.
+```json
+{
+  "jobs": [
+    {
+      "cronspec": "35 1-59/2 * * * *",
+      "operation": "SETUP",
+      "sensors": [
+        "sds011"
+      ]
+    },
+    {
+      "cronspec": "0 0-59/2 * * * *",
+      "operation": "SENSE",
+      "sensors": [
+        "sds011"
+      ]
+    },
+    {
+      "cronspec": "8 0-59/2 * * * *",
+      "operation": "SHUTDOWN",
+      "sensors": [
+        "sds011"
+      ]
+    }
+  ]
+}
+```
+
+The device receives this config from an AWS IoT Core Device Shadow. See Device Shadow service
+documentation [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-device-shadows.html).
+
+When a device connects to the MQTT broker it will either create a shadow if one doesn't exist,
+or fetch the current desired config from the shadow. Set the `desired` config in the device's
+shadow configuration to push it to the device; the device will receive and apply the new config
+any time it is changed.
 
 ## Footnotes
 <sup>1</sup> "How can this be!? The Raspberry Pi 3 B uses the BCM2837, a 64-bit

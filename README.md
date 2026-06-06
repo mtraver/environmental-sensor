@@ -6,28 +6,16 @@
 Log temperature from an [MCP9808 sensor](https://www.adafruit.com/product/1782)
 connected to a Raspberry Pi.
 
-Send temperature to [AWS IoT Core](https://aws.amazon.com/iot-core/) (RIP Google Cloud IoT Core, which I used before it was decommissioned 😭),
-which can then be saved and plotted using the web app in the [web](web) directory.
-Running `make` will build all binaries locally. Running `make web-image` will
-build a Docker image that can be deployed to Cloud Run to serve the web app.
+Send temperature to [AWS IoT Core](https://aws.amazon.com/iot-core/) (RIP Google
+Cloud IoT Core, which I used before it was decommissioned 😭), which can then be
+saved and plotted using the web app in the [web](web) directory. Running `make`
+will build all binaries locally. Running `make web-image` will build a Docker
+image that can be deployed to Cloud Run to serve the web app.
 
 Run the `iotcorelogger` binary on the Raspberry Pi:
 
 ```sh
 make
-
-# Example config.pb.json
-# {
-#   "supported_sensors": ["mcp9808"],
-#
-#   "jobs": [
-#     {
-#       "cronspec": "0 */2 * * * *",
-#       "operation": "SENSE",
-#       "sensors": ["mcp9808"]
-#     }
-#   ]
-# }
 
 # Example device.json:
 # {
@@ -36,12 +24,10 @@ make
 #   "cert_path": "my-device.x509",
 #   "priv_key_path": "my-device.pem"
 # }
-./out/iotcorelogger -config config.pb.json -aws-device device.json
+./out/iotcorelogger -aws-device device.json
 ```
 
-The config file sets up the sensors and schedules jobs using cron syntax, and
-the device file specifies how to connect to IoT Core's MQTT broker to report
-telemetry.
+The device file specifies how to connect to AWS IoT Core's MQTT broker.
 
 ## Prerequisites
 
@@ -50,6 +36,68 @@ https://learn.adafruit.com/mcp9808-temperature-sensor-python-library/overview
   - **Enable I<sup>2</sup>C on your board.** For Raspberry Pi,
 this can be done with `raspi-config`. You'll find the "I2C" option under
 either "Advanced Options" or "Interfacing Options".
+
+## `iotcorelogger` sensor and job configuration
+
+The `iotcorelogger` program is told which sensors to use and the frequency at
+which to take measurements via a JSON job spec. A job has:
+
+- A cronspec
+- An operation, which must be one of `"SETUP"`, `"SENSE"`, or `"SHUTDOWN"`
+- A list of sensors
+
+Example of a simple config that gets a measurement from an MCP9808 temperature
+sensor every 2 minutes:
+```json
+{
+  "jobs": [
+    {
+      "cronspec": "0 */2 * * * *",
+      "operation": "SENSE",
+      "sensors": ["mcp9808"]
+    }
+  ]
+}
+```
+
+Example of a more complex config that gets particulate matter measurements from an
+SDS011 sensor every 2 minutes, but that runs setup and shutdown jobs before taking
+measurements.
+```json
+{
+  "jobs": [
+    {
+      "cronspec": "35 1-59/2 * * * *",
+      "operation": "SETUP",
+      "sensors": [
+        "sds011"
+      ]
+    },
+    {
+      "cronspec": "0 0-59/2 * * * *",
+      "operation": "SENSE",
+      "sensors": [
+        "sds011"
+      ]
+    },
+    {
+      "cronspec": "8 0-59/2 * * * *",
+      "operation": "SHUTDOWN",
+      "sensors": [
+        "sds011"
+      ]
+    }
+  ]
+}
+```
+
+The device receives this config from an AWS IoT Core Device Shadow. See Device Shadow service
+documentation [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-device-shadows.html).
+
+When a device connects to the MQTT broker it will either create a shadow if one doesn't exist,
+or fetch the current desired config from the shadow. Set the `desired` config in the device's
+shadow configuration to push it to the device; the device will receive and apply the new config
+any time it is changed.
 
 ## Setting up Google Cloud IoT Core logging
 

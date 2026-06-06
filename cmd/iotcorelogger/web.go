@@ -1,11 +1,28 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 )
 
-func (mon *Monitor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintf(w, "%s\n", mon.device.ID())
+type rootHandler struct {
+	templates *template.Template
+	mon       *Monitor
+}
+
+func (h *rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		DeviceID      string
+		ConfigVersion int
+		Config        string
+	}{
+		DeviceID:      h.mon.device.ID(),
+		ConfigVersion: h.mon.configVersion,
+		Config:        h.mon.config.String(),
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "index", data); err != nil {
+		log.Printf("Failed to execute template: %v", err)
+	}
 }

@@ -1,0 +1,21 @@
+{{ define "index" }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Env Mon Node | {{ .DeviceID }}</title>
+  </head>
+
+  <body>
+    <h1>Environmental Monitor Node</h1>
+
+    <p>Device ID: {{ .DeviceID }}</p>
+    <p>Current config version: {{ .ConfigVersion }}</p>
+    <p>Current config:</p>
+    <pre>{{ .Config }}</pre>
+  </body>
+
+</html>
+{{ end }}

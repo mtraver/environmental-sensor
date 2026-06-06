@@ -2,9 +2,11 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +17,9 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"periph.io/x/host/v3"
 )
+
+//go:embed templates/*
+var templatesFS embed.FS
 
 var (
 	flagAWSDeviceFilePath string
@@ -82,6 +87,8 @@ func main() {
 		os.Exit(2)
 	}
 
+	templates := template.Must(template.New("index").ParseFS(templatesFS, "templates/*.html"))
+
 	// Parse device file.
 	device, err := parseDeviceFile(flagAWSDeviceFilePath)
 	if err != nil {
@@ -110,7 +117,10 @@ func main() {
 	}()
 
 	// Start up a web server that provides basic info about the device.
-	http.Handle("/{$}", monitor)
+	http.Handle("/{$}", &rootHandler{
+		templates: templates,
+		mon:       monitor,
+	})
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", flagPort), nil); err != nil {
 		log.Fatal(err)
 	}

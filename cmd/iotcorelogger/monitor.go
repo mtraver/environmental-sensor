@@ -180,18 +180,42 @@ func (mon *Monitor) applyConfig(config *Config, version int) error {
 		return fmt.Errorf("invalid config: %w", err)
 	}
 
-	// Handle resources in reverse dependency order: first jobs,
-	// then sensors, then the I2C bus.
+	// Determine if any sensors in the new config require I2C.
+	var needI2C bool
+	for _, name := range config.sensors() {
+		if sensor.UsesI2C(name) {
+			needI2C = true
+			break
+		}
+	}
 
-	if err := mon.reconcileJobs(config); err != nil {
+	// Remove jobs not present in the new config, allowing any
+	// sensors that are no longer required to be removed.
+	if err := mon.pauseAndRemoveOldJobs(config); err != nil {
 		return err
 	}
 
+	// Open the I2C bus if required by any sensors in the new config.
+	if needI2C {
+		if err := mon.openI2CBus(); err != nil {
+			return err
+		}
+	}
+
+	// Add and remove sensors. Sensors have no dependencies on
+	// other sensors so this can be done in a single step.
 	if err := mon.reconcileSensors(config); err != nil {
 		return err
 	}
 
-	if err := mon.reconcileI2CBus(config); err != nil {
+	// Close the I2C bus if it's no longer required by any sensors.
+	if !needI2C {
+		mon.closeI2CBus()
+	}
+
+	// Finally, add new jobs. The required sensors and system
+	// resources will now be present/initialized.
+	if err := mon.addNewJobs(config); err != nil {
 		return err
 	}
 
@@ -215,7 +239,7 @@ func (mon *Monitor) applyConfigAndReport(config *Config, version int) error {
 	return nil
 }
 
-func (mon *Monitor) reconcileJobs(config *Config) error {
+func (mon *Monitor) pauseAndRemoveOldJobs(config *Config) error {
 	desired := make(map[string]JobSpec)
 	for _, jobSpec := range config.Jobs {
 		desired[jobName(jobSpec)] = jobSpec
@@ -229,7 +253,17 @@ func (mon *Monitor) reconcileJobs(config *Config) error {
 			}
 
 			mon.cron.RemoveByName(entry.Name)
+			log.Printf("Removed job %q", entry.Name)
 		}
+	}
+
+	return nil
+}
+
+func (mon *Monitor) addNewJobs(config *Config) error {
+	desired := make(map[string]JobSpec)
+	for _, jobSpec := range config.Jobs {
+		desired[jobName(jobSpec)] = jobSpec
 	}
 
 	// Upsert jobs in new config.
@@ -259,6 +293,7 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 	for name := range sensor.Names() {
 		if _, ok := desired[name]; !ok {
 			sensor.Remove(name)
+			log.Printf("Removed sensor %q", name)
 		}
 	}
 
@@ -289,22 +324,15 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 		default:
 			return fmt.Errorf("unknown sensor %q", name)
 		}
+
+		log.Printf("Registered sensor %q", name)
 	}
 
 	return nil
 }
 
-func (mon *Monitor) reconcileI2CBus(config *Config) error {
-	// Determine if any sensors in the new config require I2C.
-	var needI2C bool
-	for _, name := range config.sensors() {
-		if sensor.UsesI2C(name) {
-			needI2C = true
-			break
-		}
-	}
-
-	if needI2C && mon.i2cBus == nil {
+func (mon *Monitor) openI2CBus() error {
+	if mon.i2cBus == nil {
 		// Open default I²C bus.
 		bus, err := i2creg.Open("")
 		if err != nil {
@@ -312,12 +340,16 @@ func (mon *Monitor) reconcileI2CBus(config *Config) error {
 		}
 
 		mon.i2cBus = bus
-	} else if !needI2C && mon.i2cBus != nil {
-		mon.i2cBus.Close()
-		mon.i2cBus = nil
 	}
 
 	return nil
+}
+
+func (mon *Monitor) closeI2CBus() {
+	if mon.i2cBus != nil {
+		mon.i2cBus.Close()
+		mon.i2cBus = nil
+	}
 }
 
 func (mon *Monitor) jobFromSpec(jobSpec *JobSpec) (cron.Job, error) {

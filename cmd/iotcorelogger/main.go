@@ -17,9 +17,6 @@ import (
 )
 
 var (
-	// TODO(mtraver) Remove flagConfigFilePath when clients no longer specify it.
-	flagConfigFilePath string
-
 	flagAWSDeviceFilePath string
 	flagPort              int
 	flagDryrun            bool
@@ -37,9 +34,6 @@ var (
 )
 
 func init() {
-	// TODO(mtraver) Remove flagConfigFilePath when clients no longer specify it.
-	flag.StringVar(&flagConfigFilePath, "config", "", "path to a file containing a JSON-encoded config proto")
-
 	flag.StringVar(&flagAWSDeviceFilePath, "aws-device", "", "path to a device config file describing an AWS IoT Core device")
 	flag.IntVar(&flagPort, "port", 8080, "port on which the device's web server should listen")
 	flag.BoolVar(&flagDryrun, "dryrun", false, "set to true to print rather than publish measurements")

@@ -11,7 +11,8 @@ import (
 	"sync"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.golang/autopaho"
+	"github.com/eclipse/paho.golang/paho"
 	aic "github.com/mtraver/awsiotcore"
 	"github.com/mtraver/awsiotcore/shadow"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -37,7 +38,7 @@ type Monitor struct {
 	config        *Config
 	configVersion int
 
-	client       mqtt.Client
+	connMan      *autopaho.ConnectionManager
 	shadowClient *shadow.Client[*Config]
 
 	i2cBus i2c.BusCloser
@@ -51,14 +52,12 @@ type Monitor struct {
 }
 
 // NewMonitor creates a new Monitor, connecting to the MQTT broker and starting the cron job runner.
-func NewMonitor(device *aic.Device) (*Monitor, error) {
+func NewMonitor(ctx context.Context, device *aic.Device) (*Monitor, error) {
 	cr := cron.New(cron.WithSeconds())
 	cr.Start()
 
 	monitor := &Monitor{
 		device: device,
-		// Client is initialized to a dummy client that doesn't connect to anything.
-		client: mqtt.NewClient(mqtt.NewClientOptions()),
 		cron:   cr,
 	}
 
@@ -67,30 +66,31 @@ func NewMonitor(device *aic.Device) (*Monitor, error) {
 	}
 
 	log.Println("Connecting to MQTT broker...")
-	client, err := device.NewClient(
-		fileStoreOpt(mqttStoreDir),
-		connectTimeoutOpt(timeout),
-		onConnectOpt(monitor.OnConnect),
-		onConnectionLostOpt(monitor.OnConnectionLost),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make MQTT client: %w", err)
-	}
+	clientConfig := device.ClientConfig()
+	clientConfig.KeepAlive = 20
+	clientConfig.SessionExpiryInterval = 5 * 60
+	clientConfig.OnConnectionUp = monitor.OnConnectionUp
+	clientConfig.OnConnectionDown = monitor.OnConnectionDown
+	clientConfig.OnConnectError = monitor.OnConnectError
+	clientConfig.ClientConfig.OnServerDisconnect = monitor.OnServerDisconnect
+	clientConfig.ClientConfig.OnClientError = monitor.OnClientError
 
-	// Connect to the MQTT broker.
-	token := client.Connect()
-	if ok := token.WaitTimeout(timeout); !ok {
-		return nil, fmt.Errorf("MQTT connection attempt timed out after %v", timeout)
+	// Connect to broker and reconnect until the context is cancelled.
+	connMan, err := autopaho.NewConnection(ctx, clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create MQTT connection: %w", err)
 	}
-	if token.Error() != nil {
-		return nil, fmt.Errorf("failed to connect to MQTT broker: %w", token.Error())
+	monitor.connMan = connMan
+
+	// Wait for the connection to come up.
+	if err := connMan.AwaitConnection(ctx); err != nil {
+		return nil, fmt.Errorf("failed to connect to MQTT broker: %w", err)
 	}
-	monitor.client = client
 
 	return monitor, nil
 }
 
-func (mon *Monitor) Publish(m *mpb.Measurement) error {
+func (mon *Monitor) Publish(ctx context.Context, m *mpb.Measurement) error {
 	// Set the measurement's device ID to the monitor's device ID.
 	m.DeviceId = mon.device.ID()
 
@@ -106,18 +106,18 @@ func (mon *Monitor) Publish(m *mpb.Measurement) error {
 		return err
 	}
 
-	token := mon.client.Publish(mon.device.TelemetryTopic(), 1, false, jsonBytes)
-	if ok := token.WaitTimeout(timeout); !ok {
-		return fmt.Errorf("publish timed out after %v", timeout)
-	}
-	if token.Error() != nil {
-		return fmt.Errorf("failed to publish: %w", token.Error())
+	if _, err := mon.connMan.Publish(ctx, &paho.Publish{
+		Topic:   mon.device.TelemetryTopic(),
+		Payload: jsonBytes,
+		QoS:     1,
+	}); err != nil {
+		return fmt.Errorf("failed to publish: %w", err)
 	}
 
 	return nil
 }
 
-func (mon *Monitor) OnConnect(client mqtt.Client) {
+func (mon *Monitor) OnConnectionUp(client *autopaho.ConnectionManager, connAck *paho.Connack) {
 	log.Println("Connected to MQTT broker")
 
 	now := time.Now().UTC()
@@ -130,17 +130,22 @@ func (mon *Monitor) OnConnect(client mqtt.Client) {
 	mon.connectionCount += 1
 	mon.connectionMetricsMu.Unlock()
 
+	// Create a shadow client if we don't have one already.
+	if mon.shadowClient == nil {
+		mon.shadowClient = shadow.NewClient[*Config](client, mon.device.ID(), "", mon)
+	}
+
 	log.Println("Subscribing to device shadow topics...")
-	shadowClient, err := shadow.NewClient[*Config](client, mon.device.ID(), "", mon)
-	if err != nil {
-		log.Printf("Failed to make shadow client: %v", err)
+	ctxShadow, cancelCtxShadow := context.WithTimeout(context.Background(), timeout)
+	defer cancelCtxShadow()
+	if err := mon.shadowClient.OnConnectionUp(ctxShadow); err != nil {
+		log.Printf("Failed to subscribe to shadow topics: %v", err)
 		return
 	}
-	mon.shadowClient = shadowClient
 
 	log.Println("Getting shadow state...")
 	ctxGet, cancelCtxGet := context.WithTimeout(context.Background(), timeout)
-	resp, err := shadowClient.Get(ctxGet)
+	resp, err := mon.shadowClient.Get(ctxGet)
 	if err == nil {
 		cancelCtxGet()
 
@@ -163,28 +168,57 @@ func (mon *Monitor) OnConnect(client mqtt.Client) {
 
 	ctxReport, cancelCtxReport := context.WithTimeout(context.Background(), timeout)
 	defer cancelCtxReport()
-	_, err = shadowClient.ReportState(ctxReport, mon.config)
+	_, err = mon.shadowClient.ReportState(ctxReport, mon.config)
 	if err != nil {
 		log.Printf("Failed to update shadow: %v", err)
 	}
 }
 
-func (mon *Monitor) OnConnectionLost(client mqtt.Client, err error) {
-	log.Printf("Connection to MQTT broker lost: %v", err)
+func (mon *Monitor) OnConnectionDown() bool {
+	log.Printf("Connection to MQTT broker lost")
+
+	mon.connectionMetricsMu.Lock()
+	defer mon.connectionMetricsMu.Unlock()
+	mon.lastConnectTime = nil
+
+	// Return true so that a reconnect is attempted.
+	return true
+}
+
+func (mon *Monitor) OnConnectError(err error) {
+	log.Printf("Error while attempting to connect to MQTT broker: %v", err)
+}
+
+func (mon *Monitor) OnServerDisconnect(d *paho.Disconnect) {
+	if d.Properties != nil {
+		log.Printf("Server requested disconnect: %s", d.Properties.ReasonString)
+	} else {
+		log.Printf("Server requested disconnect: reason code %d", d.ReasonCode)
+	}
 
 	mon.connectionMetricsMu.Lock()
 	defer mon.connectionMetricsMu.Unlock()
 	mon.lastConnectTime = nil
 }
 
-func (mon *Monitor) Close() error {
+func (mon *Monitor) OnClientError(err error) {
+	log.Printf("Client error: %v", err)
+}
+
+func (mon *Monitor) Close(ctx context.Context) error {
 	mon.cron.StopAndWait()
 
-	mon.client.Disconnect(1000)
+	// TODO(mtraver) Make this unconditional if/when I remove -dryrun.
+	if mon.connMan != nil {
+		mon.connMan.Disconnect(ctx)
 
-	if mon.i2cBus != nil {
-		err := mon.i2cBus.Close()
-		mon.i2cBus = nil
+		select {
+		case <-mon.connMan.Done():
+		case <-ctx.Done():
+		}
+	}
+
+	if err := mon.closeI2CBus(); err != nil {
 		return err
 	}
 
@@ -368,11 +402,15 @@ func (mon *Monitor) openI2CBus() error {
 	return nil
 }
 
-func (mon *Monitor) closeI2CBus() {
+func (mon *Monitor) closeI2CBus() error {
 	if mon.i2cBus != nil {
-		mon.i2cBus.Close()
+		err := mon.i2cBus.Close()
 		mon.i2cBus = nil
+
+		return err
 	}
+
+	return nil
 }
 
 func (mon *Monitor) jobFromSpec(jobSpec *JobSpec) (cron.Job, error) {

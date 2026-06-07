@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"flag"
@@ -11,10 +12,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"syscall"
+	"time"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"periph.io/x/host/v3"
 )
 
@@ -25,17 +25,6 @@ var (
 	flagAWSDeviceFilePath string
 	flagPort              int
 	flagDryrun            bool
-)
-
-var (
-	// This directory is where we'll store anything the program needs to persist, like JWTs and
-	// measurements that are pending upload. This is joined with the user's home directory in init.
-	dotDir = ".iotcorelogger"
-
-	// The directory in which to store measurements that failed to publish, e.g. because
-	// the network went down. It's used to configure an mqtt.NewFileStore. This is joined
-	// with the user's home directory in init.
-	mqttStoreDir = path.Join(dotDir, "mqtt_store")
 )
 
 func init() {
@@ -52,22 +41,6 @@ Options:
 		fmt.Fprint(flag.CommandLine.Output(), message)
 		flag.PrintDefaults()
 	}
-
-	// Update directory and file paths by joining them to the user's home directory.
-	home, err := homedir.Dir()
-	if err != nil {
-		log.Fatalf("Failed to get home dir: %v", err)
-	}
-	dotDir = path.Join(home, dotDir)
-	mqttStoreDir = path.Join(home, mqttStoreDir)
-
-	// Make all directories required by the program.
-	dirs := []string{dotDir, mqttStoreDir}
-	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0700); err != nil {
-			log.Fatalf("Failed to make dir %s: %v", dir, err)
-		}
-	}
 }
 
 func parseFlags() error {
@@ -78,6 +51,22 @@ func parseFlags() error {
 	}
 
 	return nil
+}
+
+func startHTTPServer(mux *http.ServeMux) *http.Server {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", flagPort),
+		Handler: mux,
+	}
+
+	go func() {
+		log.Printf("Web server listening on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	return srv
 }
 
 func main() {
@@ -100,28 +89,40 @@ func main() {
 		log.Fatalf("Failed to initialize periph: %v", err)
 	}
 
-	monitor, err := NewMonitor(device)
+	// We'll run until cancelled by the user (e.g. ctrl-c).
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	monitor, err := NewMonitor(ctx, device)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer monitor.Close()
-
-	// If the program is killed, clean up.
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		log.Println("Cleaning up...")
-		monitor.Close()
-		os.Exit(0)
-	}()
 
 	// Start up a web server that provides basic info about the device.
-	http.Handle("/{$}", &rootHandler{
+	mux := http.NewServeMux()
+	mux.Handle("/{$}", &rootHandler{
 		templates: templates,
 		mon:       monitor,
 	})
+	srv := startHTTPServer(mux)
 
-	log.Printf("Web server listening on port %d", flagPort)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", flagPort), nil))
+	<-ctx.Done()
+
+	// Shut down the HTTP server.
+	log.Println("Shutting down HTTP server...")
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Error during HTTP server shutdown: %v", err)
+	}
+
+	// Clean up the Monitor's resources, including disconnecting from the MQTT broker.
+	log.Println("Cleaning up resources and disconnecting from MQTT broker...")
+	closeCtx, closeCancel := context.WithTimeout(context.Background(), timeout)
+	defer closeCancel()
+	if err := monitor.Close(closeCtx); err != nil {
+		log.Printf("Error during cleanup or disconnect: %v", err)
+	}
+
+	log.Println("Done")
 }

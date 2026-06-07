@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -52,7 +53,7 @@ func (j SetupJob) Run() {
 
 type SenseJob struct {
 	Sensors []string
-	Publish func(*mpb.Measurement) error
+	Publish func(context.Context, *mpb.Measurement) error
 	Dryrun  bool
 }
 
@@ -88,7 +89,12 @@ func (j SenseJob) Run() {
 
 	if j.Dryrun {
 		log.Print(mpbutil.String(m))
-	} else if err := j.Publish(&m); err != nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	if err := j.Publish(ctx, &m); err != nil {
 		log.Printf("Failed to publish measurement: %v", err)
 	} else {
 		log.Println("Successful publish")

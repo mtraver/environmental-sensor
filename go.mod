@@ -14,11 +14,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iot v1.75.3
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.42.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.43.2
-	github.com/eclipse/paho.mqtt.golang v1.5.1
+	github.com/eclipse/paho.golang v0.23.0
 	github.com/google/go-cmp v0.7.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
-	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mtraver/awsiotcore v0.0.0-20260605204459-9b60f9129142
+	github.com/mtraver/awsiotcore v0.0.0-20260607164548-defd83f359ec
 	github.com/mtraver/envtools v0.0.0-20260504053214-7b571519c787
 	github.com/mtraver/gaelog v1.1.6
 	github.com/mtraver/sds011 v0.0.0-20221026204622-d61fb9543898

@@ -34,21 +34,32 @@ const (
 type Monitor struct {
 	device *aic.Device
 
+	// Job config.
 	configMu      sync.Mutex
 	config        *Config
 	configVersion int
 
+	// Cron.
+	cron *cron.Cron
+
+	// MQTT connection.
 	connMan      *autopaho.ConnectionManager
 	shadowClient *shadow.Client[*Config]
 
+	// System resources.
 	i2cBus i2c.BusCloser
 
-	cron *cron.Cron
-
+	// Connection metrics.
 	connectionMetricsMu sync.RWMutex
 	firstConnectTime    *time.Time
 	lastConnectTime     *time.Time
 	connectionCount     int
+
+	// Publish metrics.
+	publishMetricsMu       sync.RWMutex
+	lastPublishTime        *time.Time
+	successfulPublishCount int
+	publishFailureCount    int
 }
 
 // NewMonitor creates a new Monitor, connecting to the MQTT broker and starting the cron job runner.
@@ -111,8 +122,18 @@ func (mon *Monitor) Publish(ctx context.Context, m *mpb.Measurement) error {
 		Payload: jsonBytes,
 		QoS:     1,
 	}); err != nil {
+		mon.publishMetricsMu.Lock()
+		defer mon.publishMetricsMu.Unlock()
+		mon.publishFailureCount += 1
+
 		return fmt.Errorf("failed to publish: %w", err)
 	}
+
+	mon.publishMetricsMu.Lock()
+	defer mon.publishMetricsMu.Unlock()
+	now := time.Now().UTC()
+	mon.lastPublishTime = &now
+	mon.successfulPublishCount += 1
 
 	return nil
 }

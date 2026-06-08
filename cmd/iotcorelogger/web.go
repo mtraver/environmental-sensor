@@ -18,14 +18,13 @@ type rootHandler struct {
 	mon       *Monitor
 }
 
-func (h *rootHandler) formatConnectionTimestamp(t *time.Time, now time.Time) string {
-	s := "disconnected"
-	if t != nil {
-		dur := now.Sub(*t).Round(time.Millisecond)
-		s = fmt.Sprintf("%s (%v ago)", t.Format(timeFormat), dur)
+func (h *rootHandler) formatTimestamp(t *time.Time, now time.Time, nilVal string) string {
+	if t == nil {
+		return nilVal
 	}
 
-	return s
+	dur := now.Sub(*t).Round(time.Millisecond)
+	return fmt.Sprintf("%s (%v ago)", t.Format(timeFormat), dur)
 }
 
 func (h *rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,24 +33,33 @@ func (h *rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.mon.connectionMetricsMu.RLock()
 	defer h.mon.connectionMetricsMu.RUnlock()
 
+	h.mon.publishMetricsMu.RLock()
+	defer h.mon.publishMetricsMu.RUnlock()
+
 	data := struct {
-		DeviceID       string
-		ConfigVersion  int
-		Config         string
-		FirstConnected string
-		LastConnected  string
-		ReconnectCount int
-		GitRevision    string
-		BuildTime      string
+		DeviceID            string
+		ConfigVersion       int
+		Config              string
+		FirstConnected      string
+		LastConnected       string
+		ReconnectCount      int
+		LastPublish         string
+		PublishCount        int
+		PublishFailureCount int
+		GitRevision         string
+		BuildTime           string
 	}{
-		DeviceID:       h.mon.device.ID(),
-		ConfigVersion:  h.mon.configVersion,
-		Config:         h.mon.config.String(),
-		FirstConnected: h.formatConnectionTimestamp(h.mon.firstConnectTime, now),
-		LastConnected:  h.formatConnectionTimestamp(h.mon.lastConnectTime, now),
-		ReconnectCount: int(math.Max(0, float64(h.mon.connectionCount-1))),
-		GitRevision:    gitRevision,
-		BuildTime:      buildTime,
+		DeviceID:            h.mon.device.ID(),
+		ConfigVersion:       h.mon.configVersion,
+		Config:              h.mon.config.String(),
+		FirstConnected:      h.formatTimestamp(h.mon.firstConnectTime, now, "disconnected"),
+		LastConnected:       h.formatTimestamp(h.mon.lastConnectTime, now, "disconnected"),
+		ReconnectCount:      int(math.Max(0, float64(h.mon.connectionCount-1))),
+		LastPublish:         h.formatTimestamp(h.mon.lastPublishTime, now, "never"),
+		PublishCount:        h.mon.successfulPublishCount,
+		PublishFailureCount: h.mon.publishFailureCount,
+		GitRevision:         gitRevision,
+		BuildTime:           buildTime,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "index", data); err != nil {

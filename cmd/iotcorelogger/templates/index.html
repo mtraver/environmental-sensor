@@ -13,14 +13,22 @@
 
     <p>Device ID: {{ .DeviceID }}</p>
 
+    <h2>Connection</h2>
     <p>First connected: {{ .FirstConnected }}</p>
     <p>Last (re)connected: {{ .LastConnected }}</p>
     <p>Reconnections: {{ .ReconnectCount }}</p>
 
+    <h2>Telemetry</h2>
+    <p>Last publish: {{ .LastPublish }}</p>
+    <p>Successful publishes: {{ .PublishCount }}</p>
+    <p>Publish failures: {{ .PublishFailureCount }}</p>
+
+    <h2>Config</h2>
     <p>Current config version: {{ .ConfigVersion }}</p>
     <p>Current config:</p>
     <pre>{{ .Config }}</pre>
 
+    <h2>Build</h2>
     <p>Git revision: {{ .GitRevision }}</p>
     <p>Build time: {{ .BuildTime }}</p>
   </body>

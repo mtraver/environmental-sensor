@@ -2,9 +2,13 @@ ARTIFACT_REGISTRY_REGION = us-central1
 CLOUD_RUN_REGION = us-central1
 ARTIFACT_REPOSITORY_URL_BASE = $(ARTIFACT_REGISTRY_REGION)-docker.pkg.dev/$(PROJECT)/$(REPO)
 
-BUILD := go build
-BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 $(BUILD) -ldflags="-s -w"
-BUILD_ARMV7 := GOOS=linux GOARCH=arm GOARM=7 $(BUILD) -ldflags="-s -w"
+COMMIT_HASH := $(shell git rev-parse --verify --short HEAD)
+BUILD_TIME := $(shell date +"%Y-%m-%dT%H:%M:%S%:z")
+LINKER_VARS := -X 'main.gitRevision=$(COMMIT_HASH)' -X 'main.buildTime=$(BUILD_TIME)'
+
+BUILD := go build -ldflags="$(LINKER_VARS)"
+BUILD_ARMV6 := GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-s -w $(LINKER_VARS)"
+BUILD_ARMV7 := GOOS=linux GOARCH=arm GOARM=7 go build -ldflags="-s -w $(LINKER_VARS)"
 
 OUT_DIR := out
 

@@ -21,6 +21,12 @@ import (
 //go:embed templates/*
 var templatesFS embed.FS
 
+// These are set at build time in the Makefile.
+var (
+	gitRevision = "dev"
+	buildTime   = "dev"
+)
+
 var (
 	flagAWSDeviceFilePath string
 	flagPort              int

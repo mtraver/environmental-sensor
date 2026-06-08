@@ -41,6 +41,8 @@ func (h *rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FirstConnected string
 		LastConnected  string
 		ReconnectCount int
+		GitRevision    string
+		BuildTime      string
 	}{
 		DeviceID:       h.mon.device.ID(),
 		ConfigVersion:  h.mon.configVersion,
@@ -48,6 +50,8 @@ func (h *rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		FirstConnected: h.formatConnectionTimestamp(h.mon.firstConnectTime, now),
 		LastConnected:  h.formatConnectionTimestamp(h.mon.lastConnectTime, now),
 		ReconnectCount: int(math.Max(0, float64(h.mon.connectionCount-1))),
+		GitRevision:    gitRevision,
+		BuildTime:      buildTime,
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "index", data); err != nil {

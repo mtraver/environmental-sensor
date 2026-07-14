@@ -30,7 +30,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -v -o out ./web/...
 ######################
 # Build React client #
 ######################
-FROM node:24-trixie AS client-builder
+FROM node:26-trixie AS client-builder
 
 COPY client /app
 WORKDIR /app

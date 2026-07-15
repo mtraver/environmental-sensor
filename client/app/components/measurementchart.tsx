@@ -25,33 +25,12 @@ type DeviceSeries = Record<MetricKey, SeriesPoint[]>;
 
 type ChartDataByDevice = Record<string, DeviceSeries>;
 
-type AxisDomainFn = (
-  domain: readonly [number, number],
-  allowDataOverflow: boolean,
-) => readonly [number, number];
-
-const Y_DOMAIN: Record<MetricKey, readonly number[] | AxisDomainFn> = {
-  temp: ([min, max]) => [
-    Math.floor(min * 2) / 2 - 0.5,
-    Math.ceil(max * 2) / 2 + 0.5,
-  ],
-  rh: ([min, max]) => [
-    Math.max(0, Math.floor(min * 2) / 2 - 1),
-    Math.min(100, Math.ceil(max * 2) / 2 + 1),
-  ],
-  pm25: ([min, max]) => [Math.floor(min * 0.9), Math.ceil(max * 1.1)],
-  pm10: ([min, max]) => [Math.floor(min * 0.9), Math.ceil(max * 1.1)],
-  aqi: ([min, max]) => {
-    const low = Math.max(0, Math.floor(min * 0.9));
-    const high = Math.ceil(max * 1.1);
-
-    // Ensure at least an 8-point span so the axis isn't super tight.
-    const mid = (low + high) / 2;
-    return high - low < 8
-      ? [Math.max(0, Math.floor(mid - 4)), Math.ceil(mid + 4)]
-      : [low, high];
-  },
-};
+function emptyDeviceSeries(): DeviceSeries {
+  return METRIC_ORDER.reduce((accumulator, k) => {
+    accumulator[k] = [];
+    return accumulator;
+  }, {} as DeviceSeries);
+}
 
 function normalizeMeasurements(measurements: Measurement[]): ChartDataByDevice {
   const result: ChartDataByDevice = {};
@@ -61,25 +40,15 @@ function normalizeMeasurements(measurements: Measurement[]): ChartDataByDevice {
     if (Number.isNaN(ts)) continue;
 
     if (!result[m.deviceId]) {
-      result[m.deviceId] = {
-        temp: [],
-        rh: [],
-        pm25: [],
-        pm10: [],
-        aqi: [],
-      };
+      result[m.deviceId] = emptyDeviceSeries();
     }
 
-    if (m.temp != null)
-      result[m.deviceId].temp.push({ timestamp: ts, value: m.temp });
-    if (m.rh != null)
-      result[m.deviceId].rh.push({ timestamp: ts, value: m.rh });
-    if (m.pm25 != null)
-      result[m.deviceId].pm25.push({ timestamp: ts, value: m.pm25 });
-    if (m.pm10 != null)
-      result[m.deviceId].pm10.push({ timestamp: ts, value: m.pm10 });
-    if (m.aqi != null)
-      result[m.deviceId].aqi.push({ timestamp: ts, value: m.aqi });
+    for (const key of METRIC_ORDER) {
+      const value = m[key];
+      if (value != null) {
+        result[m.deviceId][key].push({ timestamp: ts, value });
+      }
+    }
   }
 
   return result;
@@ -238,6 +207,7 @@ export function MeasurementChart({
     [presentDevices],
   );
 
+  const metricConfig = METRICS[validatedMetric];
   return (
     <Stack gap="md">
       {/* Metric selector */}
@@ -282,10 +252,10 @@ export function MeasurementChart({
             tickFormatter: formatTimeTick,
           }}
           yAxisProps={{
-            domain: Y_DOMAIN[validatedMetric],
+            domain: metricConfig.yDomain,
           }}
-          yAxisLabel={METRICS[validatedMetric].unit}
-          valueFormatter={(value) => value.toFixed(2)}
+          yAxisLabel={metricConfig.unit}
+          valueFormatter={(value) => value.toFixed(metricConfig.decimals)}
           strokeWidth={1}
           withDots={false}
           curveType="monotone"

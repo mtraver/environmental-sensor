@@ -41,7 +41,8 @@ function MetricCellContent({
   metric: MetricKey;
   measurement: LatestMeasurement;
 }): JSX.Element {
-  if (measurement[metric] == null) {
+  const value = measurement[metric];
+  if (value == null) {
     return (
       <Text size="sm" c="dimmed">
         —
@@ -49,11 +50,12 @@ function MetricCellContent({
     );
   }
 
-  if (metric === "aqi") {
-    return <AQIBadge aqi={measurement[metric] as number} />;
+  const config = METRICS[metric];
+  if (config.cellRenderer === "aqiBadge") {
+    return <AQIBadge aqi={value as number} />;
   }
 
-  return <Text size="sm">{(measurement[metric] as number).toFixed(2)}</Text>;
+  return <Text size="sm">{(value as number).toFixed(config.decimals)}</Text>;
 }
 
 function MetricCell({

@@ -15,40 +15,42 @@ import { ArrowsClockwise } from "@phosphor-icons/react";
 import type {
   GetMeasurementsQuery,
   LatestQuery,
+  MeasurementFieldsFragment,
 } from "../types/__generated__/graphql.ts";
 import { LatestMeasurementsTable } from "../components/latestmeasurementstable";
 import { MeasurementChart } from "../components/measurementchart";
 import type { TimeRange } from "../components/timerangeselector";
 import { TimeRangeSelector } from "../components/timerangeselector";
 
+const MEASUREMENT_FIELDS: TypedDocumentNode<MeasurementFieldsFragment> = gql`
+  fragment MeasurementFields on Measurement {
+    deviceId
+    timestamp
+    uploadTimestamp
+    temp
+    pm25
+    pm10
+    rh
+    aqi
+  }
+`;
+
 const GET_MEASUREMENTS: TypedDocumentNode<GetMeasurementsQuery> = gql`
   query GetMeasurements($startTime: DateTime!, $endTime: DateTime) {
     measurements(startTime: $startTime, endTime: $endTime) {
-      deviceId
-      timestamp
-      uploadTimestamp
-      temp
-      pm25
-      pm10
-      rh
-      aqi
+      ...MeasurementFields
     }
   }
+  ${MEASUREMENT_FIELDS}
 `;
 
 const LATEST: TypedDocumentNode<LatestQuery> = gql`
   query Latest {
     latest {
-      deviceId
-      timestamp
-      uploadTimestamp
-      temp
-      pm25
-      pm10
-      rh
-      aqi
+      ...MeasurementFields
     }
   }
+  ${MEASUREMENT_FIELDS}
 `;
 
 const LATEST_REFETCH_INTERVAL_MS = 60_000;

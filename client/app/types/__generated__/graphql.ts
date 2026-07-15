@@ -39,6 +39,8 @@ export type QueryMeasurementsArgs = {
   startTime: Scalars['DateTime']['input'];
 };
 
+export type MeasurementFieldsFragment = { __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm25: number | null, pm10: number | null, rh: number | null, aqi: number | null };
+
 export type GetMeasurementsQueryVariables = Exact<{
   startTime: Scalars['DateTime']['input'];
   endTime?: InputMaybe<Scalars['DateTime']['input']>;

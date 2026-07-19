@@ -9,7 +9,6 @@ package measurementpb
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
@@ -24,58 +23,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-type MeasurementOptions struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Metric        string                 `protobuf:"bytes,1,opt,name=metric,proto3" json:"metric,omitempty"`
-	Unit          string                 `protobuf:"bytes,2,opt,name=unit,proto3" json:"unit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *MeasurementOptions) Reset() {
-	*x = MeasurementOptions{}
-	mi := &file_measurement_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *MeasurementOptions) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MeasurementOptions) ProtoMessage() {}
-
-func (x *MeasurementOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_measurement_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use MeasurementOptions.ProtoReflect.Descriptor instead.
-func (*MeasurementOptions) Descriptor() ([]byte, []int) {
-	return file_measurement_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *MeasurementOptions) GetMetric() string {
-	if x != nil {
-		return x.Metric
-	}
-	return ""
-}
-
-func (x *MeasurementOptions) GetUnit() string {
-	if x != nil {
-		return x.Unit
-	}
-	return ""
-}
 
 type Measurement struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
@@ -95,7 +42,7 @@ type Measurement struct {
 
 func (x *Measurement) Reset() {
 	*x = Measurement{}
-	mi := &file_measurement_proto_msgTypes[1]
+	mi := &file_measurement_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -107,7 +54,7 @@ func (x *Measurement) String() string {
 func (*Measurement) ProtoMessage() {}
 
 func (x *Measurement) ProtoReflect() protoreflect.Message {
-	mi := &file_measurement_proto_msgTypes[1]
+	mi := &file_measurement_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -120,7 +67,7 @@ func (x *Measurement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Measurement.ProtoReflect.Descriptor instead.
 func (*Measurement) Descriptor() ([]byte, []int) {
-	return file_measurement_proto_rawDescGZIP(), []int{1}
+	return file_measurement_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Measurement) GetDeviceId() string {
@@ -181,7 +128,7 @@ type GetDevicesResponse struct {
 
 func (x *GetDevicesResponse) Reset() {
 	*x = GetDevicesResponse{}
-	mi := &file_measurement_proto_msgTypes[2]
+	mi := &file_measurement_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -193,7 +140,7 @@ func (x *GetDevicesResponse) String() string {
 func (*GetDevicesResponse) ProtoMessage() {}
 
 func (x *GetDevicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_measurement_proto_msgTypes[2]
+	mi := &file_measurement_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -206,7 +153,7 @@ func (x *GetDevicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDevicesResponse.ProtoReflect.Descriptor instead.
 func (*GetDevicesResponse) Descriptor() ([]byte, []int) {
-	return file_measurement_proto_rawDescGZIP(), []int{2}
+	return file_measurement_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetDevicesResponse) GetDeviceId() []string {
@@ -225,7 +172,7 @@ type GetLatestRequest struct {
 
 func (x *GetLatestRequest) Reset() {
 	*x = GetLatestRequest{}
-	mi := &file_measurement_proto_msgTypes[3]
+	mi := &file_measurement_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -237,7 +184,7 @@ func (x *GetLatestRequest) String() string {
 func (*GetLatestRequest) ProtoMessage() {}
 
 func (x *GetLatestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_measurement_proto_msgTypes[3]
+	mi := &file_measurement_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -250,7 +197,7 @@ func (x *GetLatestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLatestRequest.ProtoReflect.Descriptor instead.
 func (*GetLatestRequest) Descriptor() ([]byte, []int) {
-	return file_measurement_proto_rawDescGZIP(), []int{3}
+	return file_measurement_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetLatestRequest) GetDeviceId() string {
@@ -260,42 +207,18 @@ func (x *GetLatestRequest) GetDeviceId() string {
 	return ""
 }
 
-var file_measurement_proto_extTypes = []protoimpl.ExtensionInfo{
-	{
-		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
-		ExtensionType: (*MeasurementOptions)(nil),
-		Field:         50001,
-		Name:          "measurement.measurement_options",
-		Tag:           "bytes,50001,opt,name=measurement_options",
-		Filename:      "measurement.proto",
-	},
-}
-
-// Extension fields to descriptorpb.FieldOptions.
-var (
-	// optional measurement.MeasurementOptions measurement_options = 50001;
-	E_MeasurementOptions = &file_measurement_proto_extTypes[0]
-)
-
 var File_measurement_proto protoreflect.FileDescriptor
 
 const file_measurement_proto_rawDesc = "" +
 	"\n" +
-	"\x11measurement.proto\x12\vmeasurement\x1a google/protobuf/descriptor.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"@\n" +
-	"\x12MeasurementOptions\x12\x16\n" +
-	"\x06metric\x18\x01 \x01(\tR\x06metric\x12\x12\n" +
-	"\x04unit\x18\x02 \x01(\tR\x04unit\"\xb4\x03\n" +
+	"\x11measurement.proto\x12\vmeasurement\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xeb\x02\n" +
 	"\vMeasurement\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x128\n" +
-	"\ttimestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12@\n" +
-	"\x04temp\x18\x03 \x01(\v2\x1b.google.protobuf.FloatValueB\x0f\x8a\xb5\x18\v\n" +
-	"\x04temp\x12\x03°CR\x04temp\x12E\n" +
-	"\x04pm25\x18\x05 \x01(\v2\x1b.google.protobuf.FloatValueB\x14\x8a\xb5\x18\x10\n" +
-	"\x05PM2.5\x12\aμg/m³R\x04pm25\x12D\n" +
-	"\x04pm10\x18\x06 \x01(\v2\x1b.google.protobuf.FloatValueB\x13\x8a\xb5\x18\x0f\n" +
-	"\x04PM10\x12\aμg/m³R\x04pm10\x128\n" +
-	"\x02rh\x18\a \x01(\v2\x1b.google.protobuf.FloatValueB\v\x8a\xb5\x18\a\n" +
-	"\x02RH\x12\x01%R\x02rh\x12E\n" +
+	"\ttimestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12/\n" +
+	"\x04temp\x18\x03 \x01(\v2\x1b.google.protobuf.FloatValueR\x04temp\x12/\n" +
+	"\x04pm25\x18\x05 \x01(\v2\x1b.google.protobuf.FloatValueR\x04pm25\x12/\n" +
+	"\x04pm10\x18\x06 \x01(\v2\x1b.google.protobuf.FloatValueR\x04pm10\x12+\n" +
+	"\x02rh\x18\a \x01(\v2\x1b.google.protobuf.FloatValueR\x02rh\x12E\n" +
 	"\x10upload_timestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x0fuploadTimestamp\"1\n" +
 	"\x12GetDevicesResponse\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x03(\tR\bdeviceId\"/\n" +
@@ -304,8 +227,7 @@ const file_measurement_proto_rawDesc = "" +
 	"\x12MeasurementService\x12G\n" +
 	"\n" +
 	"GetDevices\x12\x16.google.protobuf.Empty\x1a\x1f.measurement.GetDevicesResponse\"\x00\x12F\n" +
-	"\tGetLatest\x12\x1d.measurement.GetLatestRequest\x1a\x18.measurement.Measurement\"\x00:q\n" +
-	"\x13measurement_options\x12\x1d.google.protobuf.FieldOptions\x18ц\x03 \x01(\v2\x1f.measurement.MeasurementOptionsR\x12measurementOptionsB7Z5github.com/mtraver/environmental-sensor/measurementpbb\x06proto3"
+	"\tGetLatest\x12\x1d.measurement.GetLatestRequest\x1a\x18.measurement.Measurement\"\x00B7Z5github.com/mtraver/environmental-sensor/measurementpbb\x06proto3"
 
 var (
 	file_measurement_proto_rawDescOnce sync.Once
@@ -319,35 +241,31 @@ func file_measurement_proto_rawDescGZIP() []byte {
 	return file_measurement_proto_rawDescData
 }
 
-var file_measurement_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_measurement_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_measurement_proto_goTypes = []any{
-	(*MeasurementOptions)(nil),        // 0: measurement.MeasurementOptions
-	(*Measurement)(nil),               // 1: measurement.Measurement
-	(*GetDevicesResponse)(nil),        // 2: measurement.GetDevicesResponse
-	(*GetLatestRequest)(nil),          // 3: measurement.GetLatestRequest
-	(*timestamppb.Timestamp)(nil),     // 4: google.protobuf.Timestamp
-	(*wrapperspb.FloatValue)(nil),     // 5: google.protobuf.FloatValue
-	(*descriptorpb.FieldOptions)(nil), // 6: google.protobuf.FieldOptions
-	(*emptypb.Empty)(nil),             // 7: google.protobuf.Empty
+	(*Measurement)(nil),           // 0: measurement.Measurement
+	(*GetDevicesResponse)(nil),    // 1: measurement.GetDevicesResponse
+	(*GetLatestRequest)(nil),      // 2: measurement.GetLatestRequest
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*wrapperspb.FloatValue)(nil), // 4: google.protobuf.FloatValue
+	(*emptypb.Empty)(nil),         // 5: google.protobuf.Empty
 }
 var file_measurement_proto_depIdxs = []int32{
-	4,  // 0: measurement.Measurement.timestamp:type_name -> google.protobuf.Timestamp
-	5,  // 1: measurement.Measurement.temp:type_name -> google.protobuf.FloatValue
-	5,  // 2: measurement.Measurement.pm25:type_name -> google.protobuf.FloatValue
-	5,  // 3: measurement.Measurement.pm10:type_name -> google.protobuf.FloatValue
-	5,  // 4: measurement.Measurement.rh:type_name -> google.protobuf.FloatValue
-	4,  // 5: measurement.Measurement.upload_timestamp:type_name -> google.protobuf.Timestamp
-	6,  // 6: measurement.measurement_options:extendee -> google.protobuf.FieldOptions
-	0,  // 7: measurement.measurement_options:type_name -> measurement.MeasurementOptions
-	7,  // 8: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
-	3,  // 9: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
-	2,  // 10: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
-	1,  // 11: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
-	10, // [10:12] is the sub-list for method output_type
-	8,  // [8:10] is the sub-list for method input_type
-	7,  // [7:8] is the sub-list for extension type_name
-	6,  // [6:7] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	3, // 0: measurement.Measurement.timestamp:type_name -> google.protobuf.Timestamp
+	4, // 1: measurement.Measurement.temp:type_name -> google.protobuf.FloatValue
+	4, // 2: measurement.Measurement.pm25:type_name -> google.protobuf.FloatValue
+	4, // 3: measurement.Measurement.pm10:type_name -> google.protobuf.FloatValue
+	4, // 4: measurement.Measurement.rh:type_name -> google.protobuf.FloatValue
+	3, // 5: measurement.Measurement.upload_timestamp:type_name -> google.protobuf.Timestamp
+	5, // 6: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
+	2, // 7: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
+	1, // 8: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
+	0, // 9: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_measurement_proto_init() }
@@ -361,14 +279,13 @@ func file_measurement_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_measurement_proto_rawDesc), len(file_measurement_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
-			NumExtensions: 1,
+			NumMessages:   3,
+			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_measurement_proto_goTypes,
 		DependencyIndexes: file_measurement_proto_depIdxs,
 		MessageInfos:      file_measurement_proto_msgTypes,
-		ExtensionInfos:    file_measurement_proto_extTypes,
 	}.Build()
 	File_measurement_proto = out.File
 	file_measurement_proto_goTypes = nil

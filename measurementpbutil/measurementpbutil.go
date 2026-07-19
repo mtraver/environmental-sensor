@@ -9,8 +9,6 @@ import (
 	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -31,36 +29,22 @@ func String(m mpb.Measurement) string {
 		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
 	}
 
-	strs := []string{}
-	r := m.ProtoReflect()
-	r.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
-		// Get the MeasurementOptions extension and verify that it's not nil
-		// and that the metric field is not empty. It's ok for the unit field
-		// to be empty.
-		options := fd.Options()
-		if !proto.HasExtension(options, mpb.E_MeasurementOptions) {
-			return true
-		}
-		opt := proto.GetExtension(options, mpb.E_MeasurementOptions).(*mpb.MeasurementOptions)
-		if opt == nil || opt.GetMetric() == "" {
-			return true
+	values := map[string]*wpb.FloatValue{
+		"temp": m.GetTemp(),
+		"pm25": m.GetPm25(),
+		"pm10": m.GetPm10(),
+		"rh":   m.GetRh(),
+	}
+
+	var strs []string
+	for key, v := range values {
+		if v == nil {
+			continue
 		}
 
-		// The field must be a Message.
-		msg, ok := v.Interface().(protoreflect.Message)
-		if !ok {
-			return true
-		}
-
-		// Furthermore, the Message must be a FloatValue pointer.
-		fv, ok := msg.Interface().(*wpb.FloatValue)
-		if !ok || fv == nil {
-			return true
-		}
-
-		strs = append(strs, fmt.Sprintf("%s=%.3f%s", opt.GetMetric(), fv.GetValue(), opt.GetUnit()))
-		return true
-	})
+		info := Metrics[key]
+		strs = append(strs, fmt.Sprintf("%s=%.3f%s", info.Name, v.GetValue(), info.Unit))
+	}
 	sort.Strings(strs)
 
 	if len(strs) == 0 {

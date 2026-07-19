@@ -263,14 +263,6 @@ func (x *GetLatestRequest) GetDeviceId() string {
 var file_measurement_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
-		ExtensionType: (*string)(nil),
-		Field:         50000,
-		Name:          "measurement.regex",
-		Tag:           "bytes,50000,opt,name=regex",
-		Filename:      "measurement.proto",
-	},
-	{
-		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
 		ExtensionType: (*MeasurementOptions)(nil),
 		Field:         50001,
 		Name:          "measurement.measurement_options",
@@ -281,10 +273,8 @@ var file_measurement_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
-	// optional string regex = 50000;
-	E_Regex = &file_measurement_proto_extTypes[0]
 	// optional measurement.MeasurementOptions measurement_options = 50001;
-	E_MeasurementOptions = &file_measurement_proto_extTypes[1]
+	E_MeasurementOptions = &file_measurement_proto_extTypes[0]
 )
 
 var File_measurement_proto protoreflect.FileDescriptor
@@ -294,9 +284,9 @@ const file_measurement_proto_rawDesc = "" +
 	"\x11measurement.proto\x12\vmeasurement\x1a google/protobuf/descriptor.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"@\n" +
 	"\x12MeasurementOptions\x12\x16\n" +
 	"\x06metric\x18\x01 \x01(\tR\x06metric\x12\x12\n" +
-	"\x04unit\x18\x02 \x01(\tR\x04unit\"\xd6\x03\n" +
-	"\vMeasurement\x12=\n" +
-	"\tdevice_id\x18\x01 \x01(\tB \x82\xb5\x18\x1c^[a-z][a-z0-9+.%~_-]{2,254}$R\bdeviceId\x128\n" +
+	"\x04unit\x18\x02 \x01(\tR\x04unit\"\xb4\x03\n" +
+	"\vMeasurement\x12\x1b\n" +
+	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x128\n" +
 	"\ttimestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12@\n" +
 	"\x04temp\x18\x03 \x01(\v2\x1b.google.protobuf.FloatValueB\x0f\x8a\xb5\x18\v\n" +
 	"\x04temp\x12\x03°CR\x04temp\x12E\n" +
@@ -314,8 +304,7 @@ const file_measurement_proto_rawDesc = "" +
 	"\x12MeasurementService\x12G\n" +
 	"\n" +
 	"GetDevices\x12\x16.google.protobuf.Empty\x1a\x1f.measurement.GetDevicesResponse\"\x00\x12F\n" +
-	"\tGetLatest\x12\x1d.measurement.GetLatestRequest\x1a\x18.measurement.Measurement\"\x00:5\n" +
-	"\x05regex\x12\x1d.google.protobuf.FieldOptions\x18І\x03 \x01(\tR\x05regex:q\n" +
+	"\tGetLatest\x12\x1d.measurement.GetLatestRequest\x1a\x18.measurement.Measurement\"\x00:q\n" +
 	"\x13measurement_options\x12\x1d.google.protobuf.FieldOptions\x18ц\x03 \x01(\v2\x1f.measurement.MeasurementOptionsR\x12measurementOptionsB7Z5github.com/mtraver/environmental-sensor/measurementpbb\x06proto3"
 
 var (
@@ -348,17 +337,16 @@ var file_measurement_proto_depIdxs = []int32{
 	5,  // 3: measurement.Measurement.pm10:type_name -> google.protobuf.FloatValue
 	5,  // 4: measurement.Measurement.rh:type_name -> google.protobuf.FloatValue
 	4,  // 5: measurement.Measurement.upload_timestamp:type_name -> google.protobuf.Timestamp
-	6,  // 6: measurement.regex:extendee -> google.protobuf.FieldOptions
-	6,  // 7: measurement.measurement_options:extendee -> google.protobuf.FieldOptions
-	0,  // 8: measurement.measurement_options:type_name -> measurement.MeasurementOptions
-	7,  // 9: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
-	3,  // 10: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
-	2,  // 11: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
-	1,  // 12: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	8,  // [8:9] is the sub-list for extension type_name
-	6,  // [6:8] is the sub-list for extension extendee
+	6,  // 6: measurement.measurement_options:extendee -> google.protobuf.FieldOptions
+	0,  // 7: measurement.measurement_options:type_name -> measurement.MeasurementOptions
+	7,  // 8: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
+	3,  // 9: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
+	2,  // 10: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
+	1,  // 11: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
+	10, // [10:12] is the sub-list for method output_type
+	8,  // [8:10] is the sub-list for method input_type
+	7,  // [7:8] is the sub-list for extension type_name
+	6,  // [6:7] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
 }
 
@@ -374,7 +362,7 @@ func file_measurement_proto_init() {
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_measurement_proto_rawDesc), len(file_measurement_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
-			NumExtensions: 2,
+			NumExtensions: 1,
 			NumServices:   1,
 		},
 		GoTypes:           file_measurement_proto_goTypes,

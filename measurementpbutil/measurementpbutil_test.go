@@ -37,23 +37,28 @@ func getMeasurement(t *testing.T, deviceID string) *mpb.Measurement {
 
 func TestValidate(t *testing.T) {
 	cases := []struct {
-		name  string
-		id    string
-		valid bool
+		name    string
+		id      string
+		wantErr bool
 	}{
-		{"valid", "foo+.%~_-0123", true},
-		{"empty", "", false},
-		{"short", "a", false},
-		{"non_alpha_short", "7abcd", false},
-		{"illegal_chars", "foo`!@#$^&*()={}[]<>,?/|\\':;", false},
+		{"valid", "foo+.%~_-0123", false},
+		{"empty", "", true},
+		{"short", "a", true},
+		{"non_alpha_short", "7abcd", true},
+		{"illegal_chars", "foo`!@#$^&*()={}[]<>,?/|\\':;", true},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			m := getMeasurement(t, c.id)
 			err := Validate(m)
-			if valid := err == nil; valid != c.valid {
-				t.Errorf("got valid = %t, want %t (err = %v)", valid, c.valid, err)
+
+			if c.wantErr && err == nil {
+				t.Fatal("expected error, got nil")
+			}
+
+			if !c.wantErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 		})
 	}

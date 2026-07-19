@@ -14,6 +14,10 @@ import (
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+var (
+	deviceIDRegex = regexp.MustCompile(`^[a-z][a-z0-9+.%~_-]{2,254}$`)
+)
+
 func String(m mpb.Measurement) string {
 	var timestamp time.Time
 	if m.GetTimestamp() != nil {
@@ -66,53 +70,15 @@ func String(m mpb.Measurement) string {
 	return fmt.Sprintf("%s %s %s%s", m.GetDeviceId(), strings.Join(strs, ", "), timestamp.Format(time.RFC3339), delay)
 }
 
-// Validate validates each field of the Measurement against an optional regex provided in the .proto file.
-// It returns nil if all fields are valid and no other errors occurred along the way. Example of how to
-// provide a regex in a .proto file:
-//
-// string device_id = 1 [(regex) = "^[a-z][a-z0-9+.%~_-]{2,254}$"];
+// Validate validates each field of the Measurement.
 func Validate(m *mpb.Measurement) error {
-	// First validate any required fields because protoreflect.Message.Range only
-	// iterates over "populated" fields. From the documentation on Range:
-	//
-	//   "Range iterates over every populated field in an undefined order,
-	//   calling f for each field descriptor and value encountered."
-	//
-	// But for proto3 what does "populated" even mean? There's no longer any notion
-	// of required fields, and the zero value of a field may be a perfectly valid
-	// value. Why should the fact that the field contains the zero value mean that
-	// the caller doesn't get to operate on it?
-	//
-	// In this case the regex could fail the empty string if it so chose, but we don't
-	// get to do that because a field containing the empty string isn't "populated".
 	if m.GetDeviceId() == "" {
-		return fmt.Errorf("measurementpbutil: field \"device_id\" is required")
+		return fmt.Errorf("measurementpbutil: device_id is required")
 	}
 
-	var retErr error
-	r := m.ProtoReflect()
-	r.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
-		options := fd.Options()
-		if !proto.HasExtension(options, mpb.E_Regex) {
-			// The field doesn't have the regex extension, so nothing to validate.
-			return true
-		}
+	if !deviceIDRegex.MatchString(m.GetDeviceId()) {
+		return fmt.Errorf("measurementpbutil: device_id failed validation: %q", m.GetDeviceId())
+	}
 
-		// A field validated with a regex must be a string.
-		if fd.Kind() != protoreflect.StringKind {
-			panic(fmt.Sprintf("measurementpbutil: field is not a string: %q", fd.Name()))
-		}
-
-		// We know the value of this extension to be a string.
-		ext := proto.GetExtension(options, mpb.E_Regex)
-		re := regexp.MustCompile(ext.(string))
-
-		if !re.MatchString(v.String()) {
-			retErr = fmt.Errorf("measurementpbutil: field failed regex validation. Field: %q Value: %q Regex: %q", fd.Name(), v.String(), re)
-		}
-
-		return true
-	})
-
-	return retErr
+	return nil
 }

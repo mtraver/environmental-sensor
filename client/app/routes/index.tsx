@@ -28,10 +28,16 @@ const MEASUREMENT_FIELDS: TypedDocumentNode<MeasurementFieldsFragment> = gql`
     timestamp
     uploadTimestamp
     temp
+    pm1
     pm25
+    pm4
     pm10
-    rh
     aqi
+    rh
+    co2
+    vocIndex
+    noxIndex
+    hcho
   }
 `;
 

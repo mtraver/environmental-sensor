@@ -3,33 +3,21 @@ package db
 import (
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/mtraver/environmental-sensor/testutil"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func mustTimestampProto(t time.Time) *tspb.Timestamp {
-	pbts := tspb.New(t)
-	if err := pbts.CheckValid(); err != nil {
-		panic(err)
-	}
-
-	return pbts
-}
-
 var (
-	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
-	pbTimestamp   = mustTimestampProto(testTimestamp)
-
 	testMeasurement = mpb.Measurement{
 		DeviceId:  "foo",
-		Timestamp: pbTimestamp,
-		Temp:      wpb.Float(18.5),
+		Timestamp: testutil.TimestampProto,
+		Temp:      wpb.Float(18.3748),
 		Pm25:      wpb.Float(12.0),
 		Pm10:      wpb.Float(20.0),
 		Rh:        wpb.Float(55.0),
@@ -46,10 +34,10 @@ func TestNewInfluxDBPoints(t *testing.T) {
 			name: "many",
 			m:    testMeasurement,
 			want: []*write.Point{
-				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("temp", 18.5).SetTime(testTimestamp),
-				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("pm25", 12.0).SetTime(testTimestamp),
-				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("pm10", 20.0).SetTime(testTimestamp),
-				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("rh", 55.0).SetTime(testTimestamp),
+				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("temp", 18.3748).SetTime(testutil.Timestamp),
+				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("pm25", 12.0).SetTime(testutil.Timestamp),
+				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("pm10", 20.0).SetTime(testutil.Timestamp),
+				influxdb2.NewPointWithMeasurement("stat").AddTag("device", "foo").AddField("rh", 55.0).SetTime(testutil.Timestamp),
 			},
 		},
 	}
@@ -70,7 +58,7 @@ func TestNewInfluxDBPoints(t *testing.T) {
 				return c.want[i].FieldList()[0].Key < c.want[j].FieldList()[0].Key
 			})
 
-			if diff := cmp.Diff(got, c.want, cmp.AllowUnexported(write.Point{})); diff != "" {
+			if diff := cmp.Diff(got, c.want, cmp.AllowUnexported(write.Point{}), cmpopts.EquateApprox(0, 0.0001)); diff != "" {
 				t.Errorf("Unexpected result (-got +want):\n%s", diff)
 			}
 		})

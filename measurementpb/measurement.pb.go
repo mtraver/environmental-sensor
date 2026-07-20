@@ -29,9 +29,15 @@ type Measurement struct {
 	DeviceId  string                 `protobuf:"bytes,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
 	Timestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	Temp      *wrapperspb.FloatValue `protobuf:"bytes,3,opt,name=temp,proto3" json:"temp,omitempty"`
+	Pm1       *wrapperspb.FloatValue `protobuf:"bytes,8,opt,name=pm1,proto3" json:"pm1,omitempty"`
 	Pm25      *wrapperspb.FloatValue `protobuf:"bytes,5,opt,name=pm25,proto3" json:"pm25,omitempty"`
+	Pm4       *wrapperspb.FloatValue `protobuf:"bytes,9,opt,name=pm4,proto3" json:"pm4,omitempty"`
 	Pm10      *wrapperspb.FloatValue `protobuf:"bytes,6,opt,name=pm10,proto3" json:"pm10,omitempty"`
 	Rh        *wrapperspb.FloatValue `protobuf:"bytes,7,opt,name=rh,proto3" json:"rh,omitempty"`
+	VocIndex  *wrapperspb.FloatValue `protobuf:"bytes,10,opt,name=voc_index,json=vocIndex,proto3" json:"voc_index,omitempty"`
+	NoxIndex  *wrapperspb.FloatValue `protobuf:"bytes,11,opt,name=nox_index,json=noxIndex,proto3" json:"nox_index,omitempty"`
+	Hcho      *wrapperspb.FloatValue `protobuf:"bytes,12,opt,name=hcho,proto3" json:"hcho,omitempty"`
+	Co2       *wrapperspb.FloatValue `protobuf:"bytes,13,opt,name=co2,proto3" json:"co2,omitempty"` // Next: 14
 	// This field should only be set when the measurement is not uploaded
 	// immediately after it is taken, e.g. if the network goes down and
 	// measurements are stored locally before upload is attempted again later.
@@ -91,9 +97,23 @@ func (x *Measurement) GetTemp() *wrapperspb.FloatValue {
 	return nil
 }
 
+func (x *Measurement) GetPm1() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.Pm1
+	}
+	return nil
+}
+
 func (x *Measurement) GetPm25() *wrapperspb.FloatValue {
 	if x != nil {
 		return x.Pm25
+	}
+	return nil
+}
+
+func (x *Measurement) GetPm4() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.Pm4
 	}
 	return nil
 }
@@ -108,6 +128,34 @@ func (x *Measurement) GetPm10() *wrapperspb.FloatValue {
 func (x *Measurement) GetRh() *wrapperspb.FloatValue {
 	if x != nil {
 		return x.Rh
+	}
+	return nil
+}
+
+func (x *Measurement) GetVocIndex() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.VocIndex
+	}
+	return nil
+}
+
+func (x *Measurement) GetNoxIndex() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.NoxIndex
+	}
+	return nil
+}
+
+func (x *Measurement) GetHcho() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.Hcho
+	}
+	return nil
+}
+
+func (x *Measurement) GetCo2() *wrapperspb.FloatValue {
+	if x != nil {
+		return x.Co2
 	}
 	return nil
 }
@@ -211,14 +259,21 @@ var File_measurement_proto protoreflect.FileDescriptor
 
 const file_measurement_proto_rawDesc = "" +
 	"\n" +
-	"\x11measurement.proto\x12\vmeasurement\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xeb\x02\n" +
+	"\x11measurement.proto\x12\vmeasurement\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x9d\x05\n" +
 	"\vMeasurement\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x128\n" +
 	"\ttimestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12/\n" +
-	"\x04temp\x18\x03 \x01(\v2\x1b.google.protobuf.FloatValueR\x04temp\x12/\n" +
-	"\x04pm25\x18\x05 \x01(\v2\x1b.google.protobuf.FloatValueR\x04pm25\x12/\n" +
+	"\x04temp\x18\x03 \x01(\v2\x1b.google.protobuf.FloatValueR\x04temp\x12-\n" +
+	"\x03pm1\x18\b \x01(\v2\x1b.google.protobuf.FloatValueR\x03pm1\x12/\n" +
+	"\x04pm25\x18\x05 \x01(\v2\x1b.google.protobuf.FloatValueR\x04pm25\x12-\n" +
+	"\x03pm4\x18\t \x01(\v2\x1b.google.protobuf.FloatValueR\x03pm4\x12/\n" +
 	"\x04pm10\x18\x06 \x01(\v2\x1b.google.protobuf.FloatValueR\x04pm10\x12+\n" +
-	"\x02rh\x18\a \x01(\v2\x1b.google.protobuf.FloatValueR\x02rh\x12E\n" +
+	"\x02rh\x18\a \x01(\v2\x1b.google.protobuf.FloatValueR\x02rh\x128\n" +
+	"\tvoc_index\x18\n" +
+	" \x01(\v2\x1b.google.protobuf.FloatValueR\bvocIndex\x128\n" +
+	"\tnox_index\x18\v \x01(\v2\x1b.google.protobuf.FloatValueR\bnoxIndex\x12/\n" +
+	"\x04hcho\x18\f \x01(\v2\x1b.google.protobuf.FloatValueR\x04hcho\x12-\n" +
+	"\x03co2\x18\r \x01(\v2\x1b.google.protobuf.FloatValueR\x03co2\x12E\n" +
 	"\x10upload_timestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x0fuploadTimestamp\"1\n" +
 	"\x12GetDevicesResponse\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x03(\tR\bdeviceId\"/\n" +
@@ -251,21 +306,27 @@ var file_measurement_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),         // 5: google.protobuf.Empty
 }
 var file_measurement_proto_depIdxs = []int32{
-	3, // 0: measurement.Measurement.timestamp:type_name -> google.protobuf.Timestamp
-	4, // 1: measurement.Measurement.temp:type_name -> google.protobuf.FloatValue
-	4, // 2: measurement.Measurement.pm25:type_name -> google.protobuf.FloatValue
-	4, // 3: measurement.Measurement.pm10:type_name -> google.protobuf.FloatValue
-	4, // 4: measurement.Measurement.rh:type_name -> google.protobuf.FloatValue
-	3, // 5: measurement.Measurement.upload_timestamp:type_name -> google.protobuf.Timestamp
-	5, // 6: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
-	2, // 7: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
-	1, // 8: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
-	0, // 9: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3,  // 0: measurement.Measurement.timestamp:type_name -> google.protobuf.Timestamp
+	4,  // 1: measurement.Measurement.temp:type_name -> google.protobuf.FloatValue
+	4,  // 2: measurement.Measurement.pm1:type_name -> google.protobuf.FloatValue
+	4,  // 3: measurement.Measurement.pm25:type_name -> google.protobuf.FloatValue
+	4,  // 4: measurement.Measurement.pm4:type_name -> google.protobuf.FloatValue
+	4,  // 5: measurement.Measurement.pm10:type_name -> google.protobuf.FloatValue
+	4,  // 6: measurement.Measurement.rh:type_name -> google.protobuf.FloatValue
+	4,  // 7: measurement.Measurement.voc_index:type_name -> google.protobuf.FloatValue
+	4,  // 8: measurement.Measurement.nox_index:type_name -> google.protobuf.FloatValue
+	4,  // 9: measurement.Measurement.hcho:type_name -> google.protobuf.FloatValue
+	4,  // 10: measurement.Measurement.co2:type_name -> google.protobuf.FloatValue
+	3,  // 11: measurement.Measurement.upload_timestamp:type_name -> google.protobuf.Timestamp
+	5,  // 12: measurement.MeasurementService.GetDevices:input_type -> google.protobuf.Empty
+	2,  // 13: measurement.MeasurementService.GetLatest:input_type -> measurement.GetLatestRequest
+	1,  // 14: measurement.MeasurementService.GetDevices:output_type -> measurement.GetDevicesResponse
+	0,  // 15: measurement.MeasurementService.GetLatest:output_type -> measurement.Measurement
+	14, // [14:16] is the sub-list for method output_type
+	12, // [12:14] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_measurement_proto_init() }

@@ -10,9 +10,16 @@ message Measurement {
   string device_id = 1;
   google.protobuf.Timestamp timestamp = 2;
   google.protobuf.FloatValue temp = 3;
+  google.protobuf.FloatValue pm1 = 8;
   google.protobuf.FloatValue pm25 = 5;
+  google.protobuf.FloatValue pm4 = 9;
   google.protobuf.FloatValue pm10 = 6;
   google.protobuf.FloatValue rh = 7;
+  google.protobuf.FloatValue voc_index = 10;
+  google.protobuf.FloatValue nox_index = 11;
+  google.protobuf.FloatValue hcho = 12;
+  google.protobuf.FloatValue co2 = 13;
+  // Next: 14
 
   // This field should only be set when the measurement is not uploaded
   // immediately after it is taken, e.g. if the network goes down and

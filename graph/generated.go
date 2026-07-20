@@ -38,13 +38,19 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Measurement struct {
 		Aqi             func(childComplexity int) int
+		Co2             func(childComplexity int) int
 		DeviceID        func(childComplexity int) int
+		Hcho            func(childComplexity int) int
+		NoxIndex        func(childComplexity int) int
+		Pm1             func(childComplexity int) int
 		Pm10            func(childComplexity int) int
 		Pm25            func(childComplexity int) int
+		Pm4             func(childComplexity int) int
 		Rh              func(childComplexity int) int
 		Temp            func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 		UploadTimestamp func(childComplexity int) int
+		VocIndex        func(childComplexity int) int
 	}
 
 	Query struct {
@@ -86,12 +92,36 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Measurement.Aqi(childComplexity), true
+	case "Measurement.co2":
+		if e.ComplexityRoot.Measurement.Co2 == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.Co2(childComplexity), true
 	case "Measurement.deviceId":
 		if e.ComplexityRoot.Measurement.DeviceID == nil {
 			break
 		}
 
 		return e.ComplexityRoot.Measurement.DeviceID(childComplexity), true
+	case "Measurement.hcho":
+		if e.ComplexityRoot.Measurement.Hcho == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.Hcho(childComplexity), true
+	case "Measurement.noxIndex":
+		if e.ComplexityRoot.Measurement.NoxIndex == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.NoxIndex(childComplexity), true
+	case "Measurement.pm1":
+		if e.ComplexityRoot.Measurement.Pm1 == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.Pm1(childComplexity), true
 	case "Measurement.pm10":
 		if e.ComplexityRoot.Measurement.Pm10 == nil {
 			break
@@ -104,6 +134,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Measurement.Pm25(childComplexity), true
+	case "Measurement.pm4":
+		if e.ComplexityRoot.Measurement.Pm4 == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.Pm4(childComplexity), true
 	case "Measurement.rh":
 		if e.ComplexityRoot.Measurement.Rh == nil {
 			break
@@ -128,6 +164,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Measurement.UploadTimestamp(childComplexity), true
+	case "Measurement.vocIndex":
+		if e.ComplexityRoot.Measurement.VocIndex == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Measurement.VocIndex(childComplexity), true
 
 	case "Query.latest":
 		if e.ComplexityRoot.Query.Latest == nil {
@@ -243,14 +285,26 @@ func (ec *executionContext) childFields_Measurement(ctx context.Context, field g
 		return ec.fieldContext_Measurement_uploadTimestamp(ctx, field)
 	case "temp":
 		return ec.fieldContext_Measurement_temp(ctx, field)
+	case "pm1":
+		return ec.fieldContext_Measurement_pm1(ctx, field)
 	case "pm25":
 		return ec.fieldContext_Measurement_pm25(ctx, field)
+	case "pm4":
+		return ec.fieldContext_Measurement_pm4(ctx, field)
 	case "pm10":
 		return ec.fieldContext_Measurement_pm10(ctx, field)
-	case "rh":
-		return ec.fieldContext_Measurement_rh(ctx, field)
 	case "aqi":
 		return ec.fieldContext_Measurement_aqi(ctx, field)
+	case "rh":
+		return ec.fieldContext_Measurement_rh(ctx, field)
+	case "vocIndex":
+		return ec.fieldContext_Measurement_vocIndex(ctx, field)
+	case "noxIndex":
+		return ec.fieldContext_Measurement_noxIndex(ctx, field)
+	case "hcho":
+		return ec.fieldContext_Measurement_hcho(ctx, field)
+	case "co2":
+		return ec.fieldContext_Measurement_co2(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type Measurement", field.Name)
 }
@@ -559,6 +613,29 @@ func (ec *executionContext) fieldContext_Measurement_temp(_ context.Context, fie
 	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
+func (ec *executionContext) _Measurement_pm1(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_pm1(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Pm1, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_pm1(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
 func (ec *executionContext) _Measurement_pm25(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -579,6 +656,29 @@ func (ec *executionContext) _Measurement_pm25(ctx context.Context, field graphql
 	)
 }
 func (ec *executionContext) fieldContext_Measurement_pm25(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _Measurement_pm4(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_pm4(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Pm4, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_pm4(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
@@ -605,6 +705,29 @@ func (ec *executionContext) fieldContext_Measurement_pm10(_ context.Context, fie
 	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
+func (ec *executionContext) _Measurement_aqi(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_aqi(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Aqi, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_aqi(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
 func (ec *executionContext) _Measurement_rh(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -628,16 +751,16 @@ func (ec *executionContext) fieldContext_Measurement_rh(_ context.Context, field
 	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
-func (ec *executionContext) _Measurement_aqi(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+func (ec *executionContext) _Measurement_vocIndex(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.fieldContext_Measurement_aqi(ctx, field)
+			return ec.fieldContext_Measurement_vocIndex(ctx, field)
 		},
 		func(ctx context.Context) (any, error) {
-			return obj.Aqi, nil
+			return obj.VocIndex, nil
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
@@ -647,7 +770,76 @@ func (ec *executionContext) _Measurement_aqi(ctx context.Context, field graphql.
 		false,
 	)
 }
-func (ec *executionContext) fieldContext_Measurement_aqi(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Measurement_vocIndex(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _Measurement_noxIndex(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_noxIndex(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.NoxIndex, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_noxIndex(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _Measurement_hcho(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_hcho(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Hcho, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_hcho(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _Measurement_co2(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Measurement_co2(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Co2, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *float64) graphql.Marshaler {
+			return ec.marshalOFloat2ᚖfloat64(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Measurement_co2(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Measurement", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
@@ -1902,8 +2094,18 @@ func (ec *executionContext) _Measurement(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
+		case "pm1":
+			out.Values[i] = ec._Measurement_pm1(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
 		case "pm25":
 			out.Values[i] = ec._Measurement_pm25(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "pm4":
+			out.Values[i] = ec._Measurement_pm4(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -1912,13 +2114,33 @@ func (ec *executionContext) _Measurement(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
+		case "aqi":
+			out.Values[i] = ec._Measurement_aqi(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
 		case "rh":
 			out.Values[i] = ec._Measurement_rh(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
-		case "aqi":
-			out.Values[i] = ec._Measurement_aqi(ctx, field, obj)
+		case "vocIndex":
+			out.Values[i] = ec._Measurement_vocIndex(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "noxIndex":
+			out.Values[i] = ec._Measurement_noxIndex(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "hcho":
+			out.Values[i] = ec._Measurement_hcho(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "co2":
+			out.Values[i] = ec._Measurement_co2(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}

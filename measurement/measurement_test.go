@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"github.com/mtraver/environmental-sensor/testutil"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -17,12 +18,6 @@ func floatPtr(f float32) *float32 {
 }
 
 var (
-	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
-	pbTimestamp   = mustTimestampProto(testTimestamp)
-
-	testTimestamp2 = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
-	pbTimestamp2   = mustTimestampProto(testTimestamp2)
-
 	// These cases are used to test conversion in both directions between the generated
 	// Measurement type and StorableMeasurement.
 	conversionCases = []struct {
@@ -31,45 +26,67 @@ var (
 		sm    StorableMeasurement
 		valid bool
 	}{
-		{"valid_no_upload_timestamp",
+		{
+			"valid no upload timestamp",
 			mpb.Measurement{
 				DeviceId:  "foo",
-				Timestamp: pbTimestamp,
-				Temp:      wpb.Float(18.5),
+				Timestamp: testutil.TimestampProto,
+				Temp:      wpb.Float(18.3748),
 				Pm25:      wpb.Float(12.0),
 				Pm10:      wpb.Float(20.0),
 				Rh:        wpb.Float(55.0),
 			},
 			StorableMeasurement{
 				DeviceID:  "foo",
-				Timestamp: testTimestamp,
-				Temp:      floatPtr(18.5),
+				Timestamp: testutil.Timestamp,
+				Temp:      floatPtr(18.3748),
 				PM25:      floatPtr(12.0),
 				PM10:      floatPtr(20.0),
 				RH:        floatPtr(55.0),
 			},
 			true,
 		},
-		{"valid_with_upload_timestamp",
+		{
+			"valid with upload timestamp",
 			mpb.Measurement{
 				DeviceId:        "foo",
-				Timestamp:       pbTimestamp,
-				UploadTimestamp: pbTimestamp2,
-				Temp:            wpb.Float(18.5),
+				Timestamp:       testutil.TimestampProto,
+				UploadTimestamp: testutil.TimestampProto2,
+				Temp:            wpb.Float(18.3748),
 			},
 			StorableMeasurement{
 				DeviceID:        "foo",
-				Timestamp:       testTimestamp,
-				UploadTimestamp: testTimestamp2,
-				Temp:            floatPtr(18.5),
+				Timestamp:       testutil.Timestamp,
+				UploadTimestamp: testutil.Timestamp2,
+				Temp:            floatPtr(18.3748),
 			},
 			true,
 		},
-		{"nil_timestamp",
+		{
+			"all measurements set",
+			testutil.FullyPopulatedMeasurementProto(),
+			StorableMeasurement{
+				DeviceID:  "foo",
+				Timestamp: testutil.Timestamp,
+				Temp:      floatPtr(18.3748),
+				PM1:       floatPtr(1.0),
+				PM25:      floatPtr(12.0),
+				PM4:       floatPtr(15.0),
+				PM10:      floatPtr(20.0),
+				RH:        floatPtr(57.0),
+				VOCIndex:  floatPtr(80),
+				NOxIndex:  floatPtr(75),
+				HCHO:      floatPtr(2),
+				CO2:       floatPtr(425),
+			},
+			true,
+		},
+		{
+			"nil timestamp",
 			mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: nil,
-				Temp:      wpb.Float(18.5),
+				Temp:      wpb.Float(18.3748),
 			},
 			StorableMeasurement{},
 			false,
@@ -77,49 +94,63 @@ var (
 	}
 )
 
-func mustTimestampProto(t time.Time) *tspb.Timestamp {
-	pbts := tspb.New(t)
-	if err := pbts.CheckValid(); err != nil {
-		panic(err)
-	}
-
-	return pbts
-}
-
 func TestStorableMeasurementString(t *testing.T) {
 	cases := []struct {
 		name string
 		sm   StorableMeasurement
 		want string
 	}{
-		{"empty", StorableMeasurement{}, " [no measurements] 0001-01-01T00:00:00Z"},
-		{"no_upload_timestamp",
+		{
+			"empty",
+			StorableMeasurement{},
+			" [no measurements] 0001-01-01T00:00:00Z",
+		},
+		{
+			"no upload timestamp",
 			StorableMeasurement{
 				DeviceID:  "foo",
-				Timestamp: testTimestamp,
+				Timestamp: testutil.Timestamp,
 				Temp:      floatPtr(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z",
 		},
-		{"upload_timestamp",
+		{
+			"with upload timestamp",
 			StorableMeasurement{
 				DeviceID:        "foo",
-				Timestamp:       testTimestamp,
-				UploadTimestamp: testTimestamp2,
+				Timestamp:       testutil.Timestamp,
+				UploadTimestamp: testutil.Timestamp2,
 				Temp:            floatPtr(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
 		},
-		{"multiple_measurements_set",
+		{
+			"two measurements set",
 			StorableMeasurement{
 				DeviceID:  "foo",
-				Timestamp: testTimestamp,
+				Timestamp: testutil.Timestamp,
 				Temp:      floatPtr(18.3748),
-				PM25:      floatPtr(12.0),
-				PM10:      floatPtr(20.0),
 				RH:        floatPtr(57.0),
 			},
-			"foo PM10=20.000μg/m³, PM2.5=12.000μg/m³, RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
+			"foo RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
+		},
+		{
+			"all measurements set",
+			StorableMeasurement{
+				DeviceID:  "foo",
+				Timestamp: testutil.Timestamp,
+				Temp:      floatPtr(18.3748),
+				PM1:       floatPtr(1.0),
+				PM25:      floatPtr(12.0),
+				PM4:       floatPtr(15.0),
+				PM10:      floatPtr(20.0),
+				RH:        floatPtr(57.0),
+				VOCIndex:  floatPtr(80),
+				NOxIndex:  floatPtr(75),
+				HCHO:      floatPtr(2),
+				CO2:       floatPtr(425),
+			},
+			"foo CO₂=425.000ppm, HCHO=2.000ppb, NOₓIndex=75.000, PM1.0=1.000μg/m³, PM10=20.000μg/m³, PM2.5=12.000μg/m³, PM4=15.000μg/m³, RH=57.000%, VOCIndex=80.000, temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 	}
 
@@ -183,7 +214,7 @@ func TestDBKey(t *testing.T) {
 	sm := StorableMeasurement{
 		DeviceID:  "foo",
 		Timestamp: time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC),
-		Temp:      floatPtr(18.5),
+		Temp:      floatPtr(18.3748),
 	}
 
 	want := "foo#2018-03-25T00:00:00Z"

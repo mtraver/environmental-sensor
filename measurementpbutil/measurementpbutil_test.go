@@ -2,36 +2,18 @@ package measurementpbutil
 
 import (
 	"testing"
-	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	tspb "google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/mtraver/environmental-sensor/testutil"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
-
-var (
-	testTimestamp = time.Date(2018, time.March, 25, 0, 0, 0, 0, time.UTC)
-	pbTimestamp   = mustTimestampProto(testTimestamp)
-
-	testTimestamp2 = time.Date(2018, time.March, 25, 14, 40, 0, 0, time.UTC)
-	pbTimestamp2   = mustTimestampProto(testTimestamp2)
-)
-
-func mustTimestampProto(t time.Time) *tspb.Timestamp {
-	pbts := tspb.New(t)
-	if err := pbts.CheckValid(); err != nil {
-		panic(err)
-	}
-
-	return pbts
-}
 
 func getMeasurement(t *testing.T, deviceID string) *mpb.Measurement {
 	t.Helper()
 	return &mpb.Measurement{
 		DeviceId:  deviceID,
-		Timestamp: pbTimestamp,
-		Temp:      wpb.Float(18.5),
+		Timestamp: testutil.TimestampProto,
+		Temp:      wpb.Float(18.3748),
 	}
 }
 
@@ -70,34 +52,46 @@ func TestString(t *testing.T) {
 		m    mpb.Measurement
 		want string
 	}{
-		{"empty", mpb.Measurement{}, " [no measurements] 0001-01-01T00:00:00Z"},
-		{"no_upload_timestamp",
+		{
+			"empty",
+			mpb.Measurement{},
+			" [no measurements] 0001-01-01T00:00:00Z",
+		},
+		{
+			"no upload timestamp",
 			mpb.Measurement{
 				DeviceId:  "foo",
-				Timestamp: pbTimestamp,
+				Timestamp: testutil.TimestampProto,
 				Temp:      wpb.Float(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z",
 		},
-		{"upload_timestamp",
+		{
+			"with upload timestamp",
 			mpb.Measurement{
 				DeviceId:        "foo",
-				Timestamp:       pbTimestamp,
-				UploadTimestamp: pbTimestamp2,
+				Timestamp:       testutil.TimestampProto,
+				UploadTimestamp: testutil.TimestampProto2,
 				Temp:            wpb.Float(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z (14h40m0s upload delay)",
 		},
-		{"multiple_measurements_set",
+		{
+			"multiple measurements set",
 			mpb.Measurement{
 				DeviceId:  "foo",
-				Timestamp: pbTimestamp,
+				Timestamp: testutil.TimestampProto,
 				Temp:      wpb.Float(18.3748),
 				Pm25:      wpb.Float(12.0),
 				Pm10:      wpb.Float(20.0),
 				Rh:        wpb.Float(57.0),
 			},
 			"foo PM10=20.000μg/m³, PM2.5=12.000μg/m³, RH=57.000%, temp=18.375°C 2018-03-25T00:00:00Z",
+		},
+		{
+			"all measurements set",
+			testutil.FullyPopulatedMeasurementProto(),
+			"foo CO₂=425.000ppm, HCHO=2.000ppb, NOₓIndex=75.000, PM1.0=1.000μg/m³, PM10=20.000μg/m³, PM2.5=12.000μg/m³, PM4=15.000μg/m³, RH=57.000%, VOCIndex=80.000, temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 	}
 

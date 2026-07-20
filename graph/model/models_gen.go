@@ -7,10 +7,16 @@ type Measurement struct {
 	Timestamp       string   `json:"timestamp"`
 	UploadTimestamp string   `json:"uploadTimestamp"`
 	Temp            *float64 `json:"temp,omitempty"`
+	Pm1             *float64 `json:"pm1,omitempty"`
 	Pm25            *float64 `json:"pm25,omitempty"`
+	Pm4             *float64 `json:"pm4,omitempty"`
 	Pm10            *float64 `json:"pm10,omitempty"`
-	Rh              *float64 `json:"rh,omitempty"`
 	Aqi             *float64 `json:"aqi,omitempty"`
+	Rh              *float64 `json:"rh,omitempty"`
+	VocIndex        *float64 `json:"vocIndex,omitempty"`
+	NoxIndex        *float64 `json:"noxIndex,omitempty"`
+	Hcho            *float64 `json:"hcho,omitempty"`
+	Co2             *float64 `json:"co2,omitempty"`
 }
 
 type Query struct {

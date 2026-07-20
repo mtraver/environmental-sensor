@@ -2,8 +2,14 @@ export const METRIC_ORDER = [
   "temp",
   "rh",
   "aqi",
+  "pm1",
   "pm25",
+  "pm4",
   "pm10",
+  "co2",
+  "vocIndex",
+  "noxIndex",
+  "hcho",
 ] as const satisfies readonly string[];
 export type MetricKey = (typeof METRIC_ORDER)[number];
 
@@ -29,6 +35,13 @@ export interface MetricConfig {
   cellRenderer?: CellRenderer;
 }
 
+function pmYDomain(
+  domain: readonly [number, number],
+): readonly [number, number] {
+  const [min, max] = domain;
+  return [Math.floor(min * 0.9), Math.ceil(max * 1.1)];
+}
+
 export const METRICS: Record<MetricKey, MetricConfig> = {
   temp: {
     label: "Temperature",
@@ -50,19 +63,33 @@ export const METRICS: Record<MetricKey, MetricConfig> = {
       Math.min(100, Math.ceil(max * 2) / 2 + 1),
     ],
   },
+  pm1: {
+    label: "PM1.0",
+    shortLabel: "PM1.0",
+    unit: "µg/m³",
+    decimals: 2,
+    yDomain: pmYDomain,
+  },
   pm25: {
     label: "PM2.5",
     shortLabel: "PM2.5",
     unit: "µg/m³",
     decimals: 2,
-    yDomain: ([min, max]) => [Math.floor(min * 0.9), Math.ceil(max * 1.1)],
+    yDomain: pmYDomain,
+  },
+  pm4: {
+    label: "PM4",
+    shortLabel: "PM4",
+    unit: "µg/m³",
+    decimals: 2,
+    yDomain: pmYDomain,
   },
   pm10: {
     label: "PM10",
     shortLabel: "PM10",
     unit: "µg/m³",
     decimals: 2,
-    yDomain: ([min, max]) => [Math.floor(min * 0.9), Math.ceil(max * 1.1)],
+    yDomain: pmYDomain,
   },
   aqi: {
     label: "AQI",
@@ -80,5 +107,45 @@ export const METRICS: Record<MetricKey, MetricConfig> = {
         : [low, high];
     },
     cellRenderer: "aqiBadge",
+  },
+  co2: {
+    label: "CO₂",
+    shortLabel: "CO₂",
+    unit: "ppm",
+    decimals: 0,
+    yDomain: ([min, max]) => [
+      Math.floor(min * 2) / 2 - 1,
+      Math.ceil(max * 2) / 2 + 1,
+    ],
+  },
+  vocIndex: {
+    label: "VOC Index",
+    shortLabel: "VOC",
+    unit: "",
+    decimals: 2,
+    yDomain: ([min, max]) => [
+      Math.floor(min * 2) / 2 - 0.5,
+      Math.ceil(max * 2) / 2 + 0.5,
+    ],
+  },
+  noxIndex: {
+    label: "NOₓ Index",
+    shortLabel: "NOₓ",
+    unit: "",
+    decimals: 2,
+    yDomain: ([min, max]) => [
+      Math.floor(min * 2) / 2 - 0.5,
+      Math.ceil(max * 2) / 2 + 0.5,
+    ],
+  },
+  hcho: {
+    label: "Formaldehyde (HCHO)",
+    shortLabel: "HCHO",
+    unit: "ppb",
+    decimals: 2,
+    yDomain: ([min, max]) => [
+      Math.floor(min * 2) / 2 - 0.5,
+      Math.ceil(max * 2) / 2 + 0.5,
+    ],
   },
 };

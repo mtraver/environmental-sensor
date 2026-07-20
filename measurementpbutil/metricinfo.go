@@ -13,8 +13,16 @@ var Metrics = map[string]MetricInfo{
 		Name: "temp",
 		Unit: "°C",
 	},
+	"pm1": {
+		Name: "PM1.0",
+		Unit: "μg/m³",
+	},
 	"pm25": {
 		Name: "PM2.5",
+		Unit: "μg/m³",
+	},
+	"pm4": {
+		Name: "PM4",
 		Unit: "μg/m³",
 	},
 	"pm10": {
@@ -24,5 +32,21 @@ var Metrics = map[string]MetricInfo{
 	"rh": {
 		Name: "RH",
 		Unit: "%",
+	},
+	"voc": {
+		Name: "VOCIndex",
+		Unit: "",
+	},
+	"nox": {
+		Name: "NOₓIndex",
+		Unit: "",
+	},
+	"hcho": {
+		Name: "HCHO",
+		Unit: "ppb",
+	},
+	"co2": {
+		Name: "CO₂",
+		Unit: "ppm",
 	},
 }

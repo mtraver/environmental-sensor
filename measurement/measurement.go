@@ -96,10 +96,16 @@ type StorableMeasurement struct {
 
 	// These metrics are the raw values reported by sensors. They must match the
 	// metrics defined in the generated Measurement type (from measurement.proto).
-	Temp *float32 `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
-	PM25 *float32 `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
-	PM10 *float32 `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
-	RH   *float32 `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
+	Temp     *float32 `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
+	PM1      *float32 `json:"pm1,omitempty" datastore:"pm1,omitempty" metric:"PM1.0" unit:"μg/m³"`
+	PM25     *float32 `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
+	PM4      *float32 `json:"pm4,omitempty" datastore:"pm4,omitempty" metric:"PM4" unit:"μg/m³"`
+	PM10     *float32 `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
+	RH       *float32 `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
+	VOCIndex *float32 `json:"voc_index,omitempty" datastore:"voc_index,omitempty" metric:"VOCIndex" unit:""`
+	NOxIndex *float32 `json:"nox_index,omitempty" datastore:"nox_index,omitempty" metric:"NOₓIndex" unit:""`
+	HCHO     *float32 `json:"hcho,omitempty" datastore:"hcho,omitempty" metric:"HCHO" unit:"ppb"`
+	CO2      *float32 `json:"co2,omitempty" datastore:"co2,omitempty" metric:"CO₂" unit:"ppm"`
 
 	// These metrics are derived from the raw values. They're not stored in the database
 	// (the `datastore` tag is set to "-") but they are passed to the frontend in JSON form.
@@ -134,53 +140,74 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 	if err := m.GetTimestamp().CheckValid(); err != nil {
 		return StorableMeasurement{}, err
 	}
-	timestamp := m.GetTimestamp().AsTime()
+
+	sm := StorableMeasurement{
+		DeviceID:  m.GetDeviceId(),
+		Timestamp: m.GetTimestamp().AsTime(),
+	}
 
 	// The generated protobuf code uses a pointer to tspb.Timestamp, but in StorableMeasurement
 	// we use golang's time.Time. If the protobuf field is nil then use the zero value of time.Time.
 	// cloud.google.com/go/datastore calls IsZero() on time.Time values so omitempty does work.
-	var uploadTimestamp time.Time
-	pbUploadTimestamp := m.GetUploadTimestamp()
-	if pbUploadTimestamp != nil {
+	if pbUploadTimestamp := m.GetUploadTimestamp(); pbUploadTimestamp != nil {
 		if err := pbUploadTimestamp.CheckValid(); err != nil {
 			return StorableMeasurement{}, err
 		}
-		uploadTimestamp = pbUploadTimestamp.AsTime()
+
+		sm.UploadTimestamp = pbUploadTimestamp.AsTime()
 	}
 
-	var temp *float32
 	if m.GetTemp() != nil {
 		v := m.GetTemp().GetValue()
-		temp = &v
+		sm.Temp = &v
 	}
 
-	var pm25 *float32
+	if m.GetPm1() != nil {
+		v := m.GetPm1().GetValue()
+		sm.PM1 = &v
+	}
+
 	if m.GetPm25() != nil {
 		v := m.GetPm25().GetValue()
-		pm25 = &v
+		sm.PM25 = &v
 	}
 
-	var pm10 *float32
+	if m.GetPm4() != nil {
+		v := m.GetPm4().GetValue()
+		sm.PM4 = &v
+	}
+
 	if m.GetPm10() != nil {
 		v := m.GetPm10().GetValue()
-		pm10 = &v
+		sm.PM10 = &v
 	}
 
-	var rh *float32
 	if m.GetRh() != nil {
 		v := m.GetRh().GetValue()
-		rh = &v
+		sm.RH = &v
 	}
 
-	return StorableMeasurement{
-		DeviceID:        m.GetDeviceId(),
-		Timestamp:       timestamp,
-		UploadTimestamp: uploadTimestamp,
-		Temp:            temp,
-		PM25:            pm25,
-		PM10:            pm10,
-		RH:              rh,
-	}, nil
+	if m.GetVocIndex() != nil {
+		v := m.GetVocIndex().GetValue()
+		sm.VOCIndex = &v
+	}
+
+	if m.GetNoxIndex() != nil {
+		v := m.GetNoxIndex().GetValue()
+		sm.NOxIndex = &v
+	}
+
+	if m.GetHcho() != nil {
+		v := m.GetHcho().GetValue()
+		sm.HCHO = &v
+	}
+
+	if m.GetCo2() != nil {
+		v := m.GetCo2().GetValue()
+		sm.CO2 = &v
+	}
+
+	return sm, nil
 }
 
 // NewMeasurement converts a StorableMeasurement into the generated Measurement type,
@@ -192,44 +219,58 @@ func NewMeasurement(sm *StorableMeasurement) (mpb.Measurement, error) {
 		return mpb.Measurement{}, ErrZeroTimestamp
 	}
 
-	timestamp := tspb.New(sm.Timestamp)
+	m := mpb.Measurement{
+		DeviceId:  sm.DeviceID,
+		Timestamp: tspb.New(sm.Timestamp),
+	}
 
 	// The upload timestamp may be the zero timestamp. If it is, then the upload timestamp
 	// should be nil in the generated Measurement type.
-	var uploadTimestamp *tspb.Timestamp
 	if !sm.UploadTimestamp.IsZero() {
-		uploadTimestamp = tspb.New(sm.UploadTimestamp)
+		m.UploadTimestamp = tspb.New(sm.UploadTimestamp)
 	}
 
-	var temp *wpb.FloatValue
 	if sm.Temp != nil {
-		temp = wpb.Float(*sm.Temp)
+		m.Temp = wpb.Float(*sm.Temp)
 	}
 
-	var pm25 *wpb.FloatValue
+	if sm.PM1 != nil {
+		m.Pm1 = wpb.Float(*sm.PM1)
+	}
+
 	if sm.PM25 != nil {
-		pm25 = wpb.Float(*sm.PM25)
+		m.Pm25 = wpb.Float(*sm.PM25)
 	}
 
-	var pm10 *wpb.FloatValue
+	if sm.PM4 != nil {
+		m.Pm4 = wpb.Float(*sm.PM4)
+	}
+
 	if sm.PM10 != nil {
-		pm10 = wpb.Float(*sm.PM10)
+		m.Pm10 = wpb.Float(*sm.PM10)
 	}
 
-	var rh *wpb.FloatValue
 	if sm.RH != nil {
-		rh = wpb.Float(*sm.RH)
+		m.Rh = wpb.Float(*sm.RH)
 	}
 
-	return mpb.Measurement{
-		DeviceId:        sm.DeviceID,
-		Timestamp:       timestamp,
-		UploadTimestamp: uploadTimestamp,
-		Temp:            temp,
-		Pm25:            pm25,
-		Pm10:            pm10,
-		Rh:              rh,
-	}, nil
+	if sm.VOCIndex != nil {
+		m.VocIndex = wpb.Float(*sm.VOCIndex)
+	}
+
+	if sm.NOxIndex != nil {
+		m.NoxIndex = wpb.Float(*sm.NOxIndex)
+	}
+
+	if sm.HCHO != nil {
+		m.Hcho = wpb.Float(*sm.HCHO)
+	}
+
+	if sm.CO2 != nil {
+		m.Co2 = wpb.Float(*sm.CO2)
+	}
+
+	return m, nil
 }
 
 // DBKey returns a string key suitable for Datastore. It promotes Device ID and timestamp into the key.

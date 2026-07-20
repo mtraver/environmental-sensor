@@ -31,9 +31,15 @@ func String(m mpb.Measurement) string {
 
 	values := map[string]*wpb.FloatValue{
 		"temp": m.GetTemp(),
+		"pm1":  m.GetPm1(),
 		"pm25": m.GetPm25(),
+		"pm4":  m.GetPm4(),
 		"pm10": m.GetPm10(),
 		"rh":   m.GetRh(),
+		"voc":  m.GetVocIndex(),
+		"nox":  m.GetNoxIndex(),
+		"hcho": m.GetHcho(),
+		"co2":  m.GetCo2(),
 	}
 
 	var strs []string

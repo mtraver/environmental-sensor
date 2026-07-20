@@ -11,8 +11,14 @@ type Measurement {
   uploadTimestamp: DateTime!
 
   temp: Float
+  pm1: Float
   pm25: Float
+  pm4: Float
   pm10: Float
-  rh: Float
   aqi: Float
+  rh: Float
+  vocIndex: Float
+  noxIndex: Float
+  hcho: Float
+  co2: Float
 }

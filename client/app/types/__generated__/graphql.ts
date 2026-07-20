@@ -18,13 +18,19 @@ export type Scalars = {
 export type Measurement = {
   __typename: 'Measurement';
   aqi: Maybe<Scalars['Float']['output']>;
+  co2: Maybe<Scalars['Float']['output']>;
   deviceId: Scalars['String']['output'];
+  hcho: Maybe<Scalars['Float']['output']>;
+  noxIndex: Maybe<Scalars['Float']['output']>;
+  pm1: Maybe<Scalars['Float']['output']>;
+  pm4: Maybe<Scalars['Float']['output']>;
   pm10: Maybe<Scalars['Float']['output']>;
   pm25: Maybe<Scalars['Float']['output']>;
   rh: Maybe<Scalars['Float']['output']>;
   temp: Maybe<Scalars['Float']['output']>;
   timestamp: Scalars['DateTime']['output'];
   uploadTimestamp: Scalars['DateTime']['output'];
+  vocIndex: Maybe<Scalars['Float']['output']>;
 };
 
 export type Query = {
@@ -39,7 +45,7 @@ export type QueryMeasurementsArgs = {
   startTime: Scalars['DateTime']['input'];
 };
 
-export type MeasurementFieldsFragment = { __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm25: number | null, pm10: number | null, rh: number | null, aqi: number | null };
+export type MeasurementFieldsFragment = { __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm1: number | null, pm25: number | null, pm4: number | null, pm10: number | null, aqi: number | null, rh: number | null, co2: number | null, vocIndex: number | null, noxIndex: number | null, hcho: number | null };
 
 export type GetMeasurementsQueryVariables = Exact<{
   startTime: Scalars['DateTime']['input'];
@@ -47,9 +53,9 @@ export type GetMeasurementsQueryVariables = Exact<{
 }>;
 
 
-export type GetMeasurementsQuery = { measurements: Array<{ __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm25: number | null, pm10: number | null, rh: number | null, aqi: number | null }> };
+export type GetMeasurementsQuery = { measurements: Array<{ __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm1: number | null, pm25: number | null, pm4: number | null, pm10: number | null, aqi: number | null, rh: number | null, co2: number | null, vocIndex: number | null, noxIndex: number | null, hcho: number | null }> };
 
 export type LatestQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type LatestQuery = { latest: Array<{ __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm25: number | null, pm10: number | null, rh: number | null, aqi: number | null }> };
+export type LatestQuery = { latest: Array<{ __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm1: number | null, pm25: number | null, pm4: number | null, pm10: number | null, aqi: number | null, rh: number | null, co2: number | null, vocIndex: number | null, noxIndex: number | null, hcho: number | null }> };

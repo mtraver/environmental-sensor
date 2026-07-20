@@ -11,10 +11,16 @@ func storableMeasurementToGQLMeasurement(sm measurement.StorableMeasurement) *mo
 		Timestamp:       timeToGQLTimestamp(sm.Timestamp),
 		UploadTimestamp: timeToGQLTimestamp(sm.UploadTimestamp),
 		Temp:            float32PtrToFloat64Ptr(sm.Temp),
+		Pm1:             float32PtrToFloat64Ptr(sm.PM1),
 		Pm25:            float32PtrToFloat64Ptr(sm.PM25),
+		Pm4:             float32PtrToFloat64Ptr(sm.PM4),
 		Pm10:            float32PtrToFloat64Ptr(sm.PM10),
-		Rh:              float32PtrToFloat64Ptr(sm.RH),
 		Aqi:             float32PtrToFloat64Ptr(sm.AQI),
+		Rh:              float32PtrToFloat64Ptr(sm.RH),
+		VocIndex:        float32PtrToFloat64Ptr(sm.VOCIndex),
+		NoxIndex:        float32PtrToFloat64Ptr(sm.NOxIndex),
+		Hcho:            float32PtrToFloat64Ptr(sm.HCHO),
+		Co2:             float32PtrToFloat64Ptr(sm.CO2),
 	}
 }
 

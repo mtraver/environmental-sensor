@@ -303,33 +303,6 @@ func (sm StorableMeasurement) ValueMap() map[string]float32 {
 	return m
 }
 
-// StringValueMap returns a map from metric name (as defined in struct tags) to
-// string-formatted values including the unit. Nil fields are not included.
-func (sm StorableMeasurement) StringValueMap() map[string]string {
-	m := make(map[string]string)
-
-	v := reflect.ValueOf(sm)
-	for i := 0; i < v.NumField(); i++ {
-		// The metric tag must be present. It marks a field as a measurement.
-		metric := getMetric(v, i)
-		if metric == "" {
-			continue
-		}
-
-		// The field must be a float32 pointer.
-		f, ok := getValue(v, i)
-		if !ok || f == nil {
-			continue
-		}
-
-		// There may be no unit tag, which is fine.
-		unit := getUnit(v, i)
-		m[metric] = fmt.Sprintf("%.3f%s", *f, unit)
-	}
-
-	return m
-}
-
 func (sm *StorableMeasurement) FillDerivedMetrics() {
 	if sm.PM25 != nil {
 		v := float32(aqi.PM25(*sm.PM25))

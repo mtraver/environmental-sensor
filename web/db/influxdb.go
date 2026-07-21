@@ -15,16 +15,13 @@ func newInfluxDBPoints(m *mpb.Measurement) ([]*write.Point, error) {
 		return nil, err
 	}
 
-	vm := sm.ValueMap()
-	points := make([]*write.Point, 0, len(vm))
-	for name, v := range vm {
-		p := influxdb2.NewPointWithMeasurement("stat")
-		if metric, ok := measurement.GetMetric(name); ok {
-			p = p.AddField(metric.Abbrv, v)
-		} else {
-			p = p.AddField(name, v)
+	points := []*write.Point{}
+	for k, v := range sm.ValueMap() {
+		if v == nil {
+			continue
 		}
 
+		p := influxdb2.NewPointWithMeasurement("stat").AddField(string(k), *v)
 		points = append(points, p.AddTag("device", sm.DeviceID).SetTime(sm.Timestamp))
 	}
 

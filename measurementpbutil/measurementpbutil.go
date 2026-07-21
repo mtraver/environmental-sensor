@@ -9,6 +9,7 @@ import (
 	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"github.com/mtraver/environmental-sensor/metric"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -29,17 +30,17 @@ func String(m mpb.Measurement) string {
 		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
 	}
 
-	values := map[string]*wpb.FloatValue{
-		"temp": m.GetTemp(),
-		"pm1":  m.GetPm1(),
-		"pm25": m.GetPm25(),
-		"pm4":  m.GetPm4(),
-		"pm10": m.GetPm10(),
-		"rh":   m.GetRh(),
-		"voc":  m.GetVocIndex(),
-		"nox":  m.GetNoxIndex(),
-		"hcho": m.GetHcho(),
-		"co2":  m.GetCo2(),
+	values := map[metric.Key]*wpb.FloatValue{
+		metric.Temp:     m.GetTemp(),
+		metric.PM1:      m.GetPm1(),
+		metric.PM25:     m.GetPm25(),
+		metric.PM4:      m.GetPm4(),
+		metric.PM10:     m.GetPm10(),
+		metric.RH:       m.GetRh(),
+		metric.VOCIndex: m.GetVocIndex(),
+		metric.NOxIndex: m.GetNoxIndex(),
+		metric.HCHO:     m.GetHcho(),
+		metric.CO2:      m.GetCo2(),
 	}
 
 	var strs []string
@@ -48,7 +49,7 @@ func String(m mpb.Measurement) string {
 			continue
 		}
 
-		info := Metrics[key]
+		info := metric.All[key]
 		strs = append(strs, fmt.Sprintf("%s=%.3f%s", info.Name, v.GetValue(), info.Unit))
 	}
 	sort.Strings(strs)

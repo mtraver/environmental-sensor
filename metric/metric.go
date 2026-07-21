@@ -1,6 +1,22 @@
-package measurementpbutil
+package metric
 
-type MetricInfo struct {
+type Key string
+
+const (
+	Temp     Key = "temp"
+	PM1      Key = "pm1"
+	PM25     Key = "pm25"
+	PM4      Key = "pm4"
+	PM10     Key = "pm10"
+	RH       Key = "rh"
+	VOCIndex Key = "vocIndex"
+	NOxIndex Key = "noxIndex"
+	HCHO     Key = "hcho"
+	CO2      Key = "co2"
+	AQI      Key = "aqi"
+)
+
+type Info struct {
 	// The metric's name, e.g. "PM2.5"
 	Name string
 
@@ -8,44 +24,44 @@ type MetricInfo struct {
 	Unit string
 }
 
-var Metrics = map[string]MetricInfo{
-	"temp": {
+var All = map[Key]Info{
+	Temp: {
 		Name: "temp",
 		Unit: "°C",
 	},
-	"pm1": {
+	PM1: {
 		Name: "PM1.0",
 		Unit: "μg/m³",
 	},
-	"pm25": {
+	PM25: {
 		Name: "PM2.5",
 		Unit: "μg/m³",
 	},
-	"pm4": {
+	PM4: {
 		Name: "PM4",
 		Unit: "μg/m³",
 	},
-	"pm10": {
+	PM10: {
 		Name: "PM10",
 		Unit: "μg/m³",
 	},
-	"rh": {
+	RH: {
 		Name: "RH",
 		Unit: "%",
 	},
-	"voc": {
+	VOCIndex: {
 		Name: "VOCIndex",
 		Unit: "",
 	},
-	"nox": {
+	NOxIndex: {
 		Name: "NOₓIndex",
 		Unit: "",
 	},
-	"hcho": {
+	HCHO: {
 		Name: "HCHO",
 		Unit: "ppb",
 	},
-	"co2": {
+	CO2: {
 		Name: "CO₂",
 		Unit: "ppm",
 	},

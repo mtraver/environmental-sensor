@@ -2,11 +2,13 @@ package measurement
 
 import (
 	"math"
+
+	"github.com/mtraver/environmental-sensor/metric"
 )
 
-func Mean(measurements []StorableMeasurement) map[string]float32 {
-	sums := make(map[string]float64)
-	counts := make(map[string]int)
+func Mean(measurements []StorableMeasurement) map[metric.Key]float32 {
+	sums := make(map[metric.Key]float64)
+	counts := make(map[metric.Key]int)
 	for _, sm := range measurements {
 		vals := sm.ValueMap()
 		if len(vals) == 0 {
@@ -14,6 +16,10 @@ func Mean(measurements []StorableMeasurement) map[string]float32 {
 		}
 
 		for k, v := range vals {
+			if v == nil {
+				continue
+			}
+
 			if _, ok := sums[k]; !ok {
 				sums[k] = 0.0
 			}
@@ -21,12 +27,12 @@ func Mean(measurements []StorableMeasurement) map[string]float32 {
 				counts[k] = 0
 			}
 
-			sums[k] += float64(v)
+			sums[k] += float64(*v)
 			counts[k]++
 		}
 	}
 
-	means := make(map[string]float32)
+	means := make(map[metric.Key]float32)
 	for k, v := range sums {
 		means[k] = float32(v / float64(counts[k]))
 	}
@@ -34,11 +40,11 @@ func Mean(measurements []StorableMeasurement) map[string]float32 {
 	return means
 }
 
-func StdDev(measurements []StorableMeasurement) map[string]float32 {
+func StdDev(measurements []StorableMeasurement) map[metric.Key]float32 {
 	avg := Mean(measurements)
 
-	sums := make(map[string]float64)
-	counts := make(map[string]int)
+	sums := make(map[metric.Key]float64)
+	counts := make(map[metric.Key]int)
 	for _, sm := range measurements {
 		vals := sm.ValueMap()
 		if len(vals) == 0 {
@@ -46,6 +52,10 @@ func StdDev(measurements []StorableMeasurement) map[string]float32 {
 		}
 
 		for k, v := range vals {
+			if v == nil {
+				continue
+			}
+
 			if _, ok := sums[k]; !ok {
 				sums[k] = 0.0
 			}
@@ -53,12 +63,12 @@ func StdDev(measurements []StorableMeasurement) map[string]float32 {
 				counts[k] = 0
 			}
 
-			sums[k] += math.Pow(float64(v-avg[k]), 2)
+			sums[k] += math.Pow(float64(*v-avg[k]), 2)
 			counts[k]++
 		}
 	}
 
-	devs := make(map[string]float32)
+	devs := make(map[metric.Key]float32)
 	for k, v := range sums {
 		devs[k] = float32(math.Sqrt(v / float64(counts[k])))
 	}
@@ -66,8 +76,8 @@ func StdDev(measurements []StorableMeasurement) map[string]float32 {
 	return devs
 }
 
-func Min(measurements []StorableMeasurement) map[string]float32 {
-	x := make(map[string]float32)
+func Min(measurements []StorableMeasurement) map[metric.Key]float32 {
+	x := make(map[metric.Key]float32)
 	for _, sm := range measurements {
 		vals := sm.ValueMap()
 		if len(vals) == 0 {
@@ -75,12 +85,16 @@ func Min(measurements []StorableMeasurement) map[string]float32 {
 		}
 
 		for k, v := range vals {
+			if v == nil {
+				continue
+			}
+
 			if _, ok := x[k]; !ok {
 				x[k] = math.MaxFloat32
 			}
 
-			if v < x[k] {
-				x[k] = v
+			if *v < x[k] {
+				x[k] = *v
 			}
 		}
 	}
@@ -88,8 +102,8 @@ func Min(measurements []StorableMeasurement) map[string]float32 {
 	return x
 }
 
-func Max(measurements []StorableMeasurement) map[string]float32 {
-	x := make(map[string]float32)
+func Max(measurements []StorableMeasurement) map[metric.Key]float32 {
+	x := make(map[metric.Key]float32)
 	for _, sm := range measurements {
 		vals := sm.ValueMap()
 		if len(vals) == 0 {
@@ -97,12 +111,16 @@ func Max(measurements []StorableMeasurement) map[string]float32 {
 		}
 
 		for k, v := range vals {
+			if v == nil {
+				continue
+			}
+
 			if _, ok := x[k]; !ok {
 				x[k] = -math.MaxFloat32
 			}
 
-			if v > x[k] {
-				x[k] = v
+			if *v > x[k] {
+				x[k] = *v
 			}
 		}
 	}

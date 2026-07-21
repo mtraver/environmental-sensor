@@ -3,13 +3,13 @@ package measurement
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/mtraver/environmental-sensor/aqi"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"github.com/mtraver/environmental-sensor/metric"
 	tspb "google.golang.org/protobuf/types/known/timestamppb"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -18,76 +18,12 @@ import (
 // device IDs and timestamps, the two things most likely to be used in keys, can't contain it.
 const keySep = "#"
 
-var (
-	// ErrZeroTimestamp is returned from NewMeasurement if the StorableMeasurement's timestamp is the zero timestamp.
-	ErrZeroTimestamp = fmt.Errorf("measurement: timestamp cannot be nil")
-
-	// jsonKeyToMetric and metricNameToMetric do what they say on the tin in order to allow
-	// lookup of metric names and units from the key that's used in serialized measurements
-	// (e.g., look it up from the frontend).
-	jsonKeyToMetric    = make(map[string]Metric)
-	metricNameToMetric = make(map[string]Metric)
-)
-
-func init() {
-	sm := StorableMeasurement{}
-
-	v := reflect.ValueOf(sm)
-	for i := 0; i < v.NumField(); i++ {
-		// The metric tag must be present. It marks a field as a measurement.
-		metric := getMetric(v, i)
-		if metric == "" {
-			continue
-		}
-
-		// The field must be a float32 pointer.
-		if _, ok := getValue(v, i); !ok {
-			continue
-		}
-
-		jsonKey := strings.Split(v.Type().Field(i).Tag.Get("json"), ",")[0]
-
-		// Ensure that no keys are duplicated. Fail in glorious fashion if they are.
-		if _, ok := jsonKeyToMetric[jsonKey]; ok {
-			panic(fmt.Sprintf("duplicate JSON key %q", jsonKey))
-		}
-		if _, ok := metricNameToMetric[metric]; ok {
-			panic(fmt.Sprintf("duplicate metric name %q", metric))
-		}
-
-		m := Metric{
-			Name:  metric,
-			Abbrv: jsonKey,
-			Unit:  getUnit(v, i),
-		}
-
-		jsonKeyToMetric[jsonKey] = m
-		metricNameToMetric[metric] = m
-	}
-}
-
-type Metric struct {
-	Name  string
-	Abbrv string
-	Unit  string
-}
-
-func GetMetric(nameOrKey string) (Metric, bool) {
-	if metric, ok := jsonKeyToMetric[nameOrKey]; ok {
-		return metric, ok
-	}
-
-	if metric, ok := metricNameToMetric[nameOrKey]; ok {
-		return metric, ok
-	}
-
-	return Metric{}, false
-}
+// ErrZeroTimestamp is returned from NewMeasurement if the StorableMeasurement's timestamp is the zero timestamp.
+var ErrZeroTimestamp = fmt.Errorf("measurement: timestamp cannot be nil")
 
 // StorableMeasurement is equivalent to the generated Measurement type but it contains
 // no protobuf-specific types. It therefore can be marshaled to JSON and written to
-// Datastore. StorableMeasurement is marshaled to JSON in order to pass data to the
-// frontend. Timestamp is handled specially in MarshalJSON.
+// Datastore. Timestamp is handled specially in MarshalJSON.
 // IMPORTANT: Keep up to date with the generated Measurement type (from measurement.proto).
 type StorableMeasurement struct {
 	DeviceID        string    `json:"-" datastore:"device_id"`
@@ -96,21 +32,21 @@ type StorableMeasurement struct {
 
 	// These metrics are the raw values reported by sensors. They must match the
 	// metrics defined in the generated Measurement type (from measurement.proto).
-	Temp     *float32 `json:"temp,omitempty" datastore:"temp,omitempty" metric:"temp" unit:"°C"`
-	PM1      *float32 `json:"pm1,omitempty" datastore:"pm1,omitempty" metric:"PM1.0" unit:"μg/m³"`
-	PM25     *float32 `json:"pm25,omitempty" datastore:"pm25,omitempty" metric:"PM2.5" unit:"μg/m³"`
-	PM4      *float32 `json:"pm4,omitempty" datastore:"pm4,omitempty" metric:"PM4" unit:"μg/m³"`
-	PM10     *float32 `json:"pm10,omitempty" datastore:"pm10,omitempty" metric:"PM10" unit:"μg/m³"`
-	RH       *float32 `json:"rh,omitempty" datastore:"rh,omitempty" metric:"RH" unit:"%"`
-	VOCIndex *float32 `json:"voc_index,omitempty" datastore:"voc_index,omitempty" metric:"VOCIndex" unit:""`
-	NOxIndex *float32 `json:"nox_index,omitempty" datastore:"nox_index,omitempty" metric:"NOₓIndex" unit:""`
-	HCHO     *float32 `json:"hcho,omitempty" datastore:"hcho,omitempty" metric:"HCHO" unit:"ppb"`
-	CO2      *float32 `json:"co2,omitempty" datastore:"co2,omitempty" metric:"CO₂" unit:"ppm"`
+	Temp     *float32 `json:"temp,omitempty" datastore:"temp,omitempty"`
+	PM1      *float32 `json:"pm1,omitempty" datastore:"pm1,omitempty"`
+	PM25     *float32 `json:"pm25,omitempty" datastore:"pm25,omitempty"`
+	PM4      *float32 `json:"pm4,omitempty" datastore:"pm4,omitempty"`
+	PM10     *float32 `json:"pm10,omitempty" datastore:"pm10,omitempty"`
+	RH       *float32 `json:"rh,omitempty" datastore:"rh,omitempty"`
+	VOCIndex *float32 `json:"voc_index,omitempty" datastore:"voc_index,omitempty"`
+	NOxIndex *float32 `json:"nox_index,omitempty" datastore:"nox_index,omitempty"`
+	HCHO     *float32 `json:"hcho,omitempty" datastore:"hcho,omitempty"`
+	CO2      *float32 `json:"co2,omitempty" datastore:"co2,omitempty"`
 
 	// These metrics are derived from the raw values. They're not stored in the database
-	// (the `datastore` tag is set to "-") but they are passed to the frontend in JSON form.
+	// (the `datastore` tag is set to "-") but they are passed to the frontend.
 	// These values are populated by the FillDerivedMetrics method.
-	AQI *float32 `json:"aqi,omitempty" datastore:"-" metric:"AQI" unit:""`
+	AQI *float32 `json:"aqi,omitempty" datastore:"-"`
 }
 
 func (sm StorableMeasurement) MarshalJSON() ([]byte, error) {
@@ -278,29 +214,20 @@ func (sm *StorableMeasurement) DBKey() string {
 	return strings.Join([]string{sm.DeviceID, sm.Timestamp.Format(time.RFC3339)}, keySep)
 }
 
-// ValueMap returns a map from metric name (as defined in struct tags) to values.
-// Nil fields are not included.
-func (sm StorableMeasurement) ValueMap() map[string]float32 {
-	m := make(map[string]float32)
-
-	v := reflect.ValueOf(sm)
-	for i := 0; i < v.NumField(); i++ {
-		// The metric tag must be present. It marks a field as a measurement.
-		metric := getMetric(v, i)
-		if metric == "" {
-			continue
-		}
-
-		// The field must be a float32 pointer.
-		f, ok := getValue(v, i)
-		if !ok || f == nil {
-			continue
-		}
-
-		m[metric] = *f
+// ValueMap returns a map from metric key to value, which may be nil.
+func (sm StorableMeasurement) ValueMap() map[metric.Key]*float32 {
+	return map[metric.Key]*float32{
+		metric.Temp:     sm.Temp,
+		metric.PM1:      sm.PM1,
+		metric.PM25:     sm.PM25,
+		metric.PM4:      sm.PM4,
+		metric.PM10:     sm.PM10,
+		metric.RH:       sm.RH,
+		metric.VOCIndex: sm.VOCIndex,
+		metric.NOxIndex: sm.NOxIndex,
+		metric.HCHO:     sm.HCHO,
+		metric.CO2:      sm.CO2,
 	}
-
-	return m
 }
 
 func (sm *StorableMeasurement) FillDerivedMetrics() {
@@ -317,23 +244,13 @@ func (sm StorableMeasurement) String() string {
 	}
 
 	strs := []string{}
-	v := reflect.ValueOf(sm)
-	for i := 0; i < v.NumField(); i++ {
-		// The metric tag must be present. It marks a field as a measurement.
-		metric := getMetric(v, i)
-		if metric == "" {
+	for key, v := range sm.ValueMap() {
+		if v == nil {
 			continue
 		}
 
-		// The field must be a float32 pointer.
-		f, ok := getValue(v, i)
-		if !ok || f == nil {
-			continue
-		}
-
-		// There may be no unit tag, which is fine.
-		unit := getUnit(v, i)
-		strs = append(strs, fmt.Sprintf("%s=%.3f%s", metric, *f, unit))
+		info := metric.All[key]
+		strs = append(strs, fmt.Sprintf("%s=%.3f%s", info.Name, *v, info.Unit))
 	}
 	sort.Strings(strs)
 
@@ -342,17 +259,4 @@ func (sm StorableMeasurement) String() string {
 	}
 
 	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, strings.Join(strs, ", "), sm.Timestamp.Format(time.RFC3339), delay)
-}
-
-func getMetric(v reflect.Value, i int) string {
-	return v.Type().Field(i).Tag.Get("metric")
-}
-
-func getUnit(v reflect.Value, i int) string {
-	return v.Type().Field(i).Tag.Get("unit")
-}
-
-func getValue(v reflect.Value, i int) (*float32, bool) {
-	f, ok := v.Field(i).Interface().(*float32)
-	return f, ok
 }

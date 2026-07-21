@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/mtraver/environmental-sensor/metric"
 )
 
 var cmpFloats = cmpopts.EquateApprox(0, 0.0001)
@@ -13,12 +14,12 @@ func TestMean(t *testing.T) {
 	cases := []struct {
 		name string
 		sms  []StorableMeasurement
-		want map[string]float32
+		want map[metric.Key]float32
 	}{
 		{
 			name: "empty",
 			sms:  []StorableMeasurement{},
-			want: map[string]float32{},
+			want: map[metric.Key]float32{},
 		},
 		{
 			name: "single_measurement",
@@ -30,11 +31,11 @@ func TestMean(t *testing.T) {
 					RH:   floatPtr(55.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  18.3,
-				"PM2.5": 12.1,
-				"PM10":  20.7,
-				"RH":    55.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 18.3,
+				metric.PM25: 12.1,
+				metric.PM10: 20.7,
+				metric.RH:   55.0,
 			},
 		},
 		{
@@ -53,11 +54,11 @@ func TestMean(t *testing.T) {
 					RH:   floatPtr(33.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  18.65,
-				"PM2.5": 10.25,
-				"PM10":  21.3,
-				"RH":    44.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 18.65,
+				metric.PM25: 10.25,
+				metric.PM10: 21.3,
+				metric.RH:   44.0,
 			},
 		},
 	}
@@ -66,7 +67,7 @@ func TestMean(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := Mean(tc.sms)
 			if diff := cmp.Diff(got, tc.want, cmpFloats); diff != "" {
-				t.Errorf("Unexpected result (-got +want):\n%s", diff)
+				t.Errorf("mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}
@@ -76,12 +77,12 @@ func TestStdDev(t *testing.T) {
 	cases := []struct {
 		name string
 		sms  []StorableMeasurement
-		want map[string]float32
+		want map[metric.Key]float32
 	}{
 		{
 			name: "empty",
 			sms:  []StorableMeasurement{},
-			want: map[string]float32{},
+			want: map[metric.Key]float32{},
 		},
 		{
 			name: "single_measurement",
@@ -93,11 +94,11 @@ func TestStdDev(t *testing.T) {
 					RH:   floatPtr(55.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  0.0,
-				"PM2.5": 0.0,
-				"PM10":  0.0,
-				"RH":    0.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 0.0,
+				metric.PM25: 0.0,
+				metric.PM10: 0.0,
+				metric.RH:   0.0,
 			},
 		},
 		{
@@ -128,11 +129,11 @@ func TestStdDev(t *testing.T) {
 					RH:   floatPtr(89.1),
 				},
 			},
-			want: map[string]float32{
-				"temp":  4.83598,
-				"PM2.5": 4.39261,
-				"PM10":  2.99917,
-				"RH":    20.6232,
+			want: map[metric.Key]float32{
+				metric.Temp: 4.83598,
+				metric.PM25: 4.39261,
+				metric.PM10: 2.99917,
+				metric.RH:   20.6232,
 			},
 		},
 	}
@@ -141,7 +142,7 @@ func TestStdDev(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := StdDev(tc.sms)
 			if diff := cmp.Diff(got, tc.want, cmpFloats); diff != "" {
-				t.Errorf("Unexpected result (-got +want):\n%s", diff)
+				t.Errorf("mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}
@@ -151,12 +152,12 @@ func TestMin(t *testing.T) {
 	cases := []struct {
 		name string
 		sms  []StorableMeasurement
-		want map[string]float32
+		want map[metric.Key]float32
 	}{
 		{
 			name: "empty",
 			sms:  []StorableMeasurement{},
-			want: map[string]float32{},
+			want: map[metric.Key]float32{},
 		},
 		{
 			name: "single_measurement",
@@ -168,11 +169,11 @@ func TestMin(t *testing.T) {
 					RH:   floatPtr(55.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  18.3,
-				"PM2.5": 12.1,
-				"PM10":  20.7,
-				"RH":    55.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 18.3,
+				metric.PM25: 12.1,
+				metric.PM10: 20.7,
+				metric.RH:   55.0,
 			},
 		},
 		{
@@ -191,11 +192,11 @@ func TestMin(t *testing.T) {
 					RH:   floatPtr(33.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  18.3,
-				"PM2.5": 8.4,
-				"PM10":  20.7,
-				"RH":    33.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 18.3,
+				metric.PM25: 8.4,
+				metric.PM10: 20.7,
+				metric.RH:   33.0,
 			},
 		},
 	}
@@ -204,7 +205,7 @@ func TestMin(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := Min(tc.sms)
 			if diff := cmp.Diff(got, tc.want, cmpFloats); diff != "" {
-				t.Errorf("Unexpected result (-got +want):\n%s", diff)
+				t.Errorf("mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}
@@ -214,12 +215,12 @@ func TestMax(t *testing.T) {
 	cases := []struct {
 		name string
 		sms  []StorableMeasurement
-		want map[string]float32
+		want map[metric.Key]float32
 	}{
 		{
 			name: "empty",
 			sms:  []StorableMeasurement{},
-			want: map[string]float32{},
+			want: map[metric.Key]float32{},
 		},
 		{
 			name: "single_measurement",
@@ -231,11 +232,11 @@ func TestMax(t *testing.T) {
 					RH:   floatPtr(55.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  18.3,
-				"PM2.5": 12.1,
-				"PM10":  20.7,
-				"RH":    55.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 18.3,
+				metric.PM25: 12.1,
+				metric.PM10: 20.7,
+				metric.RH:   55.0,
 			},
 		},
 		{
@@ -254,11 +255,11 @@ func TestMax(t *testing.T) {
 					RH:   floatPtr(33.0),
 				},
 			},
-			want: map[string]float32{
-				"temp":  19.0,
-				"PM2.5": 12.1,
-				"PM10":  21.9,
-				"RH":    55.0,
+			want: map[metric.Key]float32{
+				metric.Temp: 19.0,
+				metric.PM25: 12.1,
+				metric.PM10: 21.9,
+				metric.RH:   55.0,
 			},
 		},
 	}
@@ -267,7 +268,7 @@ func TestMax(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := Max(tc.sms)
 			if diff := cmp.Diff(got, tc.want, cmpFloats); diff != "" {
-				t.Errorf("Unexpected result (-got +want):\n%s", diff)
+				t.Errorf("mismatch (-got +want):\n%s", diff)
 			}
 		})
 	}

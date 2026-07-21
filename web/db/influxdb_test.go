@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	testMeasurement = mpb.Measurement{
+	testMeasurement = &mpb.Measurement{
 		DeviceId:  "foo",
 		Timestamp: testutil.TimestampProto,
 		Temp:      wpb.Float(18.3748),
@@ -27,7 +27,7 @@ var (
 func TestNewInfluxDBPoints(t *testing.T) {
 	cases := []struct {
 		name string
-		m    mpb.Measurement
+		m    *mpb.Measurement
 		want []*write.Point
 	}{
 		{
@@ -44,7 +44,7 @@ func TestNewInfluxDBPoints(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got, err := newInfluxDBPoints(&testMeasurement)
+			got, err := newInfluxDBPoints(testMeasurement)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}

@@ -1,6 +1,7 @@
 package mcp9808
 
 import (
+	"sync"
 	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -16,17 +17,22 @@ const (
 )
 
 type MCP9808 struct {
-	dev *mcp9808.Dev
+	dev      *mcp9808.Dev
+	i2cBusMu *sync.Mutex
 }
 
-func New(bus i2c.BusCloser) (*MCP9808, error) {
+func New(bus i2c.BusCloser, i2cBusMu *sync.Mutex) (*MCP9808, error) {
+	i2cBusMu.Lock()
+	defer i2cBusMu.Unlock()
+
 	d, err := mcp9808.New(bus, &mcp9808.DefaultOpts)
 	if err != nil {
 		return nil, err
 	}
 
 	return &MCP9808{
-		dev: d,
+		dev:      d,
+		i2cBusMu: i2cBusMu,
 	}, nil
 }
 
@@ -35,6 +41,9 @@ func (s *MCP9808) Init() error {
 }
 
 func (s *MCP9808) Sense(m *mpb.Measurement) error {
+	s.i2cBusMu.Lock()
+	defer s.i2cBusMu.Unlock()
+
 	temps, err := s.readTempMulti(numSamples, time.Duration(sampleInterval)*time.Second)
 	if err != nil {
 		return err

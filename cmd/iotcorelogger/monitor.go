@@ -49,6 +49,10 @@ type Monitor struct {
 	// System resources.
 	i2cBus i2c.BusCloser
 
+	// Sensors that use I2C must hold this lock for the duration of any I2C operations
+	// to ensure that multiple sensors don't use the bus simultaneously.
+	i2cBusMu sync.Mutex
+
 	// Connection metrics.
 	connectionMetricsMu sync.RWMutex
 	firstConnectTime    *time.Time
@@ -383,7 +387,7 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 
 		switch name {
 		case "mcp9808":
-			s, err := mcp9808.New(mon.i2cBus)
+			s, err := mcp9808.New(mon.i2cBus, &mon.i2cBusMu)
 			if err != nil {
 				return fmt.Errorf("failed to initialize MCP9808: %w", err)
 			}

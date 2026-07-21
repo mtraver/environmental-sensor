@@ -14,7 +14,7 @@ const (
 )
 
 type SDS011 struct {
-	dev sds011.Dev
+	dev *sds011.Dev
 }
 
 func New(name string) (*SDS011, error) {
@@ -24,7 +24,7 @@ func New(name string) (*SDS011, error) {
 	}
 
 	return &SDS011{
-		dev: d,
+		dev: &d,
 	}, nil
 }
 

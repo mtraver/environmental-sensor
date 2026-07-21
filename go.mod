@@ -29,7 +29,7 @@ require (
 	google.golang.org/grpc v1.82.1
 	google.golang.org/protobuf v1.36.11
 	periph.io/x/conn/v3 v3.7.3
-	periph.io/x/devices/v3 v3.7.4
+	periph.io/x/devices/v3 v3.7.5-0.20260721214149-7820343353b2
 	periph.io/x/host/v3 v3.8.5
 )
 

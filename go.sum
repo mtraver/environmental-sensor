@@ -349,5 +349,7 @@ periph.io/x/conn/v3 v3.7.3 h1:+8UblkC4omTB1M+jZTvTj3qoxQOTJy0ZRQm8DLUuVzc=
 periph.io/x/conn/v3 v3.7.3/go.mod h1:tyV9YaYquOJ2Q2yAL0B5zk9ZvHGsbW56M6y92wjyPDQ=
 periph.io/x/devices/v3 v3.7.4 h1:g9CGKTtiXS9iyDFDba4sr9pYde4dy+ZCKRPuKpKJdKo=
 periph.io/x/devices/v3 v3.7.4/go.mod h1:FqFG9RotW2aCkfIlAes3qxziwgjRTncTMS5cSOcizNg=
+periph.io/x/devices/v3 v3.7.5-0.20260721214149-7820343353b2 h1:djkwRzI0HFsW8c3PAg+0p+xXS+ki3/FxrjG3wcRhhOg=
+periph.io/x/devices/v3 v3.7.5-0.20260721214149-7820343353b2/go.mod h1:yoZuEO7E7FgiAgAnE/nr7ITErkW80iHgxcKTsqxqkrI=
 periph.io/x/host/v3 v3.8.5 h1:g4g5xE1XZtDiGl1UAJaUur1aT7uNiFLMkyMEiZ7IHII=
 periph.io/x/host/v3 v3.8.5/go.mod h1:hPq8dISZIc+UNfWoRj+bPH3XEBQqJPdFdx218W92mdc=

@@ -66,5 +66,8 @@
   },
   "overrides": {
     "@eslint/core": "1.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
   }
 }

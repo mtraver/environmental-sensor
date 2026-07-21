@@ -38,13 +38,13 @@ var (
 	// Measurement type and StorableMeasurement.
 	conversionCases = []struct {
 		name  string
-		m     mpb.Measurement
+		m     *mpb.Measurement
 		sm    StorableMeasurement
 		valid bool
 	}{
 		{
 			"valid no upload timestamp",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: testutil.TimestampProto,
 				Temp:      wpb.Float(18.3748),
@@ -64,7 +64,7 @@ var (
 		},
 		{
 			"valid with upload timestamp",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:        "foo",
 				Timestamp:       testutil.TimestampProto,
 				UploadTimestamp: testutil.TimestampProto2,
@@ -86,7 +86,7 @@ var (
 		},
 		{
 			"nil timestamp",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: nil,
 				Temp:      wpb.Float(18.3748),
@@ -220,7 +220,7 @@ func TestStorableMeasurementValueMap(t *testing.T) {
 func TestNewStorableMeasurement(t *testing.T) {
 	for _, tc := range conversionCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := NewStorableMeasurement(&tc.m)
+			got, err := NewStorableMeasurement(tc.m)
 			if err != nil && tc.valid {
 				t.Errorf("unexpected error: %v", err)
 				return

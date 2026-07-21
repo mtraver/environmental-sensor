@@ -29,7 +29,7 @@ func TestSet(t *testing.T) {
 	}
 
 	// Compare.
-	if diff := cmp.Diff(m2, m1, cmpopts.IgnoreUnexported(mpb.Measurement{}, tspb.Timestamp{}, wpb.FloatValue{})); diff != "" {
+	if diff := cmp.Diff(&m2, &m1, cmpopts.IgnoreUnexported(mpb.Measurement{}, tspb.Timestamp{}, wpb.FloatValue{})); diff != "" {
 		t.Errorf("Unexpected result (-got +want):\n%s", diff)
 	}
 }
@@ -52,7 +52,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	// Compare.
-	if diff := cmp.Diff(m2, m1, cmpopts.IgnoreUnexported(mpb.Measurement{}, tspb.Timestamp{}, wpb.FloatValue{})); diff != "" {
+	if diff := cmp.Diff(&m2, &m1, cmpopts.IgnoreUnexported(mpb.Measurement{}, tspb.Timestamp{}, wpb.FloatValue{})); diff != "" {
 		t.Errorf("Unexpected result (-got +want):\n%s", diff)
 	}
 }

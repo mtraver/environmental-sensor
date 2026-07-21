@@ -16,8 +16,8 @@ var (
 	TimestampProto2 = mustTimestampProto(Timestamp2)
 )
 
-func FullyPopulatedMeasurementProto() mpb.Measurement {
-	return mpb.Measurement{
+func FullyPopulatedMeasurementProto() *mpb.Measurement {
+	return &mpb.Measurement{
 		DeviceId:  "foo",
 		Timestamp: TimestampProto,
 		Temp:      wpb.Float(18.3748),

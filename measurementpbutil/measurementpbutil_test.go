@@ -49,17 +49,17 @@ func TestValidate(t *testing.T) {
 func TestString(t *testing.T) {
 	cases := []struct {
 		name string
-		m    mpb.Measurement
+		m    *mpb.Measurement
 		want string
 	}{
 		{
 			"empty",
-			mpb.Measurement{},
+			&mpb.Measurement{},
 			" [no measurements] 0001-01-01T00:00:00Z",
 		},
 		{
 			"no upload timestamp",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: testutil.TimestampProto,
 				Temp:      wpb.Float(18.3748),
@@ -68,7 +68,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			"with upload timestamp",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:        "foo",
 				Timestamp:       testutil.TimestampProto,
 				UploadTimestamp: testutil.TimestampProto2,
@@ -78,7 +78,7 @@ func TestString(t *testing.T) {
 		},
 		{
 			"multiple measurements set",
-			mpb.Measurement{
+			&mpb.Measurement{
 				DeviceId:  "foo",
 				Timestamp: testutil.TimestampProto,
 				Temp:      wpb.Float(18.3748),

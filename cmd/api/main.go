@@ -73,7 +73,7 @@ func (s *apiServer) GetLatest(ctx context.Context, r *mpb.GetLatestRequest) (*mp
 		return nil, err
 	}
 
-	return &m, nil
+	return m, nil
 }
 
 func init() {

@@ -149,13 +149,13 @@ func NewStorableMeasurement(m *mpb.Measurement) (StorableMeasurement, error) {
 // NewMeasurement converts a StorableMeasurement into the generated Measurement type,
 // converting time.Time values into the protobuf-specific timestamp type.
 // IMPORTANT: Keep up to date with the generated Measurement type (from measurement.proto).
-func NewMeasurement(sm *StorableMeasurement) (mpb.Measurement, error) {
+func NewMeasurement(sm *StorableMeasurement) (*mpb.Measurement, error) {
 	// Enforce a non-zero timestamp.
 	if sm.Timestamp.IsZero() {
-		return mpb.Measurement{}, ErrZeroTimestamp
+		return nil, ErrZeroTimestamp
 	}
 
-	m := mpb.Measurement{
+	m := &mpb.Measurement{
 		DeviceId:  sm.DeviceID,
 		Timestamp: tspb.New(sm.Timestamp),
 	}

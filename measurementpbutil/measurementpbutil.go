@@ -17,7 +17,7 @@ var (
 	deviceIDRegex = regexp.MustCompile(`^[a-z][a-z0-9+.%~_-]{2,254}$`)
 )
 
-func String(m mpb.Measurement) string {
+func String(m *mpb.Measurement) string {
 	var timestamp time.Time
 	if m.GetTimestamp() != nil {
 		timestamp = m.GetTimestamp().AsTime()

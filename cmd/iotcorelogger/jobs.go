@@ -88,7 +88,7 @@ func (j SenseJob) Run() {
 	}
 
 	if j.Dryrun {
-		log.Print(mpbutil.String(m))
+		log.Print(mpbutil.String(&m))
 		return
 	}
 

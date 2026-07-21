@@ -164,14 +164,14 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 		cacheKey := cacheKeyLatest(id)
 
 		// Try the cache
-		var m mpb.Measurement
+		var m *mpb.Measurement
 		var sm measurement.StorableMeasurement
 		if db.latestCache != nil {
-			if err := db.latestCache.Get(ctx, cacheKey, &m); err != nil && err != cachepkg.ErrCacheMiss {
+			if err := db.latestCache.Get(ctx, cacheKey, m); err != nil && err != cachepkg.ErrCacheMiss {
 				return latest, err
 			} else if err == nil {
 				// Cache hit. Convert to a StorableMeasurement for return.
-				sm, err = measurement.NewStorableMeasurement(&m)
+				sm, err = measurement.NewStorableMeasurement(m)
 				if err != nil {
 					return latest, err
 				}
@@ -199,7 +199,7 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 			return latest, err
 		}
 		if db.latestCache != nil {
-			db.latestCache.Add(ctx, cacheKey, &m)
+			db.latestCache.Add(ctx, cacheKey, m)
 		}
 	}
 

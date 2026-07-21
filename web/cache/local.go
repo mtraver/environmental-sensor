@@ -20,7 +20,7 @@ func NewLocal() Local {
 	}
 }
 
-func (l *Local) Get(ctx context.Context, key string, m *mpb.Measurement) error {
+func (l *Local) Get(ctx context.Context, key string) (*mpb.Measurement, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -28,12 +28,11 @@ func (l *Local) Get(ctx context.Context, key string, m *mpb.Measurement) error {
 	got, ok := l.cache[key]
 
 	if !ok {
-		return ErrCacheMiss
+		return nil, ErrCacheMiss
 	}
 
 	l.hits += 1
-	*m = *got
-	return nil
+	return got, nil
 }
 
 func (l *Local) Add(ctx context.Context, key string, m *mpb.Measurement) error {
@@ -65,3 +64,5 @@ func (l *Local) Stats() Stats {
 		Hits:  l.hits,
 	}
 }
+
+var _ Cache = &Local{}

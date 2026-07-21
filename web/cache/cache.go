@@ -18,7 +18,7 @@ type Stats struct {
 }
 
 type Cache interface {
-	Get(ctx context.Context, key string, m *mpb.Measurement) error
+	Get(ctx context.Context, key string) (*mpb.Measurement, error)
 	Add(ctx context.Context, key string, m *mpb.Measurement) error
 	Set(ctx context.Context, key string, m *mpb.Measurement) error
 	Stats() Stats

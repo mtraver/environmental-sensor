@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -18,22 +19,22 @@ type Memcache struct {
 // memcacheWriteFunc is the signature of functions in google.golang.org/appengine/memcache that write to the cache.
 type memcacheWriteFunc func(context.Context, *memcache.Item) error
 
-func (mc *Memcache) Get(ctx context.Context, key string, m *mpb.Measurement) error {
+func (mc *Memcache) Get(ctx context.Context, key string) (*mpb.Measurement, error) {
 	mc.mu.Lock()
 	defer mc.mu.Unlock()
 
 	mc.total += 1
 	item, err := memcache.Get(ctx, key)
-
-	switch err {
-	case nil:
-		mc.hits += 1
-		return proto.Unmarshal(item.Value, m)
-	case memcache.ErrCacheMiss:
-		return ErrCacheMiss
-	default:
-		return err
+	if errors.Is(err, memcache.ErrCacheMiss) {
+		return nil, ErrCacheMiss
+	} else if err != nil {
+		return nil, err
 	}
+
+	mc.hits += 1
+	var m mpb.Measurement
+	err = proto.Unmarshal(item.Value, &m)
+	return &m, err
 }
 
 func (mc *Memcache) doWrite(ctx context.Context, key string, m *mpb.Measurement, f memcacheWriteFunc) error {
@@ -67,3 +68,5 @@ func (mc *Memcache) Stats() Stats {
 		Hits:  mc.hits,
 	}
 }
+
+var _ Cache = &Memcache{}

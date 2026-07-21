@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -161,47 +162,81 @@ func (db *datastoreDB) Latest(ctx context.Context, deviceIDs []string) (map[stri
 			continue
 		}
 
-		cacheKey := cacheKeyLatest(id)
-
-		// Try the cache
-		var m *mpb.Measurement
-		var sm measurement.StorableMeasurement
-		if db.latestCache != nil {
-			if err := db.latestCache.Get(ctx, cacheKey, m); err != nil && err != cachepkg.ErrCacheMiss {
-				return latest, err
-			} else if err == nil {
-				// Cache hit. Convert to a StorableMeasurement for return.
-				sm, err = measurement.NewStorableMeasurement(m)
-				if err != nil {
-					return latest, err
-				}
-				latest[id] = sm
-				continue
-			}
-		}
-
-		// Try the Datastore
-		q := datastore.NewQuery(db.kind).Filter("device_id =", id).Order("-timestamp").Limit(1)
-		it := db.client.Run(ctx, q)
-		_, err := it.Next(&sm)
-		if err == iterator.Done {
-			// Nothing found in the Datastore
-			continue
-		} else if err != nil {
-			return latest, err
-		}
-
-		latest[id] = sm
-
-		// Convert to an mpb.Measurement for caching.
-		m, err = measurement.NewMeasurement(&sm)
+		// Try the cache.
+		sm, found, err := db.latestFromCache(ctx, id)
 		if err != nil {
 			return latest, err
 		}
-		if db.latestCache != nil {
-			db.latestCache.Add(ctx, cacheKey, m)
+		if found {
+			latest[id] = sm
+			continue
 		}
+
+		// Try Datastore.
+		sm, found, err = db.latestFromDatastore(ctx, id)
+		if err != nil {
+			return latest, err
+		}
+		if !found {
+			continue
+		}
+		latest[id] = sm
+
+		// Cache the measurement we got from Datastore. Ignore error because caching
+		// is a best-effort optimization, not something we should fail on here.
+		db.cacheLatest(ctx, id, sm)
 	}
 
 	return latest, nil
+}
+
+// latestFromCache looks up the latest measurement for a device in the cache.
+// found is false if there was no cache configured or the key isn't present.
+func (db *datastoreDB) latestFromCache(ctx context.Context, deviceID string) (sm measurement.StorableMeasurement, found bool, err error) {
+	if db.latestCache == nil {
+		return sm, false, nil
+	}
+
+	m, err := db.latestCache.Get(ctx, cacheKeyLatest(deviceID))
+	if errors.Is(err, cachepkg.ErrCacheMiss) {
+		return sm, false, nil
+	} else if err != nil {
+		return sm, false, err
+	}
+
+	sm, err = measurement.NewStorableMeasurement(m)
+	if err != nil {
+		return sm, false, err
+	}
+	return sm, true, nil
+}
+
+// latestFromDatastore looks up the latest measurement for a device directly in Datastore.
+// found is false if no measurement exists for the device.
+func (db *datastoreDB) latestFromDatastore(ctx context.Context, deviceID string) (sm measurement.StorableMeasurement, found bool, err error) {
+	q := datastore.NewQuery(db.kind).Filter("device_id =", deviceID).Order("-timestamp").Limit(1)
+	it := db.client.Run(ctx, q)
+
+	if _, err := it.Next(&sm); errors.Is(err, iterator.Done) {
+		// Nothing found.
+		return sm, false, nil
+	} else if err != nil {
+		return sm, false, err
+	}
+
+	return sm, true, nil
+}
+
+// cacheLatest stores sm in the latest cache for deviceID.
+func (db *datastoreDB) cacheLatest(ctx context.Context, deviceID string, sm measurement.StorableMeasurement) error {
+	if db.latestCache == nil {
+		return nil
+	}
+
+	m, err := measurement.NewMeasurement(&sm)
+	if err != nil {
+		return err
+	}
+
+	return db.latestCache.Add(ctx, cacheKeyLatest(deviceID), m)
 }

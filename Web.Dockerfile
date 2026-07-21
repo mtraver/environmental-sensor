@@ -22,6 +22,7 @@ COPY graph/ graph
 COPY measurement measurement/
 COPY measurementpb measurementpb/
 COPY measurementpbutil measurementpbutil/
+COPY metric metric/
 COPY web web/
 
 RUN mkdir out

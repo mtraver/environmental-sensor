@@ -44,8 +44,8 @@ func (j SetupJob) Run() {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}
-		if err := s.Init(); err != nil {
-			log.Printf("Failed to init %q: %v", name, err)
+		if err := s.RunSetupJob(); err != nil {
+			log.Printf("Failed to run setup for %q: %v", name, err)
 			continue
 		}
 	}
@@ -75,7 +75,7 @@ func (j SenseJob) Run() {
 			log.Printf("Sensor not registered: %q", name)
 			continue
 		}
-		if err := s.Sense(&m); err != nil {
+		if err := s.RunSenseJob(&m); err != nil {
 			log.Printf("Failed to take measurement from %q: %v", name, err)
 			continue
 		}
@@ -113,7 +113,7 @@ func (j ShutdownJob) Run() {
 			continue
 		}
 
-		if err := s.Shutdown(); err != nil {
+		if err := s.RunShutdownJob(); err != nil {
 			log.Printf("Failed to shut down %q: %v", name, err)
 			continue
 		}

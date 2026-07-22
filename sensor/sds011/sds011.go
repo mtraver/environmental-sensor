@@ -17,6 +17,14 @@ type SDS011 struct {
 	dev *sds011.Dev
 }
 
+func (s *SDS011) OnRegister() error {
+	return nil
+}
+
+func (s *SDS011) OnRemove() error {
+	return nil
+}
+
 func New(name string) (*SDS011, error) {
 	d, err := sds011.New(name)
 	if err != nil {
@@ -28,7 +36,7 @@ func New(name string) (*SDS011, error) {
 	}, nil
 }
 
-func (s *SDS011) Init() error {
+func (s *SDS011) RunSetupJob() error {
 	if err := s.dev.Wake(); err != nil {
 		return nil
 	}
@@ -38,7 +46,7 @@ func (s *SDS011) Init() error {
 	return nil
 }
 
-func (s *SDS011) Sense(m *mpb.Measurement) error {
+func (s *SDS011) RunSenseJob(m *mpb.Measurement) error {
 	values := make([]sds011.Measurement, numSamples)
 	for i := 0; i < numSamples; i++ {
 		v, err := s.dev.Sense()
@@ -58,7 +66,7 @@ func (s *SDS011) Sense(m *mpb.Measurement) error {
 	return nil
 }
 
-func (s *SDS011) Shutdown() error {
+func (s *SDS011) RunShutdownJob() error {
 	return s.dev.Sleep()
 }
 

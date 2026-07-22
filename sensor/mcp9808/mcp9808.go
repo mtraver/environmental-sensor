@@ -36,11 +36,19 @@ func New(bus i2c.BusCloser, i2cBusMu *sync.Mutex) (*MCP9808, error) {
 	}, nil
 }
 
-func (s *MCP9808) Init() error {
+func (s *MCP9808) OnRegister() error {
 	return nil
 }
 
-func (s *MCP9808) Sense(m *mpb.Measurement) error {
+func (s *MCP9808) OnRemove() error {
+	return nil
+}
+
+func (s *MCP9808) RunSetupJob() error {
+	return nil
+}
+
+func (s *MCP9808) RunSenseJob(m *mpb.Measurement) error {
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()
 
@@ -53,7 +61,7 @@ func (s *MCP9808) Sense(m *mpb.Measurement) error {
 	return nil
 }
 
-func (s *MCP9808) Shutdown() error {
+func (s *MCP9808) RunShutdownJob() error {
 	return nil
 }
 

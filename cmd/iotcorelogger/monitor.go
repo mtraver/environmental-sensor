@@ -243,6 +243,10 @@ func (mon *Monitor) Close(ctx context.Context) error {
 		}
 	}
 
+	if err := sensor.RemoveAll(); err != nil {
+		return err
+	}
+
 	if err := mon.closeI2CBus(); err != nil {
 		return err
 	}
@@ -372,7 +376,7 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 	}
 
 	// Remove sensors not in the new config.
-	for name := range sensor.Names() {
+	for _, name := range sensor.Names() {
 		if _, ok := desired[name]; !ok {
 			sensor.Remove(name)
 			log.Printf("Removed sensor %q", name)

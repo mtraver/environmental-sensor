@@ -117,7 +117,7 @@ func Names() []string {
 
 func UsesI2C(name string) bool {
 	switch name {
-	case "mcp9808":
+	case "mcp9808", "sen6x":
 		return true
 	default:
 		return false

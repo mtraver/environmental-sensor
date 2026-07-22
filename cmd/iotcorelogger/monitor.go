@@ -20,10 +20,12 @@ import (
 	"github.com/mtraver/environmental-sensor/sensor/dummy"
 	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 	"github.com/mtraver/environmental-sensor/sensor/sds011"
+	"github.com/mtraver/environmental-sensor/sensor/sen6x"
 	cron "github.com/netresearch/go-cron"
 	"google.golang.org/protobuf/proto"
 	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/conn/v3/i2c/i2creg"
+	periphsen6x "periph.io/x/devices/v3/sen6x"
 )
 
 const (
@@ -401,6 +403,14 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 			s, err := sds011.New("/dev/ttyUSB0")
 			if err != nil {
 				return fmt.Errorf("failed to initialize SDS011: %w", err)
+			}
+			sensor.Register(name, s)
+
+		case "sen6x":
+			// TODO(mtraver) Provide model via config rather than hard-coding SEN66.
+			s, err := sen6x.New(periphsen6x.SEN66, mon.i2cBus, &mon.i2cBusMu)
+			if err != nil {
+				return fmt.Errorf("failed to initialize SEN6x: %w", err)
 			}
 			sensor.Register(name, s)
 

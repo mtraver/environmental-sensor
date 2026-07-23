@@ -12,6 +12,8 @@ import (
 	"periph.io/x/devices/v3/sen6x"
 )
 
+const Name = "sen6x"
+
 type mode int
 
 const (
@@ -121,7 +123,7 @@ func (s *SEN6x) startMeasurement() error {
 		return err
 	}
 
-	log.Printf("SEN6x: %s -> %s", s.mode, modeMeasurement)
+	log.Printf("%s: %s -> %s", Name, s.mode, modeMeasurement)
 
 	s.mode = modeMeasurement
 	return nil
@@ -136,7 +138,7 @@ func (s *SEN6x) stopMeasurement() error {
 		return err
 	}
 
-	log.Printf("SEN6x: %s -> %s", s.mode, modeIdle)
+	log.Printf("%s: %s -> %s", Name, s.mode, modeIdle)
 	s.mode = modeIdle
 	return nil
 }

@@ -8,6 +8,8 @@ import (
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+const Name = "dummy"
+
 type Dummy struct{}
 
 func (d Dummy) OnRegister() error {

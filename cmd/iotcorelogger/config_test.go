@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
+	"github.com/mtraver/environmental-sensor/sensor/sds011"
 )
 
 func TestConfigSensors(t *testing.T) {
@@ -25,11 +27,11 @@ func TestConfigSensors(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
-			want: []string{"mcp9808"},
+			want: []string{mcp9808.Name},
 		},
 		{
 			name: "single job multiple sensors",
@@ -38,11 +40,11 @@ func TestConfigSensors(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808", "sds011"},
+						Sensors:   []string{mcp9808.Name, sds011.Name},
 					},
 				},
 			},
-			want: []string{"mcp9808", "sds011"},
+			want: []string{mcp9808.Name, sds011.Name},
 		},
 		{
 			name: "multiple jobs distinct sensors",
@@ -51,16 +53,16 @@ func TestConfigSensors(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"sds011"},
+						Sensors:   []string{sds011.Name},
 					},
 				},
 			},
-			want: []string{"mcp9808", "sds011"},
+			want: []string{mcp9808.Name, sds011.Name},
 		},
 		{
 			name: "multiple jobs overlapping sensors",
@@ -69,21 +71,21 @@ func TestConfigSensors(t *testing.T) {
 					{
 						Cronspec:  "35 1-59/2 * * * *",
 						Operation: JobTypeSetup,
-						Sensors:   []string{"sds011"},
+						Sensors:   []string{sds011.Name},
 					},
 					{
 						Cronspec:  "0 0-59/2 * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808", "sds011"},
+						Sensors:   []string{mcp9808.Name, sds011.Name},
 					},
 					{
 						Cronspec:  "8 0-59/2 * * * *",
 						Operation: JobTypeShutdown,
-						Sensors:   []string{"sds011"},
+						Sensors:   []string{sds011.Name},
 					},
 				},
 			},
-			want: []string{"mcp9808", "sds011"},
+			want: []string{mcp9808.Name, sds011.Name},
 		},
 	}
 
@@ -122,7 +124,7 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -135,17 +137,17 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSetup,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 					{
 						Cronspec:  "@every 5m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808", "sds011"},
+						Sensors:   []string{mcp9808.Name, sds011.Name},
 					},
 					{
 						Cronspec:  "@every 6m",
 						Operation: JobTypeShutdown,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -157,7 +159,7 @@ func TestConfigValidate(t *testing.T) {
 				Jobs: []JobSpec{
 					{
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -170,7 +172,7 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: "INVALID",
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -183,7 +185,7 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: "",
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -209,7 +211,7 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808", "mcp9808"},
+						Sensors:   []string{mcp9808.Name, mcp9808.Name},
 					},
 				},
 			},
@@ -222,11 +224,11 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 					{
 						Operation: JobTypeSense,
-						Sensors:   []string{"sds011"},
+						Sensors:   []string{sds011.Name},
 					},
 				},
 			},
@@ -239,12 +241,12 @@ func TestConfigValidate(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 					{
 						Cronspec:  "@every 5m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"sds011", "sds011"},
+						Sensors:   []string{sds011.Name, sds011.Name},
 					},
 				},
 			},

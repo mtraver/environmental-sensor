@@ -28,7 +28,7 @@ func (s *SEN6x) Configure(raw json.RawMessage) (err error) {
 		return fmt.Errorf("invalid sen6x config: %w", err)
 	}
 
-	log.Printf("Configure SEN6x:\n%s", cfg)
+	log.Printf("%s: configure:\n%s", Name, cfg)
 
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()

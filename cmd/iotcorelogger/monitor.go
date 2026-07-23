@@ -392,31 +392,31 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 		}
 
 		switch name {
-		case "mcp9808":
+		case mcp9808.Name:
 			s, err := mcp9808.New(mon.i2cBus, &mon.i2cBusMu)
 			if err != nil {
-				return fmt.Errorf("failed to initialize MCP9808: %w", err)
+				return fmt.Errorf("failed to initialize %s: %w", name, err)
 			}
 			sensor.Register(name, s)
 
-		case "sds011":
+		case sds011.Name:
 			s, err := sds011.New("/dev/ttyUSB0")
 			if err != nil {
-				return fmt.Errorf("failed to initialize SDS011: %w", err)
+				return fmt.Errorf("failed to initialize %s: %w", name, err)
 			}
 			sensor.Register(name, s)
 
-		case "sen6x":
+		case sen6x.Name:
 			// TODO(mtraver) Provide model via config rather than hard-coding SEN66.
 			s, err := sen6x.New(periphsen6x.SEN66, mon.i2cBus, &mon.i2cBusMu)
 			if err != nil {
-				return fmt.Errorf("failed to initialize SEN6x: %w", err)
+				return fmt.Errorf("failed to initialize %s: %w", name, err)
 			}
-			log.Printf("Current SEN6x config:\n%s", s.CurrentConfig())
+			log.Printf("%s: current config:\n%s", name, s.CurrentConfig())
 
 			sensor.Register(name, s)
 
-		case "dummy":
+		case dummy.Name:
 			sensor.Register(name, dummy.Dummy{})
 
 		default:

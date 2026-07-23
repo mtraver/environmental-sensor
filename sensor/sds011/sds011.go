@@ -9,6 +9,8 @@ import (
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 )
 
+const Name = "sds011"
+
 const (
 	numSamples     = 3
 	sampleInterval = 1

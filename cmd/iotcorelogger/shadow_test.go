@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mtraver/awsiotcore/shadow"
+	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
 )
 
 func TestMergeConfig(t *testing.T) {
@@ -21,7 +22,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -31,7 +32,7 @@ func TestMergeConfig(t *testing.T) {
 						{
 							Cronspec:  "@every 5m",
 							Operation: JobTypeSense,
-							Sensors:   []string{"mcp9808"},
+							Sensors:   []string{mcp9808.Name},
 						},
 					},
 				},
@@ -41,7 +42,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "@every 5m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -53,7 +54,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -73,7 +74,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -85,7 +86,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -97,7 +98,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -109,7 +110,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -121,7 +122,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -131,7 +132,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "* * * * *",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -145,7 +146,7 @@ func TestMergeConfig(t *testing.T) {
 						{
 							Cronspec:  "@every 2m",
 							Operation: JobTypeSense,
-							Sensors:   []string{"mcp9808"},
+							Sensors:   []string{mcp9808.Name},
 						},
 					},
 				},
@@ -155,7 +156,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},
@@ -169,7 +170,7 @@ func TestMergeConfig(t *testing.T) {
 						{
 							Cronspec:  "@every 2m",
 							Operation: JobTypeSense,
-							Sensors:   []string{"mcp9808"},
+							Sensors:   []string{mcp9808.Name},
 						},
 					},
 				},
@@ -179,7 +180,7 @@ func TestMergeConfig(t *testing.T) {
 					{
 						Cronspec:  "@every 2m",
 						Operation: JobTypeSense,
-						Sensors:   []string{"mcp9808"},
+						Sensors:   []string{mcp9808.Name},
 					},
 				},
 			},

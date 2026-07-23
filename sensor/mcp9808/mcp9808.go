@@ -12,6 +12,8 @@ import (
 	"periph.io/x/devices/v3/mcp9808"
 )
 
+const Name = "mcp9808"
+
 const (
 	numSamples     = 3
 	sampleInterval = 1

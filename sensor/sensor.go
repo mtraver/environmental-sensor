@@ -9,6 +9,8 @@ import (
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"github.com/mtraver/environmental-sensor/sensor/mcp9808"
+	"github.com/mtraver/environmental-sensor/sensor/sen6x"
 )
 
 var (
@@ -122,7 +124,7 @@ func Names() []string {
 
 func UsesI2C(name string) bool {
 	switch name {
-	case "mcp9808", "sen6x":
+	case mcp9808.Name, sen6x.Name:
 		return true
 	default:
 		return false

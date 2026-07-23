@@ -1,6 +1,9 @@
+//go:generate go tool stringer -type=mode
+
 package sen6x
 
 import (
+	"log"
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -9,33 +12,53 @@ import (
 	"periph.io/x/devices/v3/sen6x"
 )
 
+type mode int
+
+const (
+	modeUnknown mode = iota
+	modeIdle
+	modeMeasurement
+)
+
 type SEN6x struct {
 	dev      *sen6x.Dev
 	i2cBusMu *sync.Mutex
+	mode     mode
+	applied  Config
 }
 
 func New(model sen6x.Model, bus i2c.BusCloser, i2cBusMu *sync.Mutex) (*SEN6x, error) {
 	i2cBusMu.Lock()
 	defer i2cBusMu.Unlock()
 
-	return &SEN6x{
+	s := &SEN6x{
 		dev:      sen6x.New(bus, model),
 		i2cBusMu: i2cBusMu,
-	}, nil
+		mode:     modeUnknown,
+	}
+
+	// Read the current config state.
+	currConfig, err := s.readConfig()
+	if err != nil {
+		return nil, err
+	}
+	s.applied = currConfig
+
+	return s, nil
 }
 
 func (s *SEN6x) OnRegister() error {
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()
 
-	return s.dev.StartContinuousMeasurement()
+	return s.startMeasurement()
 }
 
 func (s *SEN6x) OnRemove() error {
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()
 
-	return s.dev.StopMeasurement()
+	return s.stopMeasurement()
 }
 
 func (s *SEN6x) RunSetupJob() error {
@@ -86,5 +109,34 @@ func (s *SEN6x) RunSenseJob(m *mpb.Measurement) error {
 }
 
 func (s *SEN6x) RunShutdownJob() error {
+	return nil
+}
+
+func (s *SEN6x) startMeasurement() error {
+	if s.mode == modeMeasurement {
+		return nil
+	}
+
+	if err := s.dev.StartContinuousMeasurement(); err != nil {
+		return err
+	}
+
+	log.Printf("SEN6x: %s -> %s", s.mode, modeMeasurement)
+
+	s.mode = modeMeasurement
+	return nil
+}
+
+func (s *SEN6x) stopMeasurement() error {
+	if s.mode == modeIdle {
+		return nil
+	}
+
+	if err := s.dev.StopMeasurement(); err != nil {
+		return err
+	}
+
+	log.Printf("SEN6x: %s -> %s", s.mode, modeIdle)
+	s.mode = modeIdle
 	return nil
 }

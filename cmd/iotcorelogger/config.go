@@ -6,7 +6,8 @@ import (
 )
 
 type Config struct {
-	Jobs []JobSpec `json:"jobs"`
+	Jobs         []JobSpec                  `json:"jobs"`
+	SensorConfig map[string]json.RawMessage `json:"sensor_config,omitempty"`
 }
 
 func (c *Config) String() string {

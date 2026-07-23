@@ -1,6 +1,7 @@
 package sds011
 
 import (
+	"encoding/json"
 	"time"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -22,6 +23,10 @@ func (s *SDS011) OnRegister() error {
 }
 
 func (s *SDS011) OnRemove() error {
+	return nil
+}
+
+func (s *SDS011) Configure(raw json.RawMessage) error {
 	return nil
 }
 

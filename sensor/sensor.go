@@ -1,6 +1,7 @@
 package sensor
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -23,6 +24,10 @@ type Sensor interface {
 	// OnRemove performs one-time sensor shutdown/cleanup tasks. It is called once
 	// when the sensor is removed from the registry.
 	OnRemove() error
+
+	// Configure performs sensor-specific configuration based on the given raw JSON data.
+	// It is called on each config change so it should be idempotent.
+	Configure(json.RawMessage) error
 
 	// RunSetupJob performs recurring, cron-scheduled sensor setup tasks.
 	RunSetupJob() error

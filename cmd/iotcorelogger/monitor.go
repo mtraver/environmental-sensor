@@ -412,6 +412,8 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 			if err != nil {
 				return fmt.Errorf("failed to initialize SEN6x: %w", err)
 			}
+			log.Printf("Current SEN6x config:\n%s", s.CurrentConfig())
+
 			sensor.Register(name, s)
 
 		case "dummy":
@@ -422,6 +424,13 @@ func (mon *Monitor) reconcileSensors(config *Config) error {
 		}
 
 		log.Printf("Registered sensor %q", name)
+	}
+
+	// Apply sensor-specific config.
+	for name := range desired {
+		if err := sensor.Get(name).Configure(config.SensorConfig[name]); err != nil {
+			return fmt.Errorf("failed to configure %q: %w", name, err)
+		}
 	}
 
 	return nil

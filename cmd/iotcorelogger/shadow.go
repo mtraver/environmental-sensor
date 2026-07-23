@@ -45,5 +45,9 @@ func mergeConfig(current *Config, delta *shadow.DeltaResponse[*Config]) *Config 
 		merged.Jobs = delta.State.Jobs
 	}
 
+	if delta.State.SensorConfig != nil {
+		merged.SensorConfig = delta.State.SensorConfig
+	}
+
 	return merged
 }

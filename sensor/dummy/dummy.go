@@ -1,6 +1,7 @@
 package dummy
 
 import (
+	"encoding/json"
 	"log"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
@@ -16,6 +17,11 @@ func (d Dummy) OnRegister() error {
 
 func (d Dummy) OnRemove() error {
 	log.Printf("DUMMY SENSOR OnRemove")
+	return nil
+}
+
+func (s Dummy) Configure(raw json.RawMessage) error {
+	log.Printf("DUMMY SENSOR Configure")
 	return nil
 }
 

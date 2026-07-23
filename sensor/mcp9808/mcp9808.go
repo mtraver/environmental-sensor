@@ -1,6 +1,7 @@
 package mcp9808
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -41,6 +42,10 @@ func (s *MCP9808) OnRegister() error {
 }
 
 func (s *MCP9808) OnRemove() error {
+	return nil
+}
+
+func (s *MCP9808) Configure(raw json.RawMessage) error {
 	return nil
 }
 

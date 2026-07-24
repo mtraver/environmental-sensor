@@ -27,7 +27,7 @@ func String(m *mpb.Measurement) string {
 	if m.GetUploadTimestamp() != nil {
 		uploadts := m.GetUploadTimestamp().AsTime()
 
-		delay = fmt.Sprintf(" (%v upload delay)", uploadts.Sub(timestamp))
+		delay = fmt.Sprintf("(%v upload delay)", uploadts.Sub(timestamp))
 	}
 
 	values := map[metric.Key]*wpb.FloatValue{
@@ -43,22 +43,33 @@ func String(m *mpb.Measurement) string {
 		metric.CO2:      m.GetCo2(),
 	}
 
-	var strs []string
+	var valueStrs []string
 	for key, v := range values {
 		if v == nil {
 			continue
 		}
 
 		info := metric.All[key]
-		strs = append(strs, fmt.Sprintf("%s=%.3f%s", info.Name, v.GetValue(), info.Unit))
+		valueStrs = append(valueStrs, fmt.Sprintf("%s=%.3f%s", info.Name, v.GetValue(), info.Unit))
 	}
-	sort.Strings(strs)
+	sort.Strings(valueStrs)
 
-	if len(strs) == 0 {
-		strs = append(strs, "[no measurements]")
+	if len(valueStrs) == 0 {
+		valueStrs = append(valueStrs, "[no measurements]")
 	}
 
-	return fmt.Sprintf("%s %s %s%s", m.GetDeviceId(), strings.Join(strs, ", "), timestamp.Format(time.RFC3339), delay)
+	elements := []string{m.GetDeviceId(), strings.Join(valueStrs, ", "), timestamp.Format(time.RFC3339), delay}
+
+	// Filter out empty strings in place.
+	var n int
+	for _, val := range elements {
+		if val != "" {
+			elements[n] = val
+			n++
+		}
+	}
+
+	return strings.Join(elements[:n], " ")
 }
 
 // Validate validates each field of the Measurement.

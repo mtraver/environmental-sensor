@@ -240,23 +240,34 @@ func (sm *StorableMeasurement) FillDerivedMetrics() {
 func (sm StorableMeasurement) String() string {
 	delay := ""
 	if !sm.UploadTimestamp.IsZero() {
-		delay = fmt.Sprintf(" (%v upload delay)", sm.UploadTimestamp.Sub(sm.Timestamp))
+		delay = fmt.Sprintf("(%v upload delay)", sm.UploadTimestamp.Sub(sm.Timestamp))
 	}
 
-	strs := []string{}
+	valueStrs := []string{}
 	for key, v := range sm.ValueMap() {
 		if v == nil {
 			continue
 		}
 
 		info := metric.All[key]
-		strs = append(strs, fmt.Sprintf("%s=%.3f%s", info.Name, *v, info.Unit))
+		valueStrs = append(valueStrs, fmt.Sprintf("%s=%.3f%s", info.Name, *v, info.Unit))
 	}
-	sort.Strings(strs)
+	sort.Strings(valueStrs)
 
-	if len(strs) == 0 {
-		strs = append(strs, "[no measurements]")
+	if len(valueStrs) == 0 {
+		valueStrs = append(valueStrs, "[no measurements]")
 	}
 
-	return fmt.Sprintf("%s %s %s%s", sm.DeviceID, strings.Join(strs, ", "), sm.Timestamp.Format(time.RFC3339), delay)
+	elements := []string{sm.DeviceID, strings.Join(valueStrs, ", "), sm.Timestamp.Format(time.RFC3339), delay}
+
+	// Filter out empty strings in place.
+	var n int
+	for _, val := range elements {
+		if val != "" {
+			elements[n] = val
+			n++
+		}
+	}
+
+	return strings.Join(elements[:n], " ")
 }

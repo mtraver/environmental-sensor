@@ -106,7 +106,7 @@ func TestStorableMeasurementString(t *testing.T) {
 		{
 			"empty",
 			StorableMeasurement{},
-			" [no measurements] 0001-01-01T00:00:00Z",
+			"[no measurements] 0001-01-01T00:00:00Z",
 		},
 		{
 			"no upload timestamp",
@@ -116,6 +116,14 @@ func TestStorableMeasurementString(t *testing.T) {
 				Temp:      floatPtr(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z",
+		},
+		{
+			"no device ID",
+			StorableMeasurement{
+				Timestamp: testutil.Timestamp,
+				Temp:      floatPtr(18.3748),
+			},
+			"temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 		{
 			"with upload timestamp",

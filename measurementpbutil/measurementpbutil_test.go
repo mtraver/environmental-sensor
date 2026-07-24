@@ -55,7 +55,7 @@ func TestString(t *testing.T) {
 		{
 			"empty",
 			&mpb.Measurement{},
-			" [no measurements] 0001-01-01T00:00:00Z",
+			"[no measurements] 0001-01-01T00:00:00Z",
 		},
 		{
 			"no upload timestamp",
@@ -65,6 +65,14 @@ func TestString(t *testing.T) {
 				Temp:      wpb.Float(18.3748),
 			},
 			"foo temp=18.375°C 2018-03-25T00:00:00Z",
+		},
+		{
+			"no device ID",
+			&mpb.Measurement{
+				Timestamp: testutil.TimestampProto,
+				Temp:      wpb.Float(18.3748),
+			},
+			"temp=18.375°C 2018-03-25T00:00:00Z",
 		},
 		{
 			"with upload timestamp",

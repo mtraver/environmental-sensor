@@ -54,7 +54,7 @@ func (j SetupJob) Run() {
 type SenseJob struct {
 	Sensors []string
 	Publish func(context.Context, *mpb.Measurement) error
-	Dryrun  bool
+	Echo    bool
 }
 
 func (j SenseJob) Run() {
@@ -87,9 +87,8 @@ func (j SenseJob) Run() {
 		return
 	}
 
-	if j.Dryrun {
-		log.Print(mpbutil.String(&m))
-		return
+	if j.Echo {
+		log.Println(mpbutil.String(&m))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

@@ -52,8 +52,8 @@ Raspberry Pi 3 B<sup>1</sup>).
     Options:
       -aws-device string
           path to a device config file describing an AWS IoT Core device
-      -dryrun
-          set to true to print rather than publish measurements
+      -echo
+          set to true to log measurements
       -port int
           port on which the device's web server should listen (default 8080)
 

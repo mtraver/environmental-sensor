@@ -30,13 +30,13 @@ var (
 var (
 	flagAWSDeviceFilePath string
 	flagPort              int
-	flagDryrun            bool
+	flagEcho              bool
 )
 
 func init() {
 	flag.StringVar(&flagAWSDeviceFilePath, "aws-device", "", "path to a device config file describing an AWS IoT Core device")
 	flag.IntVar(&flagPort, "port", 8080, "port on which the device's web server should listen")
-	flag.BoolVar(&flagDryrun, "dryrun", false, "set to true to print rather than publish measurements")
+	flag.BoolVar(&flagEcho, "echo", false, "set to true to log measurements")
 
 	flag.Usage = func() {
 		message := `usage: iotcorelogger [options]

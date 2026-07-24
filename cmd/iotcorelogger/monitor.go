@@ -78,10 +78,6 @@ func NewMonitor(ctx context.Context, device *aic.Device) (*Monitor, error) {
 		cron:   cr,
 	}
 
-	if flagDryrun {
-		return monitor, nil
-	}
-
 	log.Println("Connecting to MQTT broker...")
 	clientConfig := device.ClientConfig()
 	clientConfig.KeepAlive = 20
@@ -234,17 +230,12 @@ func (mon *Monitor) OnClientError(err error) {
 
 func (mon *Monitor) Close(ctx context.Context) error {
 	mon.cron.StopAndWait()
-
-	// TODO(mtraver) Make this unconditional if/when I remove -dryrun.
-	if mon.connMan != nil {
-		mon.connMan.Disconnect(ctx)
-
-		select {
-		case <-mon.connMan.Done():
-			log.Println("Disconnected")
-		case <-ctx.Done():
-			log.Println("Timed out while disconnecting")
-		}
+	mon.connMan.Disconnect(ctx)
+	select {
+	case <-mon.connMan.Done():
+		log.Println("Disconnected")
+	case <-ctx.Done():
+		log.Println("Timed out while disconnecting")
 	}
 
 	if err := sensor.RemoveAll(); err != nil {
@@ -474,7 +465,7 @@ func (mon *Monitor) jobFromSpec(jobSpec *JobSpec) (cron.Job, error) {
 		return SenseJob{
 			Sensors: jobSpec.Sensors,
 			Publish: mon.Publish,
-			Dryrun:  flagDryrun,
+			Echo:    flagEcho,
 		}, nil
 
 	case JobTypeShutdown:

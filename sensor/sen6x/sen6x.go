@@ -3,16 +3,23 @@
 package sen6x
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"sync"
 
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
+	"github.com/mtraver/environmental-sensor/state"
 	wpb "google.golang.org/protobuf/types/known/wrapperspb"
 	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/devices/v3/sen6x"
 )
 
-const Name = "sen6x"
+const (
+	Name = "sen6x"
+
+	vocAlgStateFileName = "sen6x-voc-alg-state.bin"
+)
 
 type mode int
 
@@ -23,20 +30,39 @@ const (
 )
 
 type SEN6x struct {
-	dev      *sen6x.Dev
-	i2cBusMu *sync.Mutex
-	mode     mode
-	applied  Config
+	dev                *sen6x.Dev
+	i2cBusMu           *sync.Mutex
+	mode               mode
+	applied            Config
+	vocAlgStateStore   state.Store
+	cancelPersistState context.CancelFunc
 }
 
 func New(model sen6x.Model, bus i2c.BusCloser, i2cBusMu *sync.Mutex) (*SEN6x, error) {
+	vocAlgStateStore, err := state.NewFileStore(vocAlgStateFileName)
+	if err != nil {
+		return nil, fmt.Errorf("sen6x: failed to make state store: %w", err)
+	}
+	vocAlgState, err := vocAlgStateStore.Load()
+	if err != nil {
+		return nil, fmt.Errorf("sen6x: failed to load from state store: %w", err)
+	}
+
 	i2cBusMu.Lock()
 	defer i2cBusMu.Unlock()
 
 	s := &SEN6x{
-		dev:      sen6x.New(bus, model),
-		i2cBusMu: i2cBusMu,
-		mode:     modeUnknown,
+		dev:              sen6x.New(bus, model),
+		i2cBusMu:         i2cBusMu,
+		mode:             modeUnknown,
+		vocAlgStateStore: vocAlgStateStore,
+	}
+
+	// Set the VOC algorithm state fetched from the state store, if present.
+	if vocAlgState != nil {
+		if err := s.dev.SetVOCAlgorithmState([8]byte(vocAlgState)); err != nil {
+			return nil, fmt.Errorf("sen6x: failed to set VOC algorithm state: %w", err)
+		}
 	}
 
 	// Read the current config state.
@@ -53,12 +79,24 @@ func (s *SEN6x) OnRegister() error {
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	s.cancelPersistState = cancel
+	go s.persistStateLoop(ctx, statePersistenceInterval)
+
 	return s.startMeasurement()
 }
 
 func (s *SEN6x) OnRemove() error {
 	s.i2cBusMu.Lock()
 	defer s.i2cBusMu.Unlock()
+
+	if s.cancelPersistState != nil {
+		s.cancelPersistState()
+	}
+
+	if err := s.saveState(); err != nil {
+		log.Printf("%s: failed to save state on remove: %v", Name, err)
+	}
 
 	return s.stopMeasurement()
 }

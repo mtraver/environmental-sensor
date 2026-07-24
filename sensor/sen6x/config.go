@@ -5,12 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
+	"periph.io/x/devices/v3/sen6x"
 )
 
 type Config struct {
-	AltitudeMeters     *uint16 `json:"altitude_meters,omitempty"`
-	AmbientPressureHPa *uint16 `json:"pressure_hpa,omitempty"`
-	CO2AutoCalibration *bool   `json:"co2_auto_calibration,omitempty"`
+	AltitudeMeters     *uint16                                  `json:"altitudeM,omitempty"`
+	AmbientPressureHPa *uint16                                  `json:"pressureHPa,omitempty"`
+	CO2AutoCalibration *bool                                    `json:"co2AutoCalibration,omitempty"`
+	VOCTuning          *sen6x.VOCNOxAlgorithmTuningParameters   `json:"vocTuning,omitempty"`
+	NOxTuning          *sen6x.VOCNOxAlgorithmTuningParameters   `json:"noxTuning,omitempty"`
+	TempAcceleration   *sen6x.TemperatureAccelerationParameters `json:"tempAcceleration,omitempty"`
+	TempOffset         *sen6x.TemperatureOffsetParameters       `json:"tempOffset,omitempty"`
 }
 
 func (c Config) String() string {
@@ -72,6 +78,42 @@ func (s *SEN6x) Configure(raw json.RawMessage) (err error) {
 		return err
 	}
 
+	if s.applied.VOCTuning, err = applyIfChanged(s.applied.VOCTuning, cfg.VOCTuning, func(params sen6x.VOCNOxAlgorithmTuningParameters) error {
+		if err := s.stopMeasurement(); err != nil {
+			return err
+		}
+		return s.dev.SetVOCAlgorithmTuningParameters(params)
+	}); err != nil {
+		return err
+	}
+
+	if s.applied.NOxTuning, err = applyIfChanged(s.applied.NOxTuning, cfg.NOxTuning, func(params sen6x.VOCNOxAlgorithmTuningParameters) error {
+		if err := s.stopMeasurement(); err != nil {
+			return err
+		}
+		return s.dev.SetNOxAlgorithmTuningParameters(params)
+	}); err != nil {
+		return err
+	}
+
+	if s.applied.TempAcceleration, err = applyIfChanged(s.applied.TempAcceleration, cfg.TempAcceleration, func(params sen6x.TemperatureAccelerationParameters) error {
+		if err := s.stopMeasurement(); err != nil {
+			return err
+		}
+		return s.dev.SetTemperatureAccelerationParameters(params)
+	}); err != nil {
+		return err
+	}
+
+	if s.applied.TempOffset, err = applyIfChanged(s.applied.TempOffset, cfg.TempOffset, func(params sen6x.TemperatureOffsetParameters) error {
+		if err := s.stopMeasurement(); err != nil {
+			return err
+		}
+		return s.dev.SetTemperatureOffsetParameters(params)
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -107,6 +149,21 @@ func (s *SEN6x) readConfig() (Config, error) {
 	} else {
 		cfg.CO2AutoCalibration = &co2AutoCal
 	}
+
+	if vocTuning, err := s.dev.GetVOCAlgorithmTuningParameters(); err != nil {
+		return cfg, err
+	} else {
+		cfg.VOCTuning = vocTuning
+	}
+
+	if noxTuning, err := s.dev.GetNOxAlgorithmTuningParameters(); err != nil {
+		return cfg, err
+	} else {
+		cfg.NOxTuning = noxTuning
+	}
+
+	// There are no commands to get either temperature acceleration parameters or
+	// temperature offset parameters.
 
 	return cfg, nil
 }

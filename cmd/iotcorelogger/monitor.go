@@ -241,7 +241,9 @@ func (mon *Monitor) Close(ctx context.Context) error {
 
 		select {
 		case <-mon.connMan.Done():
+			log.Println("Disconnected")
 		case <-ctx.Done():
+			log.Println("Timed out while disconnecting")
 		}
 	}
 

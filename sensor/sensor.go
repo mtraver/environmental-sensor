@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"maps"
 	"slices"
 	"sync"
@@ -51,11 +52,11 @@ func Register(name string, s Sensor) error {
 	defer mu.Unlock()
 
 	if _, ok := sensors[name]; ok {
-		return fmt.Errorf("sensor with name already registered: %q", name)
+		return fmt.Errorf("sensor: sensor with name already registered: %q", name)
 	}
 
 	if err := s.OnRegister(); err != nil {
-		return fmt.Errorf("failed to register sensor with name %q: %w", name, err)
+		return fmt.Errorf("sensor: failed to register sensor with name %q: %w", name, err)
 	}
 
 	sensors[name] = s
@@ -74,7 +75,7 @@ func Remove(name string) error {
 	}
 
 	if err := s.OnRemove(); err != nil {
-		return fmt.Errorf("failed to remove sensor with name %q: %w", name, err)
+		return fmt.Errorf("sensor: failed to remove sensor with name %q: %w", name, err)
 	}
 
 	delete(sensors, name)
@@ -91,8 +92,9 @@ func RemoveAll() error {
 	for _, name := range slices.Collect(maps.Keys(sensors)) {
 		s := sensors[name]
 
+		log.Printf("Removing sensor %q", name)
 		if err := s.OnRemove(); err != nil {
-			errs = append(errs, fmt.Errorf("failed to remove sensor with name %q: %w", name, err))
+			errs = append(errs, fmt.Errorf("sensor: failed to remove sensor with name %q: %w", name, err))
 		} else {
 			delete(sensors, name)
 		}

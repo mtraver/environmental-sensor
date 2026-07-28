@@ -1,13 +1,6 @@
 import type { JSX } from "react";
 import { useMemo } from "react";
-import {
-  Center,
-  Loader,
-  ScrollArea,
-  Table,
-  Text,
-  useMantineTheme,
-} from "@mantine/core";
+import { Center, Loader, ScrollArea, Table, Text } from "@mantine/core";
 import type { LatestQuery } from "../types/__generated__/graphql";
 import { AQIBadge } from "./aqibadge";
 import { METRICS, METRIC_ORDER } from "../lib/metrics";
@@ -23,7 +16,7 @@ function DeviceCell({
 }): JSX.Element {
   const relativeTime = useRelativeTime(timestamp);
   return (
-    <Table.Td>
+    <Table.Td style={{ whiteSpace: "nowrap" }}>
       <Text size="sm" fw={500}>
         {deviceId}
       </Text>
@@ -66,7 +59,7 @@ function MetricCell({
   measurement: LatestMeasurement;
 }): JSX.Element {
   return (
-    <Table.Td key={metric}>
+    <Table.Td key={metric} style={{ whiteSpace: "nowrap" }}>
       <MetricCellContent metric={metric} measurement={measurement} />
     </Table.Td>
   );
@@ -94,21 +87,20 @@ export function LatestMeasurementsTable({
     [measurements],
   );
 
-  const theme = useMantineTheme();
   return (
     <div style={{ position: "relative" }}>
       <ScrollArea>
-        <Table striped highlightOnHover miw={theme.breakpoints.xs}>
+        <Table striped highlightOnHover miw={890}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Device</Table.Th>
               {presentMetrics.map((m) => (
-                <Table.Th key={m}>
+                <Table.Th key={m} style={{ whiteSpace: "nowrap" }}>
                   {METRICS[m].shortLabel}
                   {METRICS[m].unit && (
                     <Text span c="dimmed" size="xs">
                       {" "}
-                      ({METRICS[m].unit})
+                      {METRICS[m].unit}
                     </Text>
                   )}
                 </Table.Th>

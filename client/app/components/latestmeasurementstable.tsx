@@ -59,7 +59,7 @@ function MetricCell({
   measurement: LatestMeasurement;
 }): JSX.Element {
   return (
-    <Table.Td key={metric} style={{ whiteSpace: "nowrap" }}>
+    <Table.Td style={{ whiteSpace: "nowrap" }}>
       <MetricCellContent metric={metric} measurement={measurement} />
     </Table.Td>
   );
@@ -112,7 +112,7 @@ export function LatestMeasurementsTable({
               <Table.Tr key={row.deviceId}>
                 <DeviceCell deviceId={row.deviceId} timestamp={row.timestamp} />
                 {presentMetrics.map((m) => (
-                  <MetricCell metric={m} measurement={row} />
+                  <MetricCell key={m} metric={m} measurement={row} />
                 ))}
               </Table.Tr>
             ))}

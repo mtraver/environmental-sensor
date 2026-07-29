@@ -1,0 +1,11 @@
+.stickyColumn {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--mantine-color-body);
+  box-shadow: 1px 0 0 var(--mantine-color-default-border);
+}
+
+tbody tr[data-striped="odd"]:nth-of-type(2n + 1) .stickyColumn {
+  background-color: var(--table-striped-color);
+}

@@ -6,6 +6,7 @@ import { AQIBadge } from "./aqibadge";
 import { METRICS, METRIC_ORDER } from "../lib/metrics";
 import type { MetricKey } from "../lib/metrics";
 import { useRelativeTime } from "../lib/time";
+import classes from "../css/latestmeasurementstable.module.css";
 
 function DeviceCell({
   deviceId,
@@ -16,7 +17,7 @@ function DeviceCell({
 }): JSX.Element {
   const relativeTime = useRelativeTime(timestamp);
   return (
-    <Table.Td style={{ whiteSpace: "nowrap" }}>
+    <Table.Td className={classes.stickyColumn} style={{ whiteSpace: "nowrap" }}>
       <Text size="sm" fw={500}>
         {deviceId}
       </Text>
@@ -93,7 +94,7 @@ export function LatestMeasurementsTable({
         <Table striped highlightOnHover miw={890}>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Device</Table.Th>
+              <Table.Th className={classes.stickyColumn}>Device</Table.Th>
               {presentMetrics.map((m) => (
                 <Table.Th key={m} style={{ whiteSpace: "nowrap" }}>
                   {METRICS[m].shortLabel}

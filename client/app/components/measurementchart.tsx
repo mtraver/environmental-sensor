@@ -7,8 +7,10 @@ import {
   Loader,
   SegmentedControl,
   Stack,
+  useMantineTheme,
 } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
+import { useMediaQuery } from "@mantine/hooks";
 import fnv1a from "@sindresorhus/fnv1a";
 import type { Measurement } from "../types/__generated__/graphql";
 import { DEFAULT_METRIC, METRICS, METRIC_ORDER } from "../lib/metrics";
@@ -207,6 +209,8 @@ export function MeasurementChart({
     [presentDevices],
   );
 
+  const theme = useMantineTheme();
+  const isNarrow = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const metricConfig = METRICS[validatedMetric];
   return (
     <Stack gap="md">
@@ -216,7 +220,7 @@ export function MeasurementChart({
         onChange={(v) => setMetric(v as MetricKey)}
         data={presentMetrics.map((k) => ({
           value: k,
-          label: METRICS[k].label,
+          label: isNarrow ? METRICS[k].shortLabel : METRICS[k].label,
         }))}
         style={{ alignSelf: "flex-start" }}
       />

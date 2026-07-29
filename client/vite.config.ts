@@ -5,6 +5,18 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [!process.env.VITEST && reactRouter(), tsconfigPaths()],
+  server: {
+    proxy: {
+      "/query": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "^/debug/.*": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     globals: true,
     environment: "jsdom",

@@ -1,11 +1,11 @@
 import type { JSX } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Button,
   Center,
   Checkbox,
   Group,
   Loader,
-  SegmentedControl,
   Stack,
   useMantineTheme,
 } from "@mantine/core";
@@ -215,15 +215,18 @@ export function MeasurementChart({
   return (
     <Stack gap="md">
       {/* Metric selector */}
-      <SegmentedControl
-        value={validatedMetric}
-        onChange={(v) => setMetric(v as MetricKey)}
-        data={presentMetrics.map((k) => ({
-          value: k,
-          label: isNarrow ? METRICS[k].shortLabel : METRICS[k].label,
-        }))}
-        style={{ alignSelf: "flex-start" }}
-      />
+      <Group gap={5}>
+        {presentMetrics.map((k) => (
+          <Button
+            key={k}
+            size="xs"
+            variant={validatedMetric === k ? "filled" : "default"}
+            onClick={() => setMetric(k)}
+          >
+            {isNarrow ? METRICS[k].shortLabel : METRICS[k].label}
+          </Button>
+        ))}
+      </Group>
 
       {/* Device toggles */}
       <Group>

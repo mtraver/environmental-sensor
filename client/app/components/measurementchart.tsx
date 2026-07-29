@@ -228,13 +228,12 @@ export function MeasurementChart({
             key={device}
             label={device}
             checked={presentDevices.includes(device)}
-            onChange={(e) =>
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
               setPresentDevices((prev) =>
-                e.currentTarget.checked
-                  ? [...prev, device]
-                  : prev.filter((d) => d !== device),
-              )
-            }
+                checked ? [...prev, device] : prev.filter((d) => d !== device),
+              );
+            }}
           />
         ))}
       </Group>

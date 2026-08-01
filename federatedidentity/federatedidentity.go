@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	cachepkg "github.com/mtraver/environmental-sensor/cache"
+	"github.com/maypok86/otter/v2"
 )
 
 const (
@@ -22,7 +22,10 @@ const (
 var (
 	awsCredentialDurationSeconds int32 = 900
 
-	cache = cachepkg.New[aws.CredentialsProvider]()
+	cache = otter.Must(&otter.Options[string, aws.CredentialsProvider]{
+		MaximumSize:      100,
+		ExpiryCalculator: otter.ExpiryWriting[string, aws.CredentialsProvider](cacheTTL),
+	})
 )
 
 func getGCEToken() (string, error) {
@@ -38,9 +41,9 @@ func getGCEToken() (string, error) {
 }
 
 func GetCredentialsForRole(ctx context.Context, roleARN, region string) (aws.CredentialsProvider, error) {
-	cachedCred := cache.Get(roleARN)
-	if cachedCred != nil {
-		return cachedCred, nil
+	entry, ok := cache.GetEntry(roleARN)
+	if ok && entry.Value != nil {
+		return entry.Value, nil
 	}
 
 	gceToken, err := getGCEToken()
@@ -85,7 +88,7 @@ func GetCredentialsForRole(ctx context.Context, roleARN, region string) (aws.Cre
 		*out.Credentials.SessionToken,
 	)
 
-	cache.Set(roleARN, cred, cacheTTL)
+	cache.Set(roleARN, cred)
 
 	return cred, nil
 }

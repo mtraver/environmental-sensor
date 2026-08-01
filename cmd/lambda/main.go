@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	cachepkg "github.com/mtraver/environmental-sensor/cache"
+	"github.com/maypok86/otter/v2"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/envtools"
 	"golang.org/x/oauth2/google"
@@ -34,13 +34,16 @@ var (
 	secretsManagerRegion = envtools.MustGetenv("AWS_SECRETS_MANAGER_REGION")
 	secretName           = envtools.MustGetenv("GCP_CREDENTIALS_SECRET_NAME")
 
-	cache = cachepkg.New[string]()
+	cache = otter.Must(&otter.Options[string, string]{
+		MaximumSize:      1, // We only ever set or get the key secretName, which is a const.
+		ExpiryCalculator: otter.ExpiryWriting[string, string](cacheTTL),
+	})
 )
 
 func getServiceAccountKey(ctx context.Context) (*google.Credentials, error) {
-	cachedKey := cache.Get(secretName)
-	if cachedKey != "" {
-		return google.CredentialsFromJSON(ctx, []byte(cachedKey), gcpCredentialsScope)
+	entry, ok := cache.GetEntry(secretName)
+	if ok && entry.Value != "" {
+		return google.CredentialsFromJSON(ctx, []byte(entry.Value), gcpCredentialsScope)
 	}
 
 	config, err := config.LoadDefaultConfig(ctx, config.WithRegion(secretsManagerRegion))
@@ -62,7 +65,7 @@ func getServiceAccountKey(ctx context.Context) (*google.Credentials, error) {
 	// Decrypt the secret using the associated KMS key.
 	key := *result.SecretString
 
-	cache.Set(secretName, key, cacheTTL)
+	cache.Set(secretName, key)
 
 	return google.CredentialsFromJSON(ctx, []byte(key), gcpCredentialsScope)
 }

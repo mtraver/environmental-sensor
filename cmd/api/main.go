@@ -10,10 +10,10 @@ import (
 	"os"
 
 	"cloud.google.com/go/compute/metadata"
+	"github.com/mtraver/environmental-sensor/device"
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 	"github.com/mtraver/environmental-sensor/web/db"
-	"github.com/mtraver/environmental-sensor/web/device"
 	"github.com/mtraver/envtools"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"

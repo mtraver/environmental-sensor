@@ -8,9 +8,9 @@ package graph
 import (
 	"context"
 
+	"github.com/mtraver/environmental-sensor/device"
 	"github.com/mtraver/environmental-sensor/graph/model"
 	"github.com/mtraver/environmental-sensor/measurement"
-	"github.com/mtraver/environmental-sensor/web/device"
 )
 
 // Measurements is the resolver for the measurements field.

@@ -17,6 +17,7 @@ RUN go mod download
 COPY aqi aqi/
 COPY cache cache/
 COPY database database/
+COPY device device/
 COPY federatedidentity federatedidentity/
 COPY graph/ graph
 COPY measurement measurement/

@@ -110,9 +110,10 @@ func main() {
 	}
 
 	gqlHandler := graphQLHandler(&graph.Resolver{
-		Database:   database,
-		AWSRegion:  envtools.MustGetenv(awsRegionEnvVar),
-		AWSRoleARN: roleARN,
+		Database:       database,
+		AWSRegion:      envtools.MustGetenv(awsRegionEnvVar),
+		AWSRoleARN:     roleARN,
+		IgnoredDevices: ignoredDevices,
 	})
 	mux.Handle("/query", gqlHandler)
 	if envtools.IsTruthy(debugGraphQLPlaygroundEnvVar) {

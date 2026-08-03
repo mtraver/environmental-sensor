@@ -9,7 +9,8 @@ import (
 )
 
 type Resolver struct {
-	Database   database.Database
-	AWSRegion  string
-	AWSRoleARN string
+	Database       database.Database
+	AWSRegion      string
+	AWSRoleARN     string
+	IgnoredDevices map[string]struct{}
 }

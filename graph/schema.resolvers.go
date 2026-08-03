@@ -11,6 +11,7 @@ import (
 	"github.com/mtraver/environmental-sensor/device"
 	"github.com/mtraver/environmental-sensor/graph/model"
 	"github.com/mtraver/environmental-sensor/measurement"
+	"github.com/mtraver/environmental-sensor/util"
 )
 
 // Measurements is the resolver for the measurements field.
@@ -55,6 +56,11 @@ func (r *queryResolver) Latest(ctx context.Context) ([]*model.Measurement, error
 	if err != nil {
 		return nil, err
 	}
+
+	ids = util.FilterInPlace(ids, func(id string) bool {
+		_, ok := r.IgnoredDevices[id]
+		return !ok
+	})
 
 	latest, err := r.Database.Latest(ctx, ids)
 	if err != nil {

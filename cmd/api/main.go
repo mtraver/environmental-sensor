@@ -109,7 +109,7 @@ func main() {
 		log.Printf("On GCE and $%s is not set. Fetching devices will probably fail.", awsRoleARNEnvVar)
 	}
 
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, nil)
+	database, err := db.NewDatastoreDB(projectID, datastoreKind)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}

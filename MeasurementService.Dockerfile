@@ -9,7 +9,6 @@ COPY go.* ./
 RUN go mod download
 
 COPY aqi aqi/
-COPY cache cache/
 COPY cmd/api api/
 COPY device device/
 COPY federatedidentity federatedidentity/

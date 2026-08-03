@@ -15,7 +15,6 @@ RUN go mod download
 
 # Copy in code.
 COPY aqi aqi/
-COPY cache cache/
 COPY database database/
 COPY device device/
 COPY federatedidentity federatedidentity/

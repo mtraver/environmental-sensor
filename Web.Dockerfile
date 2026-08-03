@@ -23,6 +23,7 @@ COPY measurement measurement/
 COPY measurementpb measurementpb/
 COPY measurementpbutil measurementpbutil/
 COPY metric metric/
+COPY util util/
 COPY web web/
 
 RUN mkdir out

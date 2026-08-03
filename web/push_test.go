@@ -11,49 +11,43 @@ import (
 func TestShouldIgnoreID(t *testing.T) {
 	cases := []struct {
 		name     string
-		ignored  []string
+		ignored  map[string]struct{}
 		deviceID string
 		want     bool
 	}{
 		{
 			name:     "empty",
-			ignored:  []string{},
+			ignored:  map[string]struct{}{},
 			deviceID: "orange",
 			want:     false,
 		},
 		{
 			name:     "empty_str",
-			ignored:  []string{""},
+			ignored:  map[string]struct{}{"": struct{}{}},
 			deviceID: "orange",
 			want:     false,
 		},
 		{
 			name:     "allow",
-			ignored:  []string{"kiwi"},
+			ignored:  map[string]struct{}{"kiwi": struct{}{}},
 			deviceID: "orange",
 			want:     false,
 		},
 		{
 			name:     "allow_multiple",
-			ignored:  []string{"strawberry", "blueberry"},
+			ignored:  map[string]struct{}{"strawberry": struct{}{}, "blueberry": struct{}{}},
 			deviceID: "orange",
 			want:     false,
 		},
 		{
 			name:     "ignore",
-			ignored:  []string{"orange"},
-			deviceID: "orange",
-			want:     true,
-		},
-		{
-			name:     "ignore_substr",
-			ignored:  []string{"ran"},
+			ignored:  map[string]struct{}{"orange": struct{}{}},
 			deviceID: "orange",
 			want:     true,
 		},
 		{
 			name:     "ignore_multiple",
-			ignored:  []string{"kiwi", "strawberry", "ran"},
+			ignored:  map[string]struct{}{"kiwi": struct{}{}, "strawberry": struct{}{}, "orange": struct{}{}},
 			deviceID: "orange",
 			want:     true,
 		},
@@ -73,37 +67,37 @@ func TestShouldIgnoreID(t *testing.T) {
 func TestShouldIgnoreSource(t *testing.T) {
 	cases := []struct {
 		name    string
-		ignored []string
+		ignored map[string]struct{}
 		source  string
 		want    bool
 	}{
 		{
 			name:    "empty",
-			ignored: []string{},
+			ignored: map[string]struct{}{},
 			source:  "AWS",
 			want:    false,
 		},
 		{
 			name:    "empty_str",
-			ignored: []string{""},
+			ignored: map[string]struct{}{"": struct{}{}},
 			source:  "AWS",
 			want:    false,
 		},
 		{
 			name:    "allow",
-			ignored: []string{"my_source"},
+			ignored: map[string]struct{}{"my_source": struct{}{}},
 			source:  "AWS",
 			want:    false,
 		},
 		{
 			name:    "allow_multiple",
-			ignored: []string{"my_source", "my_src_2"},
+			ignored: map[string]struct{}{"my_source": struct{}{}, "my_src_2": struct{}{}},
 			source:  "AWS",
 			want:    false,
 		},
 		{
 			name:    "ignore",
-			ignored: []string{"AWS"},
+			ignored: map[string]struct{}{"AWS": struct{}{}},
 			source:  "AWS",
 			want:    true,
 		},
@@ -150,10 +144,10 @@ func TestUnmarshalPushRequest(t *testing.T) {
 
 	var got pushRequest
 	if err := json.Unmarshal([]byte(req), &got); err != nil {
-		t.Fatalf("Failed to unmarshal: %v", err)
+		t.Fatalf("failed to unmarshal: %v", err)
 	}
 
 	if diff := cmp.Diff(got, want); diff != "" {
-		t.Fatalf("Unexpected result (-got +want):\n%s", diff)
+		t.Fatalf("mismatch (-got +want):\n%s", diff)
 	}
 }

@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"maps"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/mtraver/environmental-sensor/graph"
+	"github.com/mtraver/environmental-sensor/util"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/envtools"
 	"github.com/mtraver/gaelog"
@@ -20,13 +23,14 @@ import (
 const (
 	datastoreKind = "measurement"
 
-	// A comma-separated string of device IDs to ignore. Devices pushing data will be checked
-	// for whether their IDs contain any of the strings specified in this env var.
+	// A comma-separated string of device IDs to ignore. Incoming measurements
+	// will be checked for a device ID matching any of the strings specified in
+	// this env var.
 	ignoredDevicesEnvVar = "IGNORED_DEVICES"
 
-	// A comma-separated string of Pub/Sub "source" attributes to ignore. Incoming Pub/Sub
-	// messages will be checked for a "source" attribute matching any of the strings specified
-	// in this env var.
+	// A comma-separated string of Pub/Sub "source" attributes to ignore. Incoming
+	// Pub/Sub messages will be checked for a "source" attribute matching any of
+	// the strings specified in this env var.
 	ignoredSourcesEnvVar = "IGNORED_SOURCES"
 
 	// awsRoleARNEnvVar is the name of the env var that should contain the ARN of the
@@ -44,16 +48,6 @@ const (
 	debugGraphQLPlaygroundEnvVar = "DEBUG_GQL_PLAYGROUND"
 	graphQLPlaygroundURL         = "/debug/graphql"
 )
-
-func filter[T any](s []T, test func(T) bool) []T {
-	ret := []T{}
-	for _, e := range s {
-		if test(e) {
-			ret = append(ret, e)
-		}
-	}
-	return ret
-}
 
 func main() {
 	// Get the project ID from the metadata service if possible, and fall back to
@@ -76,6 +70,18 @@ func main() {
 	roleARN := os.Getenv(awsRoleARNEnvVar)
 	if roleARN == "" && onGCE {
 		log.Printf("On GCE and $%s is not set. Fetching devices will probably fail.", awsRoleARNEnvVar)
+	}
+
+	ignoredDevices := stringListToSet(os.Getenv(ignoredDevicesEnvVar))
+	if len(ignoredDevices) > 0 {
+		log.Printf("%s is set to %q. Will ignore devices with IDs: %v",
+			ignoredDevicesEnvVar, os.Getenv(ignoredDevicesEnvVar), slices.Collect(maps.Keys(ignoredDevices)))
+	}
+
+	ignoredSources := stringListToSet(os.Getenv(ignoredSourcesEnvVar))
+	if len(ignoredSources) > 0 {
+		log.Printf("%s is set to %q. Will ignore messages with \"source\" attribute equal to any of these strings: %v",
+			ignoredSourcesEnvVar, os.Getenv(ignoredSourcesEnvVar), slices.Collect(maps.Keys(ignoredSources)))
 	}
 
 	// The path to the templates is relative to go.mod, as that's how they are placed in the Docker image.
@@ -125,20 +131,6 @@ func main() {
 		Template: templates,
 	})
 
-	ignoredDevices := strings.Split(os.Getenv(ignoredDevicesEnvVar), ",")
-	ignoredDevices = filter(ignoredDevices, func(s string) bool { return s != "" })
-	if len(ignoredDevices) > 0 {
-		log.Printf("%s is set to %q. Will ignore devices with IDs containing these strings: %v",
-			ignoredDevicesEnvVar, os.Getenv(ignoredDevicesEnvVar), ignoredDevices)
-	}
-
-	ignoredSources := strings.Split(os.Getenv(ignoredSourcesEnvVar), ",")
-	ignoredSources = filter(ignoredSources, func(s string) bool { return s != "" })
-	if len(ignoredSources) > 0 {
-		log.Printf("%s is set to %q. Will ignore messages with \"source\" attribute equal to any of these strings: %v",
-			ignoredSourcesEnvVar, os.Getenv(ignoredSourcesEnvVar), ignoredSources)
-	}
-
 	mux.Handle("/push-handlers/telemetry", pushHandler{
 		PubSubToken:    envtools.MustGetenv("PUBSUB_VERIFICATION_TOKEN"),
 		PubSubAudience: envtools.MustGetenv("PUBSUB_AUDIENCE"),
@@ -172,4 +164,12 @@ func stripTrailingSlash(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func stringListToSet(s string) map[string]struct{} {
+	items := util.FilterInPlace(strings.Split(s, ","), func(v string) bool {
+		return v != ""
+	})
+
+	return util.SliceToSet(items)
 }

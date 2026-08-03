@@ -15,6 +15,7 @@ COPY federatedidentity federatedidentity/
 COPY measurement measurement/
 COPY measurementpb measurementpb/
 COPY metric metric/
+COPY util util/
 COPY web web/
 
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o serve api/main.go

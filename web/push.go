@@ -38,8 +38,8 @@ type pushHandler struct {
 	PubSubAudience string
 	Database       database.Database
 	InfluxDB       *db.InfluxDB
-	IgnoredDevices []string
-	IgnoredSources []string
+	IgnoredDevices map[string]struct{}
+	IgnoredSources map[string]struct{}
 }
 
 // authenticate validates the JWT signed by Pub/Sub.
@@ -69,13 +69,8 @@ func (h pushHandler) authenticate(ctx context.Context, r *http.Request) error {
 }
 
 func (h pushHandler) shouldIgnoreID(deviceID string) bool {
-	for _, idPart := range h.IgnoredDevices {
-		if idPart != "" && strings.Contains(deviceID, idPart) {
-			return true
-		}
-	}
-
-	return false
+	_, ok := h.IgnoredDevices[deviceID]
+	return ok
 }
 
 func (h pushHandler) shouldIgnoreSource(src string) bool {
@@ -83,13 +78,8 @@ func (h pushHandler) shouldIgnoreSource(src string) bool {
 		return false
 	}
 
-	for _, s := range h.IgnoredSources {
-		if s == src {
-			return true
-		}
-	}
-
-	return false
+	_, ok := h.IgnoredSources[src]
+	return ok
 }
 
 func (h pushHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

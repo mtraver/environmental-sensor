@@ -11,7 +11,10 @@
     <h1>/cachez</h1>
     <p><a href="/">home</a></p>
 
-    <p>{{ .Hits }} / {{ .Total }}</p>
+    <p>Hit ratio: {{ .HitRatio }}</p>
+    <p>Hits: {{ .Hits }}</p>
+    <p>Misses: {{ .Misses }}</p>
+    <p>Evictions: {{ .Evictions }}</p>
   </body>
 </html>
 {{ end }}

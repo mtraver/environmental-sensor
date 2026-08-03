@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/maypok86/otter/v2/stats"
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
 )
@@ -14,4 +15,5 @@ type Database interface {
 	DelayedSince(ctx context.Context, startTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	Between(ctx context.Context, startTime time.Time, endTime time.Time) (map[string][]measurement.StorableMeasurement, error)
 	Latest(ctx context.Context, deviceIDs []string) (map[string]measurement.StorableMeasurement, error)
+	CacheStats() stats.Stats
 }

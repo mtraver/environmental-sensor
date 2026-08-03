@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/iterator"
-
+	"github.com/maypok86/otter/v2"
+	"github.com/maypok86/otter/v2/stats"
 	"github.com/mtraver/environmental-sensor/measurement"
 	mpb "github.com/mtraver/environmental-sensor/measurementpb"
-	cachepkg "github.com/mtraver/environmental-sensor/web/cache"
+	"google.golang.org/api/iterator"
 )
 
 const (
@@ -33,11 +33,19 @@ type datastoreDB struct {
 	projectID   string
 	kind        string
 	client      *datastore.Client
-	latestCache cachepkg.Cache
+	latestCache *otter.Cache[string, *mpb.Measurement]
 }
 
-func NewDatastoreDB(projectID string, kind string, c cachepkg.Cache) (*datastoreDB, error) {
+func NewDatastoreDB(projectID string, kind string) (*datastoreDB, error) {
 	client, err := datastore.NewClient(context.Background(), projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := otter.New(&otter.Options[string, *mpb.Measurement]{
+		MaximumSize:   1_000,
+		StatsRecorder: stats.NewCounter(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +54,7 @@ func NewDatastoreDB(projectID string, kind string, c cachepkg.Cache) (*datastore
 		projectID:   projectID,
 		kind:        kind,
 		client:      client,
-		latestCache: c,
+		latestCache: cache,
 	}, nil
 }
 
@@ -73,7 +81,7 @@ func (db *datastoreDB) Save(ctx context.Context, m *mpb.Measurement) error {
 
 	// Each device has a cache entry for its latest value. Update it.
 	if db.latestCache != nil && err == nil {
-		db.latestCache.Set(ctx, cacheKeyLatest(m.DeviceId), m)
+		db.latestCache.Set(cacheKeyLatest(m.DeviceId), m)
 	}
 
 	return err
@@ -197,14 +205,12 @@ func (db *datastoreDB) latestFromCache(ctx context.Context, deviceID string) (sm
 		return sm, false, nil
 	}
 
-	m, err := db.latestCache.Get(ctx, cacheKeyLatest(deviceID))
-	if errors.Is(err, cachepkg.ErrCacheMiss) {
+	entry, ok := db.latestCache.GetEntry(cacheKeyLatest(deviceID))
+	if !ok {
 		return sm, false, nil
-	} else if err != nil {
-		return sm, false, err
 	}
 
-	sm, err = measurement.NewStorableMeasurement(m)
+	sm, err = measurement.NewStorableMeasurement(entry.Value)
 	if err != nil {
 		return sm, false, err
 	}
@@ -238,5 +244,10 @@ func (db *datastoreDB) cacheLatest(ctx context.Context, deviceID string, sm meas
 		return err
 	}
 
-	return db.latestCache.Add(ctx, cacheKeyLatest(deviceID), m)
+	db.latestCache.Set(cacheKeyLatest(deviceID), m)
+	return nil
+}
+
+func (db *datastoreDB) CacheStats() stats.Stats {
+	return db.latestCache.Stats()
 }

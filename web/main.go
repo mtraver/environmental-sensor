@@ -12,7 +12,6 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/mtraver/environmental-sensor/graph"
-	"github.com/mtraver/environmental-sensor/web/cache"
 	"github.com/mtraver/environmental-sensor/web/db"
 	"github.com/mtraver/envtools"
 	"github.com/mtraver/gaelog"
@@ -82,8 +81,7 @@ func main() {
 	// The path to the templates is relative to go.mod, as that's how they are placed in the Docker image.
 	templates := template.Must(template.New("index.html").Option("missingkey=error").ParseGlob("web/templates/*"))
 
-	cacheImpl := cache.NewLocal()
-	database, err := db.NewDatastoreDB(projectID, datastoreKind, &cacheImpl)
+	database, err := db.NewDatastoreDB(projectID, datastoreKind)
 	if err != nil {
 		log.Fatalf("Failed to make datastore DB: %v", err)
 	}
@@ -123,7 +121,7 @@ func main() {
 	})
 
 	mux.Handle("/debug/cachez", cachezHandler{
-		Cache:    &cacheImpl,
+		Database: database,
 		Template: templates,
 	})
 

@@ -75,7 +75,7 @@ export function Layout({
 export default function App(): JSX.Element {
   return (
     <Container pt="md" pb="lg">
-      <Title order={1} ta="center" mb="md">
+      <Title order={2} ta="center" mb="md">
         Environmental Monitor
       </Title>
 

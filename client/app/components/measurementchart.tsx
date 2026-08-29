@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import {
   Button,
   Center,
@@ -155,7 +156,28 @@ export function MeasurementChart({
   measurements: Measurement[];
   loading?: boolean;
 }): JSX.Element {
-  const [metric, setMetric] = useState<MetricKey>(DEFAULT_METRIC);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const requestedMetric = searchParams.get("metric");
+  const metric: MetricKey =
+    requestedMetric &&
+    (METRIC_ORDER as readonly string[]).includes(requestedMetric)
+      ? (requestedMetric as MetricKey)
+      : DEFAULT_METRIC;
+
+  const setMetric = useCallback(
+    (m: MetricKey) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("metric", m);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const dataByDevice = useMeasurements(measurements);
 

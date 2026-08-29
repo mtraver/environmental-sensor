@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 
+const urlParamTimeFormat = "yyyyMMdd'T'HHmmss'Z'";
+
 const RTF = new Intl.RelativeTimeFormat("en", {
   numeric: "auto",
   style: "narrow",
@@ -22,6 +24,17 @@ export function formatDate(ts: number, narrow = false): string {
   }
 
   return d.toFormat(isCurrentYear ? "MMM dd HH:mm" : "MMM dd, yyyy HH:mm");
+}
+
+export function formatDateForURLParams(ms: number): string {
+  const d = DateTime.fromMillis(ms, { zone: "utc" });
+  return d.toFormat(urlParamTimeFormat);
+}
+
+export function parseDateFromURLParams(ts: string): number {
+  return DateTime.fromFormat(ts, urlParamTimeFormat, {
+    zone: "utc",
+  }).toMillis();
 }
 
 export function parseRelativeTime(input: string): number | null {

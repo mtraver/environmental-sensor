@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router";
 import { gql } from "@apollo/client";
 import type { TypedDocumentNode } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
@@ -17,6 +18,11 @@ import type {
   LatestQuery,
   MeasurementFieldsFragment,
 } from "../types/__generated__/graphql.ts";
+import {
+  formatDateForURLParams,
+  parseDateFromURLParams,
+  parseRelativeTime,
+} from "../lib/time";
 import { LatestMeasurementsTable } from "../components/latestmeasurementstable";
 import { MeasurementChart } from "../components/measurementchart";
 import type { TimeRange } from "../components/timerangeselector";
@@ -67,8 +73,62 @@ const DEFAULT_TIME_RANGE: TimeRange = {
   label: "12h",
 };
 
+function timeRangeToParams(range: TimeRange): Record<string, string> {
+  if (range.type === "relative") {
+    return { range: range.label };
+  }
+
+  return {
+    from: formatDateForURLParams(range.from),
+    to: formatDateForURLParams(range.to),
+  };
+}
+
+function timeRangeFromParams(params: URLSearchParams): TimeRange | null {
+  const from = params.get("from");
+  const to = params.get("to");
+  if (from && to) {
+    const fromMs = parseDateFromURLParams(from);
+    const toMs = parseDateFromURLParams(to);
+    if (!Number.isNaN(fromMs) && !Number.isNaN(toMs)) {
+      return { type: "absolute", from: fromMs, to: toMs };
+    }
+  }
+
+  const range = params.get("range");
+  if (range) {
+    const ms = parseRelativeTime(range);
+    if (ms !== null) {
+      return { type: "relative", ms, label: range };
+    }
+  }
+
+  return null;
+}
+
 export default function Index(): JSX.Element {
-  const [timeRange, setTimeRange] = useState<TimeRange>(DEFAULT_TIME_RANGE);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const timeRange: TimeRange =
+    timeRangeFromParams(searchParams) ?? DEFAULT_TIME_RANGE;
+
+  const setTimeRange = useCallback(
+    (range: TimeRange) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete("range");
+          next.delete("from");
+          next.delete("to");
+          for (const [k, v] of Object.entries(timeRangeToParams(range))) {
+            next.set(k, v);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   const queryParams = useMemo(() => {
     if (timeRange.type === "absolute") {

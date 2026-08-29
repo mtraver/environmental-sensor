@@ -63,7 +63,9 @@ export function Layout({
       </head>
       <body>
         <ApolloProvider client={client}>
-          <MantineProvider theme={theme}>{children}</MantineProvider>
+          <MantineProvider theme={theme} defaultColorScheme="auto">
+            {children}
+          </MantineProvider>
         </ApolloProvider>
         <ScrollRestoration />
         <Scripts />

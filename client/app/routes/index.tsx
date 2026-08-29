@@ -108,8 +108,10 @@ function timeRangeFromParams(params: URLSearchParams): TimeRange | null {
 
 export default function Index(): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const timeRange: TimeRange =
-    timeRangeFromParams(searchParams) ?? DEFAULT_TIME_RANGE;
+  const timeRange: TimeRange = useMemo(
+    () => timeRangeFromParams(searchParams) ?? DEFAULT_TIME_RANGE,
+    [searchParams],
+  );
 
   const setTimeRange = useCallback(
     (range: TimeRange) => {

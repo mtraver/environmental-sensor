@@ -69,6 +69,6 @@
     "minimatch": "^10.2.6"
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.2": true
   }
 }

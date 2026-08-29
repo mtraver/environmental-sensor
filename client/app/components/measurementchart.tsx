@@ -297,6 +297,10 @@ export function MeasurementChart({
           legendProps={{
             verticalAlign: "bottom",
           }}
+          withBrush
+          brushProps={{
+            tickFormatter: formatTimeTick,
+          }}
         />
 
         {loading && (

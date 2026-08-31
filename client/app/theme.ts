@@ -4,6 +4,7 @@ import {
   defaultVariantColorsResolver,
   parseThemeColor,
   rgba,
+  Table,
 } from "@mantine/core";
 import type { VariantColorsResolver } from "@mantine/core";
 
@@ -29,4 +30,13 @@ const variantColorResolver: VariantColorsResolver = (input) => {
 export const theme = createTheme({
   fontFamily: "Open Sans, sans-serif",
   variantColorResolver: variantColorResolver,
+  components: {
+    Table: Table.extend({
+      defaultProps: {
+        // The default stripedColor in dark mode lacks contrast, so set the colors manually.
+        stripedColor:
+          "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5))",
+      },
+    }),
+  },
 });

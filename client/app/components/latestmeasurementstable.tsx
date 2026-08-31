@@ -91,7 +91,7 @@ export function LatestMeasurementsTable({
   return (
     <div style={{ position: "relative" }}>
       <ScrollArea>
-        <Table striped highlightOnHover miw={890}>
+        <Table striped="odd" miw={890}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th className={classes.stickyColumn}>Device</Table.Th>

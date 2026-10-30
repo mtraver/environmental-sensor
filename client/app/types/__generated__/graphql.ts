@@ -1,10 +1,9 @@
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
@@ -48,8 +47,8 @@ export type QueryMeasurementsArgs = {
 export type MeasurementFieldsFragment = { __typename: 'Measurement', deviceId: string, timestamp: string, uploadTimestamp: string, temp: number | null, pm1: number | null, pm25: number | null, pm4: number | null, pm10: number | null, aqi: number | null, rh: number | null, co2: number | null, vocIndex: number | null, noxIndex: number | null, hcho: number | null };
 
 export type GetMeasurementsQueryVariables = Exact<{
-  startTime: Scalars['DateTime']['input'];
-  endTime?: InputMaybe<Scalars['DateTime']['input']>;
+  startTime: string;
+  endTime?: string | null | undefined;
 }>;
 
 
